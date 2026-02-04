@@ -78,6 +78,16 @@ video {
 	width: 50%;
 }
 
+.game-title {
+	margin: 0 auto 12px;
+	font-family: "Garamond", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+	font-size: 32px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	color: #f2e6d2;
+	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
 /* Tenuki board basic styling (package doesn't ship CSS) */
 .tenuki-board {
 	background: #d8b27a;
