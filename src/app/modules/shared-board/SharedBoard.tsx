@@ -32,8 +32,8 @@ export const SharedBoard = () => {
 					}
 					return undefined
 				},
-				gameIsOver: () => gameRef.current?.isOver() ?? false,
-			},
+				gameIsOver: () => gameRef.current?.isOver() ?? false
+			}
 		})
 		gameRef.current = game
 
@@ -50,13 +50,10 @@ export const SharedBoard = () => {
 
 	return (
 		<div>
-			<div className="game-title">MINI WEIQI</div>
-			<br />
 			<div
 				ref={boardRef}
 				className="tenuki-board"
 				data-include-coordinates="true"
-				style={{ width: 552, height: 552, margin: '0 auto' }}
 			/>
 		</div>
 	)

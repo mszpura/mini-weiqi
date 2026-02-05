@@ -80,7 +80,7 @@ video {
 
 .game-title {
 	margin: 0 auto 12px;
-	font-family: "Garamond", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
 	font-size: 32px;
 	letter-spacing: 0.18em;
 	text-transform: uppercase;
@@ -97,22 +97,31 @@ video {
 	border: 1px solid rgba(242, 230, 210, 0.55);
 	background: linear-gradient(135deg, #5c3b1f 0%, #b07a3a 55%, #e1b56d 100%);
 	color: #f8f1e5;
-	font-family: "Garamond", "Palatino Linotype", "Book Antiqua", "Times New Roman", serif;
+	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
 	font-size: 16px;
 	letter-spacing: 0.14em;
 	text-transform: uppercase;
-	box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+	box-shadow:
+		0 10px 18px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.2);
 	cursor: pointer;
-	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
 }
 .menu-button:hover {
 	transform: translateY(-1px);
-	box-shadow: 0 14px 22px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+	box-shadow:
+		0 14px 22px rgba(0, 0, 0, 0.3),
+		inset 0 1px 0 rgba(255, 255, 255, 0.25);
 	border-color: rgba(242, 230, 210, 0.85);
 }
 .menu-button:active {
 	transform: translateY(0);
-	box-shadow: 0 8px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+	box-shadow:
+		0 8px 14px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 .discord-user-label {
 	margin-bottom: 10px;
@@ -127,6 +136,7 @@ video {
 	background: #d8b27a;
 	border: 1px solid #3a2a1a;
 	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+	width: 520px;
 }
 .tenuki-board svg {
 	display: block;
