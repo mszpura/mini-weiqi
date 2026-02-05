@@ -1,5 +1,5 @@
 import { DiscordContextProvider } from '../hooks/useDiscordSdk'
-import { Activity } from './Activity'
+import { Menu } from './Menu'
 import { SyncContextProvider } from '@robojs/sync'
 import './App.css'
 
@@ -16,7 +16,7 @@ export default function App() {
 	return (
 		<DiscordContextProvider>
 			<SyncContextProvider>
-				<Activity />
+				<Menu />
 			</SyncContextProvider>
 		</DiscordContextProvider>
 	)
