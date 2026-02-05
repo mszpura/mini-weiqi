@@ -1,7 +1,7 @@
 import { DiscordContextProvider } from '../hooks/useDiscordSdk'
-import { Menu } from './Menu'
 import { SyncContextProvider } from '@robojs/sync'
 import './App.css'
+import { Menu } from './modules/menu/Menu'
 
 /**
  * 🔒 Set `authenticate` to true to enable Discord authentication
@@ -14,7 +14,7 @@ import './App.css'
  */
 export default function App() {
 	return (
-		<DiscordContextProvider>
+		<DiscordContextProvider authenticate scope={['identify', 'guilds']}>
 			<SyncContextProvider>
 				<Menu />
 			</SyncContextProvider>

@@ -87,6 +87,9 @@ video {
 	color: #f2e6d2;
 	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
+.discord-user-label {
+	margin-bottom: 10px;
+}
 
 /* Tenuki board basic styling (package doesn't ship CSS) */
 .tenuki-board {
