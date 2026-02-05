@@ -49,7 +49,7 @@ export const SharedBoard = () => {
 	}, [])
 
 	return (
-		<div>
+		<div className="shared-board">
 			<div
 				ref={boardRef}
 				className="tenuki-board"

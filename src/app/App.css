@@ -132,11 +132,19 @@ video {
 }
 
 /* Tenuki board basic styling (package doesn't ship CSS) */
+.shared-board {
+	min-height: 100vh;
+	min-height: 100svh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
 .tenuki-board {
 	background: #d8b27a;
 	border: 1px solid #3a2a1a;
 	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-	width: 520px;
+	width: min(100vw, 100vh);
+	height: min(100vw, 100vh);
 }
 .tenuki-board svg {
 	display: block;
