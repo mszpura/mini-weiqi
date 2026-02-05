@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
 
-export const Activity = () => {
+export const SharedBoard = () => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
 
