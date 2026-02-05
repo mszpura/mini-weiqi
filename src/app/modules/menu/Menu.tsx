@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useDiscordSdk } from '../../../hooks/useDiscordSdk'
 
-export const Menu = () => {
+type MenuProps = {
+	onSharedGame?: () => void
+}
+
+export const Menu = ({ onSharedGame }: MenuProps) => {
 	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
 	const username = user?.username || 'Guest'
@@ -40,7 +44,7 @@ export const Menu = () => {
 	return (
 		<div>
 			<div className="game-title">MINI WEIQI</div>
-			<button className="menu-button shared-game-button" type="button">
+			<button className="menu-button shared-game-button" type="button" onClick={onSharedGame}>
 				Shared Game
 			</button>
 			{channelName ? <div className="discord-channel">Channel: {channelName}</div> : null}

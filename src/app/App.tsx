@@ -1,7 +1,8 @@
-import { DiscordContextProvider } from '../hooks/useDiscordSdk'
-import { SyncContextProvider } from '@robojs/sync'
+import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
+import { SyncContextProvider, useSyncState } from '@robojs/sync'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
+import { SharedBoard } from './modules/shared-board/SharedBoard'
 
 /**
  * 🔒 Set `authenticate` to true to enable Discord authentication
@@ -16,8 +17,20 @@ export default function App() {
 	return (
 		<DiscordContextProvider authenticate scope={['identify', 'guilds']}>
 			<SyncContextProvider>
-				<Menu />
+				<AppContent />
 			</SyncContextProvider>
 		</DiscordContextProvider>
 	)
+}
+
+function AppContent() {
+	const { discordSdk } = useDiscordSdk()
+	const channelKey = discordSdk?.channelId ?? 'local'
+	const [showSharedBoard, setShowSharedBoard] = useSyncState(false, ['shared-board', channelKey])
+
+	if (showSharedBoard) {
+		return <SharedBoard />
+	}
+
+	return <Menu onSharedGame={() => setShowSharedBoard(true)} />
 }
