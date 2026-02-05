@@ -1,17 +1,49 @@
+import { useEffect, useState } from 'react'
 import { useDiscordSdk } from '../../../hooks/useDiscordSdk'
 
 export const Menu = () => {
-	const { session } = useDiscordSdk()
+	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
 	const username = user?.username || 'Guest'
-	const avatarUrl = user?.avatar
-		? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
-		: null
+	const avatarUrl = user?.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64` : null
+	const [channelName, setChannelName] = useState<string | null>(null)
+
+	useEffect(() => {
+		let cancelled = false
+
+		const loadChannelName = async () => {
+			if (!discordSdk?.channelId || !discordSdk?.commands?.getChannel) {
+				return
+			}
+
+			try {
+				const channel = await discordSdk.commands.getChannel({ channel_id: discordSdk.channelId })
+				if (!cancelled) {
+					setChannelName(channel?.name ?? null)
+				}
+			} catch {
+				if (!cancelled) {
+					setChannelName(null)
+				}
+			}
+		}
+
+		if (status === 'ready') {
+			void loadChannelName()
+		}
+
+		return () => {
+			cancelled = true
+		}
+	}, [discordSdk, status])
 
 	return (
 		<div>
 			<div className="game-title">MINI WEIQI</div>
-			<div className="discord-user-label">Connected players:</div>
+			<button className="menu-button shared-game-button" type="button">
+				Shared Game
+			</button>
+			{channelName ? <div className="discord-channel">Channel: {channelName}</div> : null}
 			<div className="discord-user">
 				{avatarUrl ? (
 					<img className="discord-avatar" src={avatarUrl} alt={`${username} avatar`} />
