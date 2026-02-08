@@ -20,6 +20,7 @@ export default function App() {
 function AppContent() {
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
+	const isLocalChannel = channelKey === 'local'
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, ['game-board', channelKey])
 	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
 	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', ['game-mode', channelKey])
@@ -39,11 +40,13 @@ function AppContent() {
 	const isSeated = currentPlayer?.id === blackPlayer?.id || currentPlayer?.id === whitePlayer?.id
 
 	const handleJoinBlack = () => {
+		if (isLocalChannel) return
 		if (!currentPlayer || blackPlayer || isSeated) return
 		setBlackPlayer(currentPlayer)
 	}
 
 	const handleJoinWhite = () => {
+		if (isLocalChannel) return
 		if (!currentPlayer || whitePlayer || isSeated) return
 		if (!blackPlayer) {
 			setBlackPlayer(currentPlayer)
@@ -71,6 +74,7 @@ function AppContent() {
 				gameMode={gameMode}
 				moves={moves}
 				onPlayMove={handlePlayMove}
+				disableJoinButtons={isLocalChannel}
 			/>
 		)
 	}
