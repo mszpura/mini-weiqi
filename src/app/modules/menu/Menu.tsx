@@ -10,9 +10,10 @@ type MenuProps = {
 export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange }: MenuProps) => {
 	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
-	const username = user?.username || 'Guest'
+	const username = user?.username || 'Logged as Guest'
 	const avatarUrl = user?.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64` : null
 	const [channelName, setChannelName] = useState<string | null>(null)
+	const [gameMode, setGameMode] = useState('normal')
 
 	useEffect(() => {
 		let cancelled = false
@@ -47,6 +48,19 @@ export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange }: MenuProps) 
 		<div>
 			<div className="game-title">MINI WEIQI</div>
 			<form className="menu-form" aria-label="Add form">
+				<label className="menu-form-field">
+					<span className="menu-form-label">Game Mode</span>
+					<select
+						className="menu-form-select"
+						name="gameMode"
+						value={gameMode}
+						onChange={(event) => setGameMode(event.target.value)}
+					>
+						<option value="normal">Normal Game</option>
+						<option value="rengo">Rengo</option>
+						<option value="shared">Shared Game</option>
+					</select>
+				</label>
 				<label className="menu-form-field">
 					<span className="menu-form-label">Board size</span>
 					<select

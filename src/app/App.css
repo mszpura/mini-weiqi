@@ -88,6 +88,9 @@ video {
 	text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 .menu-form {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
 	margin: 0 auto 14px;
 	padding: 12px 16px;
 	width: min(320px, 90vw);
