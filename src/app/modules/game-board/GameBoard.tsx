@@ -1,11 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
 
-type GameBoardProps = {
-	boardSize: number
+type PlayerSlot = {
+	id: string
+	username: string
+	avatar: string | null
 }
 
-export const GameBoard = ({ boardSize }: GameBoardProps) => {
+type GameBoardProps = {
+	boardSize: number
+	blackPlayer: PlayerSlot | null
+	whitePlayer: PlayerSlot | null
+	onJoinBlack: () => void
+	onJoinWhite: () => void
+}
+
+export const GameBoard = ({ boardSize, blackPlayer, whitePlayer, onJoinBlack, onJoinWhite }: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
 
@@ -54,11 +64,45 @@ export const GameBoard = ({ boardSize }: GameBoardProps) => {
 
 	return (
 		<div className="game-board">
-			<div
-				ref={boardRef}
-				className="tenuki-board"
-				data-include-coordinates="true"
-			/>
+			<div className="game-side-slot">
+				{blackPlayer ? (
+					<div className="player-avatar-wrap player-avatar-wrap--black">
+						{blackPlayer.avatar ? (
+							<img
+								className="player-avatar"
+								src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
+								alt={`${blackPlayer.username} avatar`}
+							/>
+						) : (
+							<div className="player-avatar placeholder" aria-hidden="true" />
+						)}
+					</div>
+				) : (
+					<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
+						Join as Black
+					</button>
+				)}
+			</div>
+			<div ref={boardRef} className="tenuki-board" data-include-coordinates="true" />
+			<div className="game-side-slot">
+				{whitePlayer ? (
+					<div className="player-avatar-wrap player-avatar-wrap--white">
+						{whitePlayer.avatar ? (
+							<img
+								className="player-avatar"
+								src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
+								alt={`${whitePlayer.username} avatar`}
+							/>
+						) : (
+							<div className="player-avatar placeholder" aria-hidden="true" />
+						)}
+					</div>
+				) : (
+					<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
+						Join as White
+					</button>
+				)}
+			</div>
 		</div>
 	)
 }

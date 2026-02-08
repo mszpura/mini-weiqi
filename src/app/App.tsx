@@ -4,6 +4,12 @@ import './App.css'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
 
+type PlayerSlot = {
+	id: string
+	username: string
+	avatar: string | null
+}
+
 /**
  * 🔒 Set `authenticate` to true to enable Discord authentication
  * You can also set the `scope` prop to request additional permissions
@@ -24,13 +30,41 @@ export default function App() {
 }
 
 function AppContent() {
-	const { discordSdk } = useDiscordSdk()
+	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, ['game-board', channelKey])
 	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
+	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, ['player-black', channelKey])
+	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
+	const user = session?.user
+	const currentPlayer = user
+		? {
+				id: user.id,
+				username: user.username,
+				avatar: user.avatar ?? null
+			}
+		: null
+
+	const handleJoinBlack = () => {
+		if (!currentPlayer || blackPlayer) return
+		setBlackPlayer(currentPlayer)
+	}
+
+	const handleJoinWhite = () => {
+		if (!currentPlayer || whitePlayer) return
+		setWhitePlayer(currentPlayer)
+	}
 
 	if (showGameBoard) {
-		return <GameBoard boardSize={boardSize} />
+		return (
+			<GameBoard
+				boardSize={boardSize}
+				blackPlayer={blackPlayer}
+				whitePlayer={whitePlayer}
+				onJoinBlack={handleJoinBlack}
+				onJoinWhite={handleJoinWhite}
+			/>
+		)
 	}
 
 	return (
