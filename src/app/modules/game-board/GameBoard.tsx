@@ -13,11 +13,24 @@ type GameBoardProps = {
 	whitePlayer: PlayerSlot | null
 	onJoinBlack: () => void
 	onJoinWhite: () => void
+	playerColor: 'black' | 'white' | null
 }
 
-export const GameBoard = ({ boardSize, blackPlayer, whitePlayer, onJoinBlack, onJoinWhite }: GameBoardProps) => {
+export const GameBoard = ({
+	boardSize,
+	blackPlayer,
+	whitePlayer,
+	onJoinBlack,
+	onJoinWhite,
+	playerColor
+}: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
+	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
+
+	useEffect(() => {
+		playerColorRef.current = playerColor
+	}, [playerColor])
 
 	useEffect(() => {
 		const boardElement = boardRef.current
@@ -35,6 +48,10 @@ export const GameBoard = ({ boardSize, blackPlayer, whitePlayer, onJoinBlack, on
 					if (g.isOver()) {
 						g.toggleDeadAt(y, x)
 					} else {
+						const activeColor = playerColorRef.current
+						if (!activeColor || g.currentPlayer() !== activeColor) {
+							return
+						}
 						g.playAt(y, x)
 					}
 				},

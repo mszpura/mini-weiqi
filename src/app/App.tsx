@@ -44,14 +44,21 @@ function AppContent() {
 				avatar: user.avatar ?? null
 			}
 		: null
+	const playerColor =
+		currentPlayer?.id === blackPlayer?.id ? 'black' : currentPlayer?.id === whitePlayer?.id ? 'white' : null
+	const isSeated = currentPlayer?.id === blackPlayer?.id || currentPlayer?.id === whitePlayer?.id
 
 	const handleJoinBlack = () => {
-		if (!currentPlayer || blackPlayer) return
+		if (!currentPlayer || blackPlayer || isSeated) return
 		setBlackPlayer(currentPlayer)
 	}
 
 	const handleJoinWhite = () => {
-		if (!currentPlayer || whitePlayer) return
+		if (!currentPlayer || whitePlayer || isSeated) return
+		if (!blackPlayer) {
+			setBlackPlayer(currentPlayer)
+			return
+		}
 		setWhitePlayer(currentPlayer)
 	}
 
@@ -63,6 +70,7 @@ function AppContent() {
 				whitePlayer={whitePlayer}
 				onJoinBlack={handleJoinBlack}
 				onJoinWhite={handleJoinWhite}
+				playerColor={playerColor}
 			/>
 		)
 	}
