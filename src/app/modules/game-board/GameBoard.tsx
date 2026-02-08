@@ -1,16 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
-
-type PlayerSlot = {
-	id: string
-	username: string
-	avatar: string | null
-}
-
-type GameMove = {
-	y: number
-	x: number
-}
+import type { GameMode, GameMove } from '../../models/game'
+import type { PlayerSlot } from '../../models/player'
 
 type GameBoardProps = {
 	boardSize: number
@@ -19,6 +10,7 @@ type GameBoardProps = {
 	onJoinBlack: () => void
 	onJoinWhite: () => void
 	playerColor: 'black' | 'white' | null
+	gameMode: GameMode
 	moves: GameMove[]
 	onPlayMove: (y: number, x: number) => void
 }
@@ -30,16 +22,22 @@ export const GameBoard = ({
 	onJoinBlack,
 	onJoinWhite,
 	playerColor,
+	gameMode,
 	moves,
 	onPlayMove
 }: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
 	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
+	const gameModeRef = useRef<GameMode>(gameMode)
 
 	useEffect(() => {
 		playerColorRef.current = playerColor
 	}, [playerColor])
+
+	useEffect(() => {
+		gameModeRef.current = gameMode
+	}, [gameMode])
 
 	useEffect(() => {
 		const boardElement = boardRef.current
@@ -54,10 +52,13 @@ export const GameBoard = ({
 					const g = gameRef.current
 					if (!g) return
 					if (g.isOver()) return
+					if (g.isIllegalAt(y, x)) return
 
-					const activeColor = playerColorRef.current
-					if (!activeColor || g.currentPlayer() !== activeColor || g.isIllegalAt(y, x)) {
-						return
+					if (gameModeRef.current !== 'shared') {
+						const activeColor = playerColorRef.current
+						if (!activeColor || g.currentPlayer() !== activeColor) {
+							return
+						}
 					}
 					onPlayMove(y, x)
 				},

@@ -1,30 +1,12 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
 import { useCallback } from 'react'
+import type { GameMode, GameMove } from './models/game'
+import type { PlayerSlot } from './models/player'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
 
-type PlayerSlot = {
-	id: string
-	username: string
-	avatar: string | null
-}
-
-type GameMove = {
-	y: number
-	x: number
-}
-
-/**
- * 🔒 Set `authenticate` to true to enable Discord authentication
- * You can also set the `scope` prop to request additional permissions
- *
- * Example:
- * ```tsx
- * <DiscordContextProvider authenticate scope={['identify', 'guilds']}>
- * ```
- */
 export default function App() {
 	return (
 		<DiscordContextProvider authenticate scope={['identify', 'guilds']}>
@@ -40,6 +22,7 @@ function AppContent() {
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, ['game-board', channelKey])
 	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
+	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', ['game-mode', channelKey])
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, ['player-black', channelKey])
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
 	const [moves, setMoves] = useSyncState<GameMove[]>([], ['game-moves', channelKey])
@@ -85,6 +68,7 @@ function AppContent() {
 				onJoinBlack={handleJoinBlack}
 				onJoinWhite={handleJoinWhite}
 				playerColor={playerColor}
+				gameMode={gameMode}
 				moves={moves}
 				onPlayMove={handlePlayMove}
 			/>
@@ -96,6 +80,8 @@ function AppContent() {
 			onSharedGame={() => setShowGameBoard(true)}
 			boardSize={boardSize}
 			onBoardSizeChange={setBoardSize}
+			gameMode={gameMode}
+			onGameModeChange={setGameMode}
 		/>
 	)
 }

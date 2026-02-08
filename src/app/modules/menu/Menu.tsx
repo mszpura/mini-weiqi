@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useDiscordSdk } from '../../../hooks/useDiscordSdk'
+import type { GameMode } from '../../models/game'
 
 type MenuProps = {
 	onSharedGame?: () => void
 	boardSize: number
 	onBoardSizeChange: (size: number) => void
+	gameMode: GameMode
+	onGameModeChange: (mode: GameMode) => void
 }
 
-export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange }: MenuProps) => {
+export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange, gameMode, onGameModeChange }: MenuProps) => {
 	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
 	const username = user?.username || 'Logged as Guest'
 	const avatarUrl = user?.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64` : null
 	const [channelName, setChannelName] = useState<string | null>(null)
-	const [gameMode, setGameMode] = useState('normal')
 
 	useEffect(() => {
 		let cancelled = false
@@ -54,7 +56,7 @@ export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange }: MenuProps) 
 						className="menu-form-select"
 						name="gameMode"
 						value={gameMode}
-						onChange={(event) => setGameMode(event.target.value)}
+						onChange={(event) => onGameModeChange(event.target.value as GameMode)}
 					>
 						<option value="normal">Normal Game</option>
 						<option value="rengo">Rengo</option>
