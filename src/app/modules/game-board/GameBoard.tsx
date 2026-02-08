@@ -1,7 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
 
-export const GameBoard = () => {
+type GameBoardProps = {
+	boardSize: number
+}
+
+export const GameBoard = ({ boardSize }: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
 
@@ -12,7 +16,7 @@ export const GameBoard = () => {
 		boardElement.innerHTML = ''
 		const game = new Game({
 			element: boardElement,
-			boardSize: 19,
+			boardSize,
 			_hooks: {
 				handleClick: (y, x) => {
 					console.log(`clicked: ${y},${x}`)
@@ -46,7 +50,7 @@ export const GameBoard = () => {
 			boardElement.innerHTML = ''
 			gameRef.current = null
 		}
-	}, [])
+	}, [boardSize])
 
 	return (
 		<div className="game-board">

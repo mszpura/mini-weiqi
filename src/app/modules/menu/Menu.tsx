@@ -3,9 +3,11 @@ import { useDiscordSdk } from '../../../hooks/useDiscordSdk'
 
 type MenuProps = {
 	onSharedGame?: () => void
+	boardSize: number
+	onBoardSizeChange: (size: number) => void
 }
 
-export const Menu = ({ onSharedGame }: MenuProps) => {
+export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange }: MenuProps) => {
 	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
 	const username = user?.username || 'Guest'
@@ -47,10 +49,15 @@ export const Menu = ({ onSharedGame }: MenuProps) => {
 			<form className="menu-form" aria-label="Add form">
 				<label className="menu-form-field">
 					<span className="menu-form-label">Board size</span>
-					<select className="menu-form-select" name="boardSize" defaultValue="9x9">
-						<option value="9x9">9x9</option>
-						<option value="13x13">13x13</option>
-						<option value="19x19">19x19</option>
+					<select
+						className="menu-form-select"
+						name="boardSize"
+						value={boardSize}
+						onChange={(event) => onBoardSizeChange(Number(event.target.value))}
+					>
+						<option value={9}>9x9</option>
+						<option value={13}>13x13</option>
+						<option value={19}>19x19</option>
 					</select>
 				</label>
 			</form>

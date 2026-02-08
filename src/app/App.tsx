@@ -27,10 +27,17 @@ function AppContent() {
 	const { discordSdk } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, ['game-board', channelKey])
+	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
 
 	if (showGameBoard) {
-		return <GameBoard />
+		return <GameBoard boardSize={boardSize} />
 	}
 
-	return <Menu onSharedGame={() => setShowGameBoard(true)} />
+	return (
+		<Menu
+			onSharedGame={() => setShowGameBoard(true)}
+			boardSize={boardSize}
+			onBoardSizeChange={setBoardSize}
+		/>
+	)
 }
