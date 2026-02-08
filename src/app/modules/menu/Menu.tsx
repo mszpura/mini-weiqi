@@ -44,8 +44,18 @@ export const Menu = ({ onSharedGame }: MenuProps) => {
 	return (
 		<div>
 			<div className="game-title">MINI WEIQI</div>
+			<form className="menu-form" aria-label="Add form">
+				<label className="menu-form-field">
+					<span className="menu-form-label">Board size</span>
+					<select className="menu-form-select" name="boardSize" defaultValue="9x9">
+						<option value="9x9">9x9</option>
+						<option value="13x13">13x13</option>
+						<option value="19x19">19x19</option>
+					</select>
+				</label>
+			</form>
 			<button className="menu-button shared-game-button" type="button" onClick={onSharedGame}>
-				Shared Game
+				Play
 			</button>
 			{channelName ? <div className="discord-channel">Channel: {channelName}</div> : null}
 			<div className="discord-user">

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
 
-export const SharedBoard = () => {
+export const GameBoard = () => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
 
@@ -49,7 +49,7 @@ export const SharedBoard = () => {
 	}, [])
 
 	return (
-		<div className="shared-board">
+		<div className="game-board">
 			<div
 				ref={boardRef}
 				className="tenuki-board"
