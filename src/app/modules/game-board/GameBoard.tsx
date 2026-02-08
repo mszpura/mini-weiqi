@@ -7,6 +7,11 @@ type PlayerSlot = {
 	avatar: string | null
 }
 
+type GameMove = {
+	y: number
+	x: number
+}
+
 type GameBoardProps = {
 	boardSize: number
 	blackPlayer: PlayerSlot | null
@@ -14,6 +19,8 @@ type GameBoardProps = {
 	onJoinBlack: () => void
 	onJoinWhite: () => void
 	playerColor: 'black' | 'white' | null
+	moves: GameMove[]
+	onPlayMove: (y: number, x: number) => void
 }
 
 export const GameBoard = ({
@@ -22,7 +29,9 @@ export const GameBoard = ({
 	whitePlayer,
 	onJoinBlack,
 	onJoinWhite,
-	playerColor
+	playerColor,
+	moves,
+	onPlayMove
 }: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
@@ -42,18 +51,15 @@ export const GameBoard = ({
 			boardSize,
 			_hooks: {
 				handleClick: (y, x) => {
-					console.log(`clicked: ${y},${x}`)
 					const g = gameRef.current
 					if (!g) return
-					if (g.isOver()) {
-						g.toggleDeadAt(y, x)
-					} else {
-						const activeColor = playerColorRef.current
-						if (!activeColor || g.currentPlayer() !== activeColor) {
-							return
-						}
-						g.playAt(y, x)
+					if (g.isOver()) return
+
+					const activeColor = playerColorRef.current
+					if (!activeColor || g.currentPlayer() !== activeColor || g.isIllegalAt(y, x)) {
+						return
 					}
+					onPlayMove(y, x)
 				},
 				hoverValue: (y, x) => {
 					const g = gameRef.current
@@ -66,6 +72,11 @@ export const GameBoard = ({
 				gameIsOver: () => gameRef.current?.isOver() ?? false
 			}
 		})
+
+		for (const move of moves) {
+			game.playAt(move.y, move.x)
+		}
+
 		gameRef.current = game
 
 		return () => {
@@ -77,7 +88,7 @@ export const GameBoard = ({
 			boardElement.innerHTML = ''
 			gameRef.current = null
 		}
-	}, [boardSize])
+	}, [boardSize, moves])
 
 	return (
 		<div className="game-board">

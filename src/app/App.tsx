@@ -1,5 +1,6 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
+import { useCallback } from 'react'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
@@ -8,6 +9,11 @@ type PlayerSlot = {
 	id: string
 	username: string
 	avatar: string | null
+}
+
+type GameMove = {
+	y: number
+	x: number
 }
 
 /**
@@ -36,6 +42,7 @@ function AppContent() {
 	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, ['player-black', channelKey])
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
+	const [moves, setMoves] = useSyncState<GameMove[]>([], ['game-moves', channelKey])
 	const user = session?.user
 	const currentPlayer = user
 		? {
@@ -62,6 +69,13 @@ function AppContent() {
 		setWhitePlayer(currentPlayer)
 	}
 
+	const handlePlayMove = useCallback(
+		(y: number, x: number) => {
+			setMoves((previousMoves) => [...previousMoves, { y, x }])
+		},
+		[setMoves]
+	)
+
 	if (showGameBoard) {
 		return (
 			<GameBoard
@@ -71,6 +85,8 @@ function AppContent() {
 				onJoinBlack={handleJoinBlack}
 				onJoinWhite={handleJoinWhite}
 				playerColor={playerColor}
+				moves={moves}
+				onPlayMove={handlePlayMove}
 			/>
 		)
 	}
