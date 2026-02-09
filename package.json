@@ -20,7 +20,8 @@
 		"web"
 	],
 	"scripts": {
-		"build": "robo build",
+		"build": "robo build && vite build --outDir .robo/public",
+		"build:web": "vite build --outDir .robo/public",
 		"deploy": "robo deploy",
 		"dev": "robox dev --tunnel",
 		"doctor": "sage doctor",
