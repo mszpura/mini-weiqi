@@ -48,7 +48,7 @@ export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange, gameMode, onG
 
 	return (
 		<div>
-			<div className="game-title">MINI WEIQI</div>
+			<img className="game-title" src="/logo.png" alt="Mini Weiqi" />
 			<form className="menu-form" aria-label="Add form">
 				<label className="menu-form-field">
 					<span className="menu-form-label">Game Mode</span>
