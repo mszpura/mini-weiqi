@@ -304,9 +304,28 @@ video {
 	border: 1px solid rgba(43, 33, 22, 0.22);
 }
 .tenuki-board {
-	background: #d8b27a;
-	border: 1px solid #3a2a1a;
-	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+	background-color: #d2a96f;
+	background-image:
+		linear-gradient(175deg, rgba(250, 236, 208, 0.3) 0%, rgba(154, 101, 53, 0.22) 100%),
+		repeating-linear-gradient(
+			96deg,
+			rgba(136, 86, 42, 0.1) 0px,
+			rgba(136, 86, 42, 0.1) 2px,
+			rgba(232, 195, 137, 0.07) 2px,
+			rgba(232, 195, 137, 0.07) 8px
+		),
+		repeating-linear-gradient(
+			-8deg,
+			rgba(244, 223, 183, 0.1) 0px,
+			rgba(244, 223, 183, 0.1) 1px,
+			rgba(134, 85, 45, 0.05) 1px,
+			rgba(134, 85, 45, 0.05) 5px
+		);
+	border: 1px solid #76502d;
+	box-shadow:
+		0 10px 24px rgba(0, 0, 0, 0.24),
+		inset 0 1px 0 rgba(250, 236, 208, 0.34),
+		inset 0 -2px 8px rgba(108, 72, 41, 0.2);
 	width: min(80vw, 80vh);
 	height: min(80vw, 80vh);
 }
@@ -316,16 +335,16 @@ video {
 }
 .tenuki-board .line-box {
 	fill: none;
-	stroke: rgba(43, 33, 22, 0.75);
-	stroke-width: 0.6;
+	stroke: rgba(73, 46, 24, 0.72);
+	stroke-width: 0.7;
 	vector-effect: non-scaling-stroke;
 }
 .tenuki-board .hoshi {
-	fill: #2b2116;
+	fill: #492c17;
 }
 .tenuki-board .coordinates text,
 .tenuki-board .coordinates {
-	fill: #2b2116;
+	fill: #5b3920;
 	font-size: 12px;
 	font-family: serif;
 }
@@ -353,10 +372,10 @@ video {
 	paint-order: stroke fill;
 	filter:
 		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3))
-		sepia(0.22)
-		saturate(1.15)
-		brightness(1.16)
-		contrast(1.04);
+		sepia(0.28)
+		saturate(1.1)
+		brightness(1.08)
+		contrast(1.02);
 }
 .tenuki-board .intersection.played .stone {
 	animation: stone-pop 360ms cubic-bezier(0.2, 1.25, 0.3, 1);
@@ -377,10 +396,10 @@ video {
 	stroke: rgba(188, 168, 132, 0.66);
 	filter:
 		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.32))
-		sepia(0.28)
-		saturate(1.22)
-		brightness(1.24)
-		contrast(1.08);
+		sepia(0.32)
+		saturate(1.14)
+		brightness(1.14)
+		contrast(1.05);
 }
 .tenuki-board .stone-shadow {
 	display: block;
