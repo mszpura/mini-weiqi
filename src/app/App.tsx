@@ -20,7 +20,6 @@ export default function App() {
 function AppContent() {
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
-	const isLocalChannel = channelKey === 'local'
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, ['game-board', channelKey])
 	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
 	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', ['game-mode', channelKey])
@@ -28,6 +27,7 @@ function AppContent() {
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
 	const [moves, setMoves] = useSyncState<GameMove[]>([], ['game-moves', channelKey])
 	const user = session?.user
+	console.log('Current user:', user)
 	const currentPlayer = user
 		? {
 				id: user.id,
@@ -38,15 +38,16 @@ function AppContent() {
 	const playerColor =
 		currentPlayer?.id === blackPlayer?.id ? 'black' : currentPlayer?.id === whitePlayer?.id ? 'white' : null
 	const isSeated = currentPlayer?.id === blackPlayer?.id || currentPlayer?.id === whitePlayer?.id
+	const isUnauthenticated = !session?.user?.id
 
 	const handleJoinBlack = () => {
-		if (isLocalChannel) return
+		if (isUnauthenticated) return
 		if (!currentPlayer || blackPlayer || isSeated) return
 		setBlackPlayer(currentPlayer)
 	}
 
 	const handleJoinWhite = () => {
-		if (isLocalChannel) return
+		if (isUnauthenticated) return
 		if (!currentPlayer || whitePlayer || isSeated) return
 		if (!blackPlayer) {
 			setBlackPlayer(currentPlayer)
@@ -62,7 +63,7 @@ function AppContent() {
 		[setMoves]
 	)
 
-	if (showGameBoard) {
+	if (showGameBoard) { 
 		return (
 			<GameBoard
 				boardSize={boardSize}
@@ -74,7 +75,7 @@ function AppContent() {
 				gameMode={gameMode}
 				moves={moves}
 				onPlayMove={handlePlayMove}
-				disableJoinButtons={isLocalChannel}
+				hideJoinButtons={isUnauthenticated}
 			/>
 		)
 	}

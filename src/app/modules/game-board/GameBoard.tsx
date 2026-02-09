@@ -13,7 +13,7 @@ type GameBoardProps = {
 	gameMode: GameMode
 	moves: GameMove[]
 	onPlayMove: (y: number, x: number) => void
-	disableJoinButtons?: boolean
+	hideJoinButtons?: boolean
 }
 
 export const GameBoard = ({
@@ -26,7 +26,7 @@ export const GameBoard = ({
 	gameMode,
 	moves,
 	onPlayMove,
-	disableJoinButtons = false
+	hideJoinButtons = false
 }: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
@@ -108,13 +108,8 @@ export const GameBoard = ({
 							<div className="player-avatar placeholder" aria-hidden="true" />
 						)}
 					</div>
-				) : (
-					<button
-						className="game-side-button game-side-button--black"
-						type="button"
-						onClick={onJoinBlack}
-						disabled={disableJoinButtons}
-					>
+				) : hideJoinButtons ? null : (
+					<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
 						Join as Black
 					</button>
 				)}
@@ -133,13 +128,8 @@ export const GameBoard = ({
 							<div className="player-avatar placeholder" aria-hidden="true" />
 						)}
 					</div>
-				) : (
-					<button
-						className="game-side-button game-side-button--white"
-						type="button"
-						onClick={onJoinWhite}
-						disabled={disableJoinButtons}
-					>
+				) : hideJoinButtons ? null : (
+					<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
 						Join as White
 					</button>
 				)}
