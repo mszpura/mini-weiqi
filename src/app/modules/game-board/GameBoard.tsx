@@ -97,16 +97,20 @@ export const GameBoard = ({
 		<div className="game-board">
 			<div className="game-side-slot">
 				{blackPlayer ? (
-					<div className="player-avatar-wrap player-avatar-wrap--black">
-						{blackPlayer.avatar ? (
-							<img
-								className="player-avatar"
-								src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
-								alt={`${blackPlayer.username} avatar`}
-							/>
-						) : (
-							<div className="player-avatar placeholder" aria-hidden="true" />
-						)}
+					<div className="player-card player-card--black">
+						<div className="player-avatar-wrap player-avatar-wrap--black">
+							{blackPlayer.avatar ? (
+								<img
+									className="player-avatar"
+									src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
+									alt={`${blackPlayer.username} avatar`}
+								/>
+							) : (
+								<div className="player-avatar placeholder" aria-hidden="true" />
+							)}
+						</div>
+						<div className="player-card-name">{blackPlayer.username}</div>
+						<div className="player-card-captured">Captured: 0</div>
 					</div>
 				) : hideJoinButtons ? null : (
 					<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
@@ -117,16 +121,20 @@ export const GameBoard = ({
 			<div ref={boardRef} className="tenuki-board" data-include-coordinates="true" />
 			<div className="game-side-slot">
 				{whitePlayer ? (
-					<div className="player-avatar-wrap player-avatar-wrap--white">
-						{whitePlayer.avatar ? (
-							<img
-								className="player-avatar"
-								src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
-								alt={`${whitePlayer.username} avatar`}
-							/>
-						) : (
-							<div className="player-avatar placeholder" aria-hidden="true" />
-						)}
+					<div className="player-card player-card--white">
+						<div className="player-avatar-wrap player-avatar-wrap--white">
+							{whitePlayer.avatar ? (
+								<img
+									className="player-avatar"
+									src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
+									alt={`${whitePlayer.username} avatar`}
+								/>
+							) : (
+								<div className="player-avatar placeholder" aria-hidden="true" />
+							)}
+						</div>
+						<div className="player-card-name">{whitePlayer.username}</div>
+						<div className="player-card-captured">Captured: 0</div>
 					</div>
 				) : hideJoinButtons ? null : (
 					<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
