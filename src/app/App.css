@@ -333,18 +333,61 @@ video {
 	fill: transparent;
 }
 .tenuki-board .stone {
-	fill: none;
 	stroke: none;
+	transform-origin: center;
+	transition:
+		transform 180ms ease,
+		filter 220ms ease,
+		opacity 160ms ease;
+}
+.tenuki-board .intersection.black .stone {
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)) saturate(0.9) contrast(1.03);
+}
+.tenuki-board .intersection.white .stone {
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)) brightness(1.03);
+}
+.tenuki-board .intersection.played .stone {
+	animation: stone-pop 280ms cubic-bezier(0.22, 1.2, 0.36, 1);
+}
+.tenuki-board .intersection.hovered .stone {
+	transform: scale(0.94);
+	opacity: 0.72;
+}
+.tenuki-board .intersection.hovered.black .stone {
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)) brightness(1.12);
+}
+.tenuki-board .intersection.hovered.white .stone {
+	filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)) brightness(1.1);
 }
 .tenuki-board .stone-shadow {
-	display: none;
+	display: block;
+	fill: rgba(0, 0, 0, 0.18);
+	filter: blur(0.5px);
 }
 .tenuki-board .marker {
 	display: none;
 }
 .tenuki-board .intersection.empty .stone {
 	opacity: 0;
-	background: transparent;
+	filter: none;
+}
+.tenuki-board .intersection.empty .stone-shadow {
+	opacity: 0;
+}
+
+@keyframes stone-pop {
+	0% {
+		transform: scale(0.58);
+		opacity: 0.25;
+	}
+	65% {
+		transform: scale(1.1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
 }
 
 @media (prefers-color-scheme: light) {
