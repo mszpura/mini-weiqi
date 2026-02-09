@@ -400,15 +400,15 @@ video {
 
 @keyframes stone-pop {
 	0% {
-		transform: scale(0.4);
-		opacity: 0.15;
+		transform: scale(0.62);
+		opacity: 0.25;
 	}
 	40% {
-		transform: scale(1.18) translateY(-0.4px);
+		transform: scale(1.08) translateY(-0.2px);
 		opacity: 1;
 	}
 	70% {
-		transform: scale(0.93);
+		transform: scale(0.98);
 		opacity: 1;
 	}
 	100% {
