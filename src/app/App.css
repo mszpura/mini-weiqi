@@ -177,13 +177,12 @@ video {
 
 /* Tenuki board basic styling (package doesn't ship CSS) */
 .game-board {
-	min-height: 100vh;
 	min-height: 100svh;
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: center;
 	gap: 20px;
-	padding: 16px;
+	padding: 8px 16px 16px;
 }
 .game-side-slot {
 	min-width: 160px;
@@ -296,6 +295,13 @@ video {
 }
 .player-avatar.placeholder {
 	background: rgba(255, 255, 255, 0.12);
+}
+.player-avatar.placeholder--black {
+	background: radial-gradient(circle at 30% 30%, #3d3025 0%, #1b140f 55%, #0b0908 100%);
+}
+.player-avatar.placeholder--white {
+	background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f3e8d8 65%, #dfd1bc 100%);
+	border: 1px solid rgba(43, 33, 22, 0.22);
 }
 .tenuki-board {
 	background: #d8b27a;

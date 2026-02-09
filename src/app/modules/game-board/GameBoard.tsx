@@ -100,51 +100,49 @@ export const GameBoard = ({
 	return (
 		<div className="game-board">
 			<div className="game-side-slot">
-				{blackPlayer ? (
-					<div className="player-card player-card--black">
-						<div className="player-avatar-wrap player-avatar-wrap--black">
-							{blackPlayer.avatar ? (
-								<img
-									className="player-avatar"
-									src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
-									alt={`${blackPlayer.username} avatar`}
-								/>
-							) : (
-								<div className="player-avatar placeholder" aria-hidden="true" />
-							)}
-						</div>
-						<div className="player-card-name">{blackPlayer.username}</div>
-						<div className="player-card-captured">Captured: {capturedByBlack}</div>
+				<div className="player-card player-card--black">
+					<div className="player-avatar-wrap player-avatar-wrap--black">
+						{blackPlayer?.avatar ? (
+							<img
+								className="player-avatar"
+								src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
+								alt={`${blackPlayer.username} avatar`}
+							/>
+						) : (
+							<div className="player-avatar placeholder placeholder--black" aria-hidden="true" />
+						)}
 					</div>
-				) : hideJoinButtons ? null : (
-					<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
-						Join as Black
-					</button>
-				)}
+					<div className="player-card-name">{blackPlayer?.username ?? 'Black'}</div>
+					<div className="player-card-captured">Captured: {capturedByBlack}</div>
+					{blackPlayer || hideJoinButtons ? null : (
+						<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
+							Join as Black
+						</button>
+					)}
+				</div>
 			</div>
 			<div ref={boardRef} className="tenuki-board" data-include-coordinates="true" />
 			<div className="game-side-slot">
-				{whitePlayer ? (
-					<div className="player-card player-card--white">
-						<div className="player-avatar-wrap player-avatar-wrap--white">
-							{whitePlayer.avatar ? (
-								<img
-									className="player-avatar"
-									src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
-									alt={`${whitePlayer.username} avatar`}
-								/>
-							) : (
-								<div className="player-avatar placeholder" aria-hidden="true" />
-							)}
-						</div>
-						<div className="player-card-name">{whitePlayer.username}</div>
-						<div className="player-card-captured">Captured: {capturedByWhite}</div>
+				<div className="player-card player-card--white">
+					<div className="player-avatar-wrap player-avatar-wrap--white">
+						{whitePlayer?.avatar ? (
+							<img
+								className="player-avatar"
+								src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
+								alt={`${whitePlayer.username} avatar`}
+							/>
+						) : (
+							<div className="player-avatar placeholder placeholder--white" aria-hidden="true" />
+						)}
 					</div>
-				) : hideJoinButtons ? null : (
-					<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
-						Join as White
-					</button>
-				)}
+					<div className="player-card-name">{whitePlayer?.username ?? 'White'}</div>
+					<div className="player-card-captured">Captured: {capturedByWhite}</div>
+					{whitePlayer || hideJoinButtons ? null : (
+						<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
+							Join as White
+						</button>
+					)}
+				</div>
 			</div>
 		</div>
 	)
