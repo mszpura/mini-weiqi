@@ -1,6 +1,6 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Game } from 'tenuki'
 import type { GameMode, GameMove } from './models/game'
 import type { PlayerSlot } from './models/player'
@@ -21,13 +21,23 @@ export default function App() {
 function AppContent() {
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
-	const [showGameBoard, setShowGameBoard] = useSyncState(false, ['game-board', channelKey])
-	const [boardSize, setBoardSize] = useSyncState(19, ['board-size', channelKey])
-	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', ['game-mode', channelKey])
-	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, ['player-black', channelKey])
-	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
-	const [moves, setMoves] = useSyncState<GameMove[]>([], ['game-moves', channelKey])
-	const [capturedStones, setCapturedStones] = useSyncState({ black: 0, white: 0 }, ['captured-stones', channelKey])
+	const syncKeys = useMemo(
+		() => ({
+			gameBoard: ['game-board', channelKey] as const,
+			boardSize: ['board-size', channelKey] as const,
+			gameMode: ['game-mode', channelKey] as const,
+			blackPlayer: ['player-black', channelKey] as const,
+			whitePlayer: ['player-white', channelKey] as const,
+			moves: ['game-moves', channelKey] as const
+		}),
+		[channelKey]
+	)
+	const [showGameBoard, setShowGameBoard] = useSyncState(false, syncKeys.gameBoard)
+	const [boardSize, setBoardSize] = useSyncState(19, syncKeys.boardSize)
+	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', syncKeys.gameMode)
+	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.blackPlayer)
+	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
+	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
 	const user = session?.user
 	
 	const currentPlayer = user
@@ -65,24 +75,18 @@ function AppContent() {
 		[setMoves]
 	)
 
-	useEffect(() => {
+	const capturedStones = useMemo(() => {
 		const game = new Game({ boardSize })
 		for (const move of moves) {
 			game.playAt(move.y, move.x)
 		}
 
 		const state = game.currentState()
-		const nextCapturedStones = {
+		return {
 			black: state.whiteStonesCaptured,
 			white: state.blackStonesCaptured
 		}
-
-		setCapturedStones((current) =>
-			current.black === nextCapturedStones.black && current.white === nextCapturedStones.white
-				? current
-				: nextCapturedStones
-		)
-	}, [boardSize, moves, setCapturedStones])
+	}, [boardSize, moves])
 
 	if (showGameBoard) { 
 		return (
