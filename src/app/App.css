@@ -348,11 +348,15 @@ video {
 		contrast(1.18);
 }
 .tenuki-board .intersection.white .stone {
+	stroke: rgba(178, 157, 122, 0.58);
+	stroke-width: 0.7;
+	paint-order: stroke fill;
 	filter:
-		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35))
-		brightness(1.18)
-		contrast(1.12)
-		saturate(1.08);
+		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3))
+		sepia(0.22)
+		saturate(1.15)
+		brightness(1.16)
+		contrast(1.04);
 }
 .tenuki-board .intersection.played .stone {
 	animation: stone-pop 360ms cubic-bezier(0.2, 1.25, 0.3, 1);
@@ -370,11 +374,13 @@ video {
 		contrast(1.16);
 }
 .tenuki-board .intersection.hovered.white .stone {
+	stroke: rgba(188, 168, 132, 0.66);
 	filter:
-		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35))
-		brightness(1.28)
-		contrast(1.16)
-		saturate(1.14);
+		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.32))
+		sepia(0.28)
+		saturate(1.22)
+		brightness(1.24)
+		contrast(1.08);
 }
 .tenuki-board .stone-shadow {
 	display: block;
