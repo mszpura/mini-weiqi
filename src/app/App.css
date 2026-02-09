@@ -302,8 +302,8 @@ video {
 	background: #d8b27a;
 	border: 1px solid #3a2a1a;
 	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-	width: min(95vw, 95vh);
-	height: min(95vw, 95vh);
+	width: min(80vw, 80vh);
+	height: min(80vw, 80vh);
 }
 .tenuki-board svg {
 	display: block;
