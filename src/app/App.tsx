@@ -23,12 +23,12 @@ function AppContent() {
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const syncKeys = useMemo(
 		() => ({
-			gameBoard: ['game-board', channelKey] as const,
-			boardSize: ['board-size', channelKey] as const,
-			gameMode: ['game-mode', channelKey] as const,
-			blackPlayer: ['player-black', channelKey] as const,
-			whitePlayer: ['player-white', channelKey] as const,
-			moves: ['game-moves', channelKey] as const
+			gameBoard: ['game-board', channelKey],
+			boardSize: ['board-size', channelKey],
+			gameMode: ['game-mode', channelKey],
+			blackPlayer: ['player-black', channelKey],
+			whitePlayer: ['player-white', channelKey],
+			moves: ['game-moves', channelKey]
 		}),
 		[channelKey]
 	)
