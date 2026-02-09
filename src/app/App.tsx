@@ -27,7 +27,7 @@ function AppContent() {
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
 	const [moves, setMoves] = useSyncState<GameMove[]>([], ['game-moves', channelKey])
 	const user = session?.user
-	console.log('Current user:', user)
+	
 	const currentPlayer = user
 		? {
 				id: user.id,
@@ -35,8 +35,8 @@ function AppContent() {
 				avatar: user.avatar ?? null
 			}
 		: null
-	const playerColor =
-		currentPlayer?.id === blackPlayer?.id ? 'black' : currentPlayer?.id === whitePlayer?.id ? 'white' : null
+
+	const playerColor = currentPlayer?.id === blackPlayer?.id ? 'black' : currentPlayer?.id === whitePlayer?.id ? 'white' : null
 	const isSeated = currentPlayer?.id === blackPlayer?.id || currentPlayer?.id === whitePlayer?.id
 	const isUnauthenticated = !session?.user?.id
 
