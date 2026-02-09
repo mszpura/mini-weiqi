@@ -12,6 +12,8 @@ type GameBoardProps = {
 	playerColor: 'black' | 'white' | null
 	gameMode: GameMode
 	moves: GameMove[]
+	capturedByBlack: number
+	capturedByWhite: number
 	onPlayMove: (y: number, x: number) => void
 	hideJoinButtons?: boolean
 }
@@ -25,6 +27,8 @@ export const GameBoard = ({
 	playerColor,
 	gameMode,
 	moves,
+	capturedByBlack,
+	capturedByWhite,
 	onPlayMove,
 	hideJoinButtons = false
 }: GameBoardProps) => {
@@ -110,7 +114,7 @@ export const GameBoard = ({
 							)}
 						</div>
 						<div className="player-card-name">{blackPlayer.username}</div>
-						<div className="player-card-captured">Captured: 0</div>
+						<div className="player-card-captured">Captured: {capturedByBlack}</div>
 					</div>
 				) : hideJoinButtons ? null : (
 					<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
@@ -134,7 +138,7 @@ export const GameBoard = ({
 							)}
 						</div>
 						<div className="player-card-name">{whitePlayer.username}</div>
-						<div className="player-card-captured">Captured: 0</div>
+						<div className="player-card-captured">Captured: {capturedByWhite}</div>
 					</div>
 				) : hideJoinButtons ? null : (
 					<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>

@@ -17,6 +17,11 @@ declare module 'tenuki' {
 		computeSizing?: () => void
 	}
 
+	type GameState = {
+		blackStonesCaptured: number
+		whiteStonesCaptured: number
+	}
+
 	export class Game {
 		constructor(options?: GameOptions)
 		renderer?: GameRenderer
@@ -24,5 +29,6 @@ declare module 'tenuki' {
 		isOver(): boolean
 		isIllegalAt(y: number, x: number): boolean
 		currentPlayer(): StoneColor
+		currentState(): GameState
 	}
 }

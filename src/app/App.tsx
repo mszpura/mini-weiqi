@@ -1,6 +1,7 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
+import { Game } from 'tenuki'
 import type { GameMode, GameMove } from './models/game'
 import type { PlayerSlot } from './models/player'
 import './App.css'
@@ -26,6 +27,7 @@ function AppContent() {
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, ['player-black', channelKey])
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, ['player-white', channelKey])
 	const [moves, setMoves] = useSyncState<GameMove[]>([], ['game-moves', channelKey])
+	const [capturedStones, setCapturedStones] = useSyncState({ black: 0, white: 0 }, ['captured-stones', channelKey])
 	const user = session?.user
 	
 	const currentPlayer = user
@@ -63,6 +65,25 @@ function AppContent() {
 		[setMoves]
 	)
 
+	useEffect(() => {
+		const game = new Game({ boardSize })
+		for (const move of moves) {
+			game.playAt(move.y, move.x)
+		}
+
+		const state = game.currentState()
+		const nextCapturedStones = {
+			black: state.whiteStonesCaptured,
+			white: state.blackStonesCaptured
+		}
+
+		setCapturedStones((current) =>
+			current.black === nextCapturedStones.black && current.white === nextCapturedStones.white
+				? current
+				: nextCapturedStones
+		)
+	}, [boardSize, moves, setCapturedStones])
+
 	if (showGameBoard) { 
 		return (
 			<GameBoard
@@ -74,6 +95,8 @@ function AppContent() {
 				playerColor={playerColor}
 				gameMode={gameMode}
 				moves={moves}
+				capturedByBlack={capturedStones.black}
+				capturedByWhite={capturedStones.white}
 				onPlayMove={handlePlayMove}
 				hideJoinButtons={isUnauthenticated}
 			/>
