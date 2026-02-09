@@ -416,9 +416,9 @@ video {
 	animation: stone-pop 360ms cubic-bezier(0.2, 1.25, 0.3, 1);
 }
 .tenuki-board .intersection.hovered .stone {
-	transform: scale(0.9);
+	transform: none;
 	opacity: 0.82;
-	animation: stone-hover 850ms ease-in-out infinite;
+	animation: none;
 }
 .tenuki-board .intersection.hovered.black .stone {
 	filter:
@@ -450,6 +450,33 @@ video {
 }
 .tenuki-board .intersection.empty .stone-shadow {
 	opacity: 0;
+}
+.tenuki-board .intersection.empty.hovered .stone {
+	opacity: 0.82;
+	filter: none;
+}
+.tenuki-board .intersection.empty.hovered .stone-shadow {
+	opacity: 1;
+}
+.tenuki-board .intersection.empty.hovered.black .stone {
+	fill: #16110d;
+	filter:
+		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5))
+		drop-shadow(0 0 2px rgba(180, 210, 255, 0.35))
+		brightness(1.2)
+		contrast(1.16);
+}
+.tenuki-board .intersection.empty.hovered.white .stone {
+	fill: #f6efe2;
+	stroke: rgba(188, 168, 132, 0.66);
+	stroke-width: 0.7;
+	paint-order: stroke fill;
+	filter:
+		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.32))
+		sepia(0.32)
+		saturate(1.14)
+		brightness(1.14)
+		contrast(1.05);
 }
 
 @keyframes stone-pop {

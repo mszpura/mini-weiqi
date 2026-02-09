@@ -39,6 +39,12 @@ export const GameBoard = ({
 	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
 	const gameModeRef = useRef<GameMode>(gameMode)
 
+	const canCurrentUserPlay = (game: Game) => {
+		if (gameModeRef.current === 'shared') return true
+		const activeColor = playerColorRef.current
+		return Boolean(activeColor && game.currentPlayer() === activeColor)
+	}
+
 	useEffect(() => {
 		playerColorRef.current = playerColor
 	}, [playerColor])
@@ -61,18 +67,15 @@ export const GameBoard = ({
 					if (!g) return
 					if (g.isOver()) return
 					if (g.isIllegalAt(y, x)) return
-
-					if (gameModeRef.current !== 'shared') {
-						const activeColor = playerColorRef.current
-						if (!activeColor || g.currentPlayer() !== activeColor) {
-							return
-						}
-					}
+					if (!canCurrentUserPlay(g)) return
 					onPlayMove(y, x)
 				},
 				hoverValue: (y, x) => {
 					const g = gameRef.current
 					if (!g) return undefined
+					if (g.isOver() || g.isIllegalAt(y, x) || !canCurrentUserPlay(g)) {
+						return undefined
+					}
 					if (!g.isOver() && !g.isIllegalAt(y, x)) {
 						return g.currentPlayer()
 					}
