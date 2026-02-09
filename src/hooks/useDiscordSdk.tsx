@@ -148,14 +148,29 @@ export async function authenticateSdk(options?: AuthenticateSdkOptions) {
 		scope: scope
 	})
 
-	const response = await fetch('/.proxy/api/token', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({ code })
-	})
-	const { access_token } = await response.json()
+	const tokenEndpoints = isEmbedded ? ['/.proxy/api/token', '/api/token'] : ['/api/token', '/.proxy/api/token']
+	let tokenResponse: Response | null = null
+
+	for (const endpoint of tokenEndpoints) {
+		const response = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ code })
+		})
+
+		if (response.ok) {
+			tokenResponse = response
+			break
+		}
+	}
+
+	if (!tokenResponse) {
+		throw new Error('Failed to exchange OAuth code for access token')
+	}
+
+	const { access_token } = await tokenResponse.json()
 
 	// Authenticate with Discord client (using the access_token)
 	const auth = await discordSdk.commands.authenticate({ access_token })

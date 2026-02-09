@@ -61,10 +61,6 @@ function AppContent() {
 	const handleJoinWhite = () => {
 		if (isUnauthenticated) return
 		if (!currentPlayer || whitePlayer || isSeated) return
-		if (!blackPlayer) {
-			setBlackPlayer(currentPlayer)
-			return
-		}
 		setWhitePlayer(currentPlayer)
 	}
 
