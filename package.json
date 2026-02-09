@@ -27,7 +27,7 @@
 		"doctor": "sage doctor",
 		"invite": "robo invite",
 		"lint:style": "prettier --write .",
-		"start": "robo start",
+		"start": "NODE_ENV=production robo start",
 		"tunnel": ".robo/bin/cloudflared tunnel --url http://localhost:3000",
 		"upgrade": "sage upgrade"
 	},
