@@ -40,6 +40,9 @@
 		"robo.js": "^0.10.32",
 		"tenuki": "^0.3.1"
 	},
+	"optionalDependencies": {
+		"@rollup/rollup-linux-x64-gnu": "4.22.5"
+	},
 	"devDependencies": {
 		"@swc/core": "^1.7.26",
 		"@types/node": "^22.7.4",
