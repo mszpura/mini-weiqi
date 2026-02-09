@@ -136,36 +136,32 @@ video {
 	align-items: center;
 	justify-content: center;
 	margin: 6px auto 10px;
-	padding: 10px 22px;
-	border-radius: 999px;
-	border: 1px solid rgba(242, 230, 210, 0.55);
-	background: linear-gradient(135deg, #5c3b1f 0%, #b07a3a 55%, #e1b56d 100%);
-	color: #f8f1e5;
-	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
-	font-size: 16px;
-	letter-spacing: 0.14em;
-	text-transform: uppercase;
-	box-shadow:
-		0 10px 18px rgba(0, 0, 0, 0.25),
-		inset 0 1px 0 rgba(255, 255, 255, 0.2);
+	padding: 0;
+	border: 0;
+	background: transparent;
 	cursor: pointer;
 	transition:
 		transform 0.2s ease,
-		box-shadow 0.2s ease,
-		border-color 0.2s ease;
+		filter 0.2s ease;
+}
+.menu-button-image {
+	display: block;
+	width: min(247px, 40.5vw);
+	height: auto;
+	user-select: none;
+	pointer-events: none;
 }
 .menu-button:hover {
 	transform: translateY(-1px);
-	box-shadow:
-		0 14px 22px rgba(0, 0, 0, 0.3),
-		inset 0 1px 0 rgba(255, 255, 255, 0.25);
-	border-color: rgba(242, 230, 210, 0.85);
+	filter: brightness(1.04);
 }
 .menu-button:active {
 	transform: translateY(0);
-	box-shadow:
-		0 8px 14px rgba(0, 0, 0, 0.25),
-		inset 0 1px 0 rgba(255, 255, 255, 0.15);
+	filter: brightness(0.96);
+}
+.menu-button:focus-visible {
+	outline: 3px solid rgba(248, 241, 229, 0.8);
+	outline-offset: 4px;
 }
 .discord-user-label {
 	margin-bottom: 10px;
@@ -188,6 +184,45 @@ video {
 	min-width: 160px;
 	display: flex;
 	justify-content: center;
+}
+.game-board-center {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 12px;
+}
+.game-return-button {
+	min-width: 140px;
+	padding: 10px 16px;
+	border-radius: 999px;
+	border: 1px solid rgba(242, 230, 210, 0.35);
+	background: rgba(20, 16, 12, 0.75);
+	color: #f8f1e5;
+	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
+	font-size: 14px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	box-shadow:
+		0 10px 18px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+	cursor: pointer;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
+}
+.game-return-button:hover {
+	transform: translateY(-1px);
+	box-shadow:
+		0 14px 22px rgba(0, 0, 0, 0.3),
+		inset 0 1px 0 rgba(255, 255, 255, 0.2);
+	border-color: rgba(242, 230, 210, 0.7);
+}
+.game-return-button:active {
+	transform: translateY(0);
+	box-shadow:
+		0 8px 14px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 .player-card {
 	min-width: 160px;

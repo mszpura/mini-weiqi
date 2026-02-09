@@ -98,6 +98,7 @@ function AppContent() {
 				capturedByBlack={capturedStones.black}
 				capturedByWhite={capturedStones.white}
 				onPlayMove={handlePlayMove}
+				onReturnToMenu={() => setShowGameBoard(false)}
 				hideJoinButtons={isUnauthenticated}
 			/>
 		)

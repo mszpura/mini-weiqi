@@ -15,6 +15,7 @@ type GameBoardProps = {
 	capturedByBlack: number
 	capturedByWhite: number
 	onPlayMove: (y: number, x: number) => void
+	onReturnToMenu: () => void
 	hideJoinButtons?: boolean
 }
 
@@ -30,6 +31,7 @@ export const GameBoard = ({
 	capturedByBlack,
 	capturedByWhite,
 	onPlayMove,
+	onReturnToMenu,
 	hideJoinButtons = false
 }: GameBoardProps) => {
 	const boardRef = useRef<HTMLDivElement>(null)
@@ -97,6 +99,8 @@ export const GameBoard = ({
 		}
 	}, [boardSize, moves])
 
+	const canReturnToMenu = !blackPlayer && !whitePlayer
+
 	return (
 		<div className="game-board">
 			<div className="game-side-slot">
@@ -121,7 +125,14 @@ export const GameBoard = ({
 					)}
 				</div>
 			</div>
-			<div ref={boardRef} className="tenuki-board" data-include-coordinates="true" />
+			<div className="game-board-center">
+				<div ref={boardRef} className="tenuki-board" data-include-coordinates="true" />
+				{canReturnToMenu ? (
+					<button className="game-return-button" type="button" onClick={onReturnToMenu}>
+						Return
+					</button>
+				) : null}
+			</div>
 			<div className="game-side-slot">
 				<div className="player-card player-card--white">
 					<div className="player-avatar-wrap player-avatar-wrap--white">

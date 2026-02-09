@@ -77,8 +77,8 @@ export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange, gameMode, onG
 					</select>
 				</label>
 			</form>
-			<button className="menu-button shared-game-button" type="button" onClick={onSharedGame}>
-				Play
+			<button className="menu-button shared-game-button" type="button" onClick={onSharedGame} aria-label="Play">
+				<img className="menu-button-image" src="/play_button.png" alt="" />
 			</button>
 			{channelName ? <div className="discord-channel">Channel: {channelName}</div> : null}
 			<div className="discord-user">
