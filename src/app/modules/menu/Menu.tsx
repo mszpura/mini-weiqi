@@ -89,6 +89,9 @@ export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange, gameMode, onG
 				)}
 				<div className="discord-username">{username}</div>
 			</div>
+			<a href="https://buymeacoffee.com/szpur" target="_blank" rel="noreferrer">
+				Buy me a coffee
+			</a>
 		</div>
 	)
 }
