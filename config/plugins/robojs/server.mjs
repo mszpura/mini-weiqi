@@ -1,5 +1,5 @@
 const port = Number.parseInt(
-	process.env.PORT ?? (process.env.NODE_ENV === 'production' ? '8080' : '3000'),
+	process.env.ROBO_SERVER_PORT ?? process.env.PORT ?? (process.env.NODE_ENV === 'production' ? '8080' : '3000'),
 	10
 )
 

@@ -47,7 +47,13 @@ Run development mode:
 npm run dev
 ```
 
-> **Notes:** A free Cloudflare tunnel is included for easy testing. You can copy and paste it into activity's **[URL mapping](https://robojs.dev/discord-activities/proxy#url-mapping)** to test things out.
+Run with a Cloudflare tunnel:
+
+```bash
+npm run dev:tunnel
+```
+
+> **Notes:** The app runs on `http://localhost:3000` and the API server runs on `http://localhost:3001` (proxied by Vite). When you edit API routes under `src/api`, restart `npm run dev` to rebuild API output. API port is forced via `ROBO_SERVER_PORT` to avoid `.env` `PORT` conflicts.
 
 ➞ [📚 **Documentation:** Exploring Different Run Modes](https://robojs.dev/robojs/mode#default-modes)
 

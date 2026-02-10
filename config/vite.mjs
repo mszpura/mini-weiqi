@@ -6,6 +6,22 @@ import { defineConfig } from 'vite'
 export default defineConfig({
 	plugins: [react(), DiscordProxy.Vite()],
 	server: {
-		allowedHosts: true
+		allowedHosts: true,
+		proxy: {
+			'/api': {
+				target: 'http://127.0.0.1:3001',
+				changeOrigin: true
+			},
+			'/sync': {
+				target: 'ws://127.0.0.1:3001',
+				changeOrigin: true,
+				ws: true
+			}
+		},
+		watch: {
+			// Avoid EMFILE on systems with low fs.watch limits.
+			usePolling: true,
+			interval: 200
+		}
 	}
 })
