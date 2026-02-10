@@ -20,12 +20,12 @@
 		"web"
 	],
 	"scripts": {
-		"build": "robo build && vite build --outDir .robo/public",
+		"build": "robo build && vite --config config/vite.mjs build --outDir .robo/public",
 		"build:api": "robo build",
-		"build:web": "vite build --outDir .robo/public",
+		"build:web": "vite --config config/vite.mjs build --outDir .robo/public",
 		"deploy": "robo deploy",
-		"dev": "npm run build:api && sh -c 'ROBO_SERVER_PORT=3001 NODE_ENV=production robo start & API_PID=$!; vite --host 0.0.0.0 --port 3000 --strictPort; EXIT_CODE=$?; kill $API_PID >/dev/null 2>&1; exit $EXIT_CODE'",
-		"dev:tunnel": "npm run build:api && sh -c 'ROBO_SERVER_PORT=3001 NODE_ENV=production robo start & API_PID=$!; .robo/bin/cloudflared tunnel --url http://localhost:3000 & TUNNEL_PID=$!; vite --host 0.0.0.0 --port 3000 --strictPort; EXIT_CODE=$?; kill $TUNNEL_PID >/dev/null 2>&1; kill $API_PID >/dev/null 2>&1; exit $EXIT_CODE'",
+		"dev": "npm run build:api && sh -c 'ROBO_SERVER_PORT=3001 NODE_ENV=production robo start & API_PID=$!; vite --config config/vite.mjs --host 0.0.0.0 --port 3000 --strictPort; EXIT_CODE=$?; kill $API_PID >/dev/null 2>&1; exit $EXIT_CODE'",
+		"dev:tunnel": "npm run build:api && sh -c 'ROBO_SERVER_PORT=3001 NODE_ENV=production robo start & API_PID=$!; .robo/bin/cloudflared tunnel --url http://localhost:3000 & TUNNEL_PID=$!; vite --config config/vite.mjs --host 0.0.0.0 --port 3000 --strictPort; EXIT_CODE=$?; kill $TUNNEL_PID >/dev/null 2>&1; kill $API_PID >/dev/null 2>&1; exit $EXIT_CODE'",
 		"doctor": "sage doctor",
 		"invite": "robo invite",
 		"lint:style": "prettier --write .",
