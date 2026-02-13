@@ -71,6 +71,11 @@ function AppContent() {
 		[setMoves]
 	)
 
+	const handleReturnToMenu = useCallback(() => {
+		setMoves([])
+		setShowGameBoard(false)
+	}, [setMoves, setShowGameBoard])
+
 	const capturedStones = useMemo(() => {
 		const game = new Game({ boardSize })
 		for (const move of moves) {
@@ -98,7 +103,7 @@ function AppContent() {
 				capturedByBlack={capturedStones.black}
 				capturedByWhite={capturedStones.white}
 				onPlayMove={handlePlayMove}
-				onReturnToMenu={() => setShowGameBoard(false)}
+				onReturnToMenu={handleReturnToMenu}
 				hideJoinButtons={isUnauthenticated}
 			/>
 		)
