@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
 import type { GameMode, GameMove } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
+import '../../svg-renderer.scss'
 
 type GameBoardProps = {
 	boardSize: number
@@ -132,7 +133,7 @@ export const GameBoard = ({
 			<div className="game-board-center">
 				<div
 					ref={boardRef}
-					className="tenuki-board"
+					className="tenuki-board tenuki-svg-renderer"
 					data-include-coordinates="true"
 					style={{ width: boardViewportSize, height: boardViewportSize }}
 				/>
