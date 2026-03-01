@@ -24,8 +24,6 @@ a:hover {
 
 body {
 	margin: 0;
-	display: flex;
-	place-items: center;
 	min-width: 320px;
 	min-height: 100vh;
 }
@@ -36,10 +34,23 @@ h1 {
 }
 
 #root {
+	width: 100%;
+	min-height: 100vh;
+}
+
+.app-shell {
+	text-align: center;
+}
+
+.app-shell--menu {
 	max-width: 1280px;
 	margin: 0 auto;
 	padding: 2rem;
-	text-align: center;
+}
+
+.app-shell--board {
+	width: 100%;
+	min-height: 100svh;
 }
 
 .logo {

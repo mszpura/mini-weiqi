@@ -89,33 +89,37 @@ function AppContent() {
 		}
 	}, [boardSize, moves])
 
-	if (showGameBoard) { 
+	if (showGameBoard) {
 		return (
-			<GameBoard
-				boardSize={boardSize}
-				blackPlayer={blackPlayer}
-				whitePlayer={whitePlayer}
-				onJoinBlack={handleJoinBlack}
-				onJoinWhite={handleJoinWhite}
-				playerColor={playerColor}
-				gameMode={gameMode}
-				moves={moves}
-				capturedByBlack={capturedStones.black}
-				capturedByWhite={capturedStones.white}
-				onPlayMove={handlePlayMove}
-				onReturnToMenu={handleReturnToMenu}
-				hideJoinButtons={isUnauthenticated}
-			/>
+			<div className="app-shell app-shell--board">
+				<GameBoard
+					boardSize={boardSize}
+					blackPlayer={blackPlayer}
+					whitePlayer={whitePlayer}
+					onJoinBlack={handleJoinBlack}
+					onJoinWhite={handleJoinWhite}
+					playerColor={playerColor}
+					gameMode={gameMode}
+					moves={moves}
+					capturedByBlack={capturedStones.black}
+					capturedByWhite={capturedStones.white}
+					onPlayMove={handlePlayMove}
+					onReturnToMenu={handleReturnToMenu}
+					hideJoinButtons={isUnauthenticated}
+				/>
+			</div>
 		)
 	}
 
 	return (
-		<Menu
-			onSharedGame={() => setShowGameBoard(true)}
-			boardSize={boardSize}
-			onBoardSizeChange={setBoardSize}
-			gameMode={gameMode}
-			onGameModeChange={setGameMode}
-		/>
+		<div className="app-shell app-shell--menu">
+			<Menu
+				onSharedGame={() => setShowGameBoard(true)}
+				boardSize={boardSize}
+				onBoardSizeChange={setBoardSize}
+				gameMode={gameMode}
+				onGameModeChange={setGameMode}
+			/>
+		</div>
 	)
 }

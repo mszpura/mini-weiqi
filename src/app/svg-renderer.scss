@@ -2,15 +2,26 @@ $board-lighter-color: hsl(41, 36%, 44%);
 $board-darker-color: hsl(41, 36%, 40%);
 
 .game-board {
+	--board-gap: 20px;
+	--board-side-width: 184px;
+	--board-screen-padding-x: 32px;
+	--board-screen-padding-y: 24px;
+	--board-controls-space: 88px;
+	--board-size: min(
+		calc(100svh - var(--board-screen-padding-y) - var(--board-controls-space)),
+		calc(100vw - var(--board-screen-padding-x) - (var(--board-side-width) * 2) - (var(--board-gap) * 2))
+	);
 	min-height: 100svh;
 	display: flex;
 	align-items: flex-start;
 	justify-content: center;
-	gap: 20px;
+	gap: var(--board-gap);
 	padding: 8px 16px 16px;
+	box-sizing: border-box;
 }
 
 .game-side-slot {
+	flex: 0 0 var(--board-side-width);
 	min-width: 160px;
 	display: flex;
 	justify-content: center;
@@ -21,6 +32,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	flex-direction: column;
 	align-items: center;
 	gap: 12px;
+	flex: 0 1 auto;
 }
 
 .game-return-button {
@@ -196,6 +208,10 @@ $board-darker-color: hsl(41, 36%, 40%);
 	-webkit-user-select: none;
 	user-select: none;
 	cursor: default;
+	width: var(--board-size);
+	height: var(--board-size);
+	max-width: calc(100vw - var(--board-screen-padding-x));
+	max-height: calc(100svh - var(--board-screen-padding-y) - var(--board-controls-space));
 	background-color: #d2a96f;
 	background-image:
 		linear-gradient(175deg, rgba(250, 236, 208, 0.3) 0%, rgba(154, 101, 53, 0.22) 100%),
@@ -494,6 +510,40 @@ $board-darker-color: hsl(41, 36%, 40%);
 		fill: $board-darker-color;
 		font-family: sans-serif;
 		font-size: 14px;
+	}
+}
+
+@media (max-width: 1100px) {
+	.game-board {
+		--board-side-width: 160px;
+		--board-screen-padding-x: 24px;
+		--board-controls-space: 96px;
+	}
+}
+
+@media (max-width: 900px) {
+	.game-board {
+		--board-screen-padding-x: 20px;
+		--board-screen-padding-y: 20px;
+		--board-controls-space: 220px;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.game-side-slot {
+		flex: 0 1 auto;
+		min-width: 0;
+		width: min(420px, 100%);
+	}
+
+	.game-board-center {
+		width: 100%;
+	}
+
+	.tenuki-svg-renderer {
+		width: min(calc(100vw - var(--board-screen-padding-x)), calc(100svh - var(--board-controls-space)));
+		height: min(calc(100vw - var(--board-screen-padding-x)), calc(100svh - var(--board-controls-space)));
 	}
 }
 

@@ -39,7 +39,6 @@ export const GameBoard = ({
 	const gameRef = useRef<Game | null>(null)
 	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
 	const gameModeRef = useRef<GameMode>(gameMode)
-	const boardViewportSize = boardSize === 19 ? 'min(88vw, 88vh)' : 'min(80vw, 80vh)'
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (gameModeRef.current === 'shared') return true
@@ -135,7 +134,6 @@ export const GameBoard = ({
 					ref={boardRef}
 					className="tenuki-board tenuki-svg-renderer"
 					data-include-coordinates="true"
-					style={{ width: boardViewportSize, height: boardViewportSize }}
 				/>
 				{canReturnToMenu ? (
 					<button className="game-return-button" type="button" onClick={onReturnToMenu}>
