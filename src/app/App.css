@@ -48,9 +48,11 @@ h1 {
 	will-change: filter;
 	transition: filter 300ms;
 }
+
 .logo:hover {
 	filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.vanilla:hover {
 	filter: drop-shadow(0 0 2em #f7df1eaa);
 }
@@ -66,9 +68,11 @@ button {
 	cursor: pointer;
 	transition: border-color 0.25s;
 }
+
 button:hover {
 	border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
 	outline: 4px auto -webkit-focus-ring-color;
@@ -86,6 +90,7 @@ video {
 	object-position: top;
 	margin: 0 auto 12px;
 }
+
 .menu-form {
 	display: flex;
 	flex-direction: column;
@@ -98,6 +103,7 @@ video {
 	background: rgba(26, 20, 14, 0.5);
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
+
 .menu-form-title {
 	margin-bottom: 10px;
 	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
@@ -106,18 +112,21 @@ video {
 	text-transform: uppercase;
 	color: rgba(248, 241, 229, 0.85);
 }
+
 .menu-form-field {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 	text-align: left;
 }
+
 .menu-form-label {
 	font-size: 13px;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
 	color: rgba(248, 241, 229, 0.75);
 }
+
 .menu-form-select {
 	padding: 8px 10px;
 	border-radius: 10px;
@@ -127,10 +136,12 @@ video {
 	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
 	letter-spacing: 0.08em;
 }
+
 .menu-form-select:focus {
 	outline: 2px solid rgba(248, 241, 229, 0.45);
 	outline-offset: 2px;
 }
+
 .menu-button {
 	display: inline-flex;
 	align-items: center;
@@ -144,6 +155,7 @@ video {
 		transform 0.2s ease,
 		filter 0.2s ease;
 }
+
 .menu-button-image {
 	display: block;
 	width: min(247px, 40.5vw);
@@ -151,21 +163,26 @@ video {
 	user-select: none;
 	pointer-events: none;
 }
+
 .menu-button:hover {
 	transform: translateY(-1px);
 	filter: brightness(1.04);
 }
+
 .menu-button:active {
 	transform: translateY(0);
 	filter: brightness(0.96);
 }
+
 .menu-button:focus-visible {
 	outline: 3px solid rgba(248, 241, 229, 0.8);
 	outline-offset: 4px;
 }
+
 .discord-user-label {
 	margin-bottom: 10px;
 }
+
 .discord-channel {
 	margin-top: 50px;
 	margin-bottom: 10px;
@@ -180,17 +197,20 @@ video {
 	gap: 20px;
 	padding: 8px 16px 16px;
 }
+
 .game-side-slot {
 	min-width: 160px;
 	display: flex;
 	justify-content: center;
 }
+
 .game-board-center {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 12px;
 }
+
 .game-return-button {
 	min-width: 140px;
 	padding: 10px 16px;
@@ -211,6 +231,7 @@ video {
 		box-shadow 0.2s ease,
 		border-color 0.2s ease;
 }
+
 .game-return-button:hover {
 	transform: translateY(-1px);
 	box-shadow:
@@ -218,12 +239,14 @@ video {
 		inset 0 1px 0 rgba(255, 255, 255, 0.2);
 	border-color: rgba(242, 230, 210, 0.7);
 }
+
 .game-return-button:active {
 	transform: translateY(0);
 	box-shadow:
 		0 8px 14px rgba(0, 0, 0, 0.25),
 		inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
+
 .player-card {
 	min-width: 160px;
 	padding: 12px;
@@ -237,13 +260,16 @@ video {
 	justify-items: center;
 	row-gap: 8px;
 }
+
 .player-card--black {
 	border-color: rgba(242, 230, 210, 0.35);
 }
+
 .player-card--white {
 	border-color: rgba(255, 255, 255, 0.7);
 	background: linear-gradient(180deg, rgba(248, 240, 227, 0.96) 0%, rgba(232, 219, 197, 0.92) 100%);
 }
+
 .player-card-name {
 	max-width: 100%;
 	color: #f8f1e5;
@@ -255,17 +281,21 @@ video {
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
+
 .player-card--white .player-card-name {
 	color: #2b2116;
 }
+
 .player-card-captured {
 	color: rgba(248, 241, 229, 0.9);
 	font-size: 12px;
 	letter-spacing: 0.04em;
 }
+
 .player-card--white .player-card-captured {
 	color: rgba(43, 33, 22, 0.85);
 }
+
 .game-side-button {
 	min-width: 140px;
 	padding: 12px 16px;
@@ -286,6 +316,7 @@ video {
 		box-shadow 0.2s ease,
 		border-color 0.2s ease;
 }
+
 .game-side-button:hover {
 	transform: translateY(-1px);
 	box-shadow:
@@ -293,19 +324,23 @@ video {
 		inset 0 1px 0 rgba(255, 255, 255, 0.2);
 	border-color: rgba(242, 230, 210, 0.7);
 }
+
 .game-side-button:active {
 	transform: translateY(0);
 	box-shadow:
 		0 8px 14px rgba(0, 0, 0, 0.25),
 		inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
+
 .game-side-button--black {
 	background: linear-gradient(135deg, #1a1310 0%, #2d221c 55%, #4a3a30 100%);
 }
+
 .game-side-button--white {
 	background: linear-gradient(135deg, #e6d8c2 0%, #f5ead9 55%, #ffffff 100%);
 	color: #2b2116;
 }
+
 .player-avatar-wrap {
 	width: 64px;
 	height: 64px;
@@ -316,28 +351,35 @@ video {
 	justify-content: center;
 	background: rgba(20, 16, 12, 0.65);
 }
+
 .player-avatar-wrap--black {
 	border: 2px solid #1f1a16;
 }
+
 .player-avatar-wrap--white {
 	border: 2px solid #f5ead9;
 }
+
 .player-avatar {
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
 	object-fit: cover;
 }
+
 .player-avatar.placeholder {
 	background: rgba(255, 255, 255, 0.12);
 }
+
 .player-avatar.placeholder--black {
 	background: radial-gradient(circle at 30% 30%, #3d3025 0%, #1b140f 55%, #0b0908 100%);
 }
+
 .player-avatar.placeholder--white {
 	background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f3e8d8 65%, #dfd1bc 100%);
 	border: 1px solid rgba(43, 33, 22, 0.22);
 }
+
 .tenuki-board {
 	background-color: #d2a96f;
 	background-image:
@@ -364,28 +406,34 @@ video {
 	width: min(80vw, 80vh);
 	height: min(80vw, 80vh);
 }
+
 .tenuki-board svg {
 	display: block;
 	shape-rendering: crispEdges;
 }
+
 .tenuki-board .line-box {
 	fill: none;
 	stroke: rgba(73, 46, 24, 0.72);
 	stroke-width: 0.7;
 	vector-effect: non-scaling-stroke;
 }
+
 .tenuki-board .hoshi {
 	fill: #492c17;
 }
+
 .tenuki-board .coordinates text,
 .tenuki-board .coordinates {
 	fill: #5b3920;
 	font-size: 12px;
 	font-family: serif;
 }
+
 .tenuki-board .intersection rect {
 	fill: transparent;
 }
+
 .tenuki-board .stone {
 	stroke: none;
 	transform-origin: center;
@@ -394,6 +442,7 @@ video {
 		filter 180ms ease,
 		opacity 160ms ease;
 }
+
 .tenuki-board .intersection.occupied.black .stone {
 	filter:
 		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5))
@@ -401,6 +450,7 @@ video {
 		saturate(1.15)
 		contrast(1.18);
 }
+
 .tenuki-board .intersection.occupied.white .stone {
 	stroke: rgba(178, 157, 122, 0.58);
 	stroke-width: 0.7;
@@ -412,14 +462,15 @@ video {
 		brightness(1.08)
 		contrast(1.02);
 }
+
 .tenuki-board .intersection.played .stone {
 	animation: stone-pop 360ms cubic-bezier(0.2, 1.25, 0.3, 1);
 }
+
 .tenuki-board .intersection.hovered .stone {
 	transform: none;
 	opacity: 0.82;
 	animation: none;
-	fill: #16110d;
 	stroke: none;
 	filter:
 		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5))
@@ -427,26 +478,48 @@ video {
 		brightness(1.2)
 		contrast(1.16);
 }
+
+.tenuki-board .intersection.hovered.black .stone {
+	fill: #16110d;
+}
+
+.tenuki-board .intersection.hovered.white .stone {
+	fill: #f6f0e4;
+	stroke: rgba(178, 157, 122, 0.72);
+	stroke-width: 0.7;
+	paint-order: stroke fill;
+	filter:
+		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28))
+		drop-shadow(0 0 2px rgba(180, 210, 255, 0.28))
+		brightness(1.03)
+		contrast(1.01);
+}
+
 .tenuki-board .stone-shadow {
 	display: block;
 	fill: rgba(0, 0, 0, 0.22);
 	filter: blur(0.6px);
 }
-.tenuki-board .marker {
-	display: none;
+
+.tenuki-board .intersection .marker,
+.tenuki-board .intersection .ko-marker,
+.tenuki-board .intersection .territory-marker {
+	visibility: hidden;
 }
+
 .tenuki-board .intersection.empty .stone {
 	opacity: 0;
 	filter: none;
 }
+
 .tenuki-board .intersection.empty .stone-shadow {
 	opacity: 0;
 }
+
 .tenuki-board .intersection.empty.hovered .stone {
 	transform: none;
 	opacity: 0.82;
 	animation: none;
-	fill: #16110d;
 	stroke: none;
 	filter:
 		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5))
@@ -454,6 +527,23 @@ video {
 		brightness(1.2)
 		contrast(1.16);
 }
+
+.tenuki-board .intersection.empty.hovered.black .stone {
+	fill: #16110d;
+}
+
+.tenuki-board .intersection.empty.hovered.white .stone {
+	fill: #f6f0e4;
+	stroke: rgba(178, 157, 122, 0.72);
+	stroke-width: 0.7;
+	paint-order: stroke fill;
+	filter:
+		drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28))
+		drop-shadow(0 0 2px rgba(180, 210, 255, 0.28))
+		brightness(1.03)
+		contrast(1.01);
+}
+
 .tenuki-board .intersection.empty.hovered .stone-shadow {
 	opacity: 1;
 }
