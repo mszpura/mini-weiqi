@@ -76,6 +76,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [displayedMoveCount, setDisplayedMoveCount] = useSyncState(0, syncKeys.displayedMoveCount)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const previousMovesLengthRef = useRef(0)
+	const shouldJumpToLatestMoveRef = useRef(false)
 	const user = session?.user
 
 	const currentPlayer = user
@@ -105,6 +106,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handlePlayMove = useCallback(
 		(y: number, x: number) => {
+			shouldJumpToLatestMoveRef.current = true
 			setMoves((previousMoves) => {
 				const nextMoves = [...previousMoves, { type: 'play', y, x }]
 				setDisplayedMoveCount(nextMoves.length)
@@ -116,6 +118,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handlePassTurn = useCallback(() => {
 		if (gameResult) return
+		shouldJumpToLatestMoveRef.current = true
 		setMoves((previousMoves) => {
 			const nextMoves = [...previousMoves, { type: 'pass' }]
 			setDisplayedMoveCount(nextMoves.length)
@@ -206,6 +209,15 @@ function AppContent({ onNavigate }: AppContentProps) {
 		const currentLength = moves.length
 
 		if (gameMode !== 'shared') {
+			shouldJumpToLatestMoveRef.current = false
+			setDisplayedMoveCount(currentLength)
+			previousMovesLengthRef.current = currentLength
+			return
+		}
+
+		const shouldJumpToLatest = shouldJumpToLatestMoveRef.current && currentLength > previousLength
+		if (shouldJumpToLatest) {
+			shouldJumpToLatestMoveRef.current = false
 			setDisplayedMoveCount(currentLength)
 			previousMovesLengthRef.current = currentLength
 			return
