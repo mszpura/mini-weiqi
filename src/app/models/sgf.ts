@@ -2,6 +2,7 @@ import type { GameMove } from './game'
 
 type ParsedSgfGame = {
 	boardSize?: number
+	handicapStones?: number
 	moves: GameMove[]
 }
 
@@ -187,10 +188,18 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 	if (typeof parsedBoardSize !== 'undefined' && (!Number.isInteger(parsedBoardSize) || parsedBoardSize < 2 || parsedBoardSize > 19)) {
 		return { ok: false, error: 'Unsupported board size in SGF. Supported sizes are 2 to 19.' }
 	}
+	const handicapValues = rootProps.get('HA')
+	const parsedHandicapStones = handicapValues ? Number.parseInt(handicapValues[0], 10) : undefined
+	if (
+		typeof parsedHandicapStones !== 'undefined' &&
+		(!Number.isInteger(parsedHandicapStones) || parsedHandicapStones < 0 || parsedHandicapStones > 9 || parsedHandicapStones === 1)
+	) {
+		return { ok: false, error: 'Unsupported handicap in SGF. Supported handicap values are 0 or 2 to 9.' }
+	}
 
 	const boardSize = parsedBoardSize ?? fallbackBoardSize
 	const moves: GameMove[] = []
-	let expectedColor: 'B' | 'W' = 'B'
+	let expectedColor: 'B' | 'W' = parsedHandicapStones && parsedHandicapStones > 0 ? 'W' : 'B'
 
 	for (const nodeText of mainLineNodes) {
 		const props = parseProperties(nodeText)
@@ -234,16 +243,120 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 		ok: true,
 		game: {
 			boardSize: parsedBoardSize,
+			handicapStones: parsedHandicapStones,
 			moves
 		}
 	}
 }
 
-export const serializeSgfContent = (boardSize: number, moves: GameMove[]) => {
+const handicapPlacementsByBoardSize: Record<number, Record<number, Array<{ y: number; x: number }>>> = {
+	19: {
+		0: [],
+		2: [{ y: 3, x: 15 }, { y: 15, x: 3 }],
+		3: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }],
+		4: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }],
+		5: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }, { y: 9, x: 9 }],
+		6: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }, { y: 9, x: 3 }, { y: 9, x: 15 }],
+		7: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }, { y: 9, x: 3 }, { y: 9, x: 15 }, { y: 9, x: 9 }],
+		8: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 },
+			{ y: 3, x: 3 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 15 },
+			{ y: 3, x: 9 },
+			{ y: 15, x: 9 }
+		],
+		9: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 },
+			{ y: 3, x: 3 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 15 },
+			{ y: 3, x: 9 },
+			{ y: 15, x: 9 },
+			{ y: 9, x: 9 }
+		]
+	},
+	13: {
+		0: [],
+		2: [{ y: 3, x: 9 }, { y: 9, x: 3 }],
+		3: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }],
+		4: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }],
+		5: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 6 }],
+		6: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 3 }, { y: 6, x: 9 }],
+		7: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 3 }, { y: 6, x: 9 }, { y: 6, x: 6 }],
+		8: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 3 }, { y: 6, x: 9 }, { y: 3, x: 6 }, { y: 9, x: 6 }],
+		9: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 },
+			{ y: 3, x: 3 },
+			{ y: 6, x: 3 },
+			{ y: 6, x: 9 },
+			{ y: 3, x: 6 },
+			{ y: 9, x: 6 },
+			{ y: 6, x: 6 }
+		]
+	},
+	9: {
+		0: [],
+		2: [{ y: 2, x: 6 }, { y: 6, x: 2 }],
+		3: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }],
+		4: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }],
+		5: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 4 }],
+		6: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 2 }, { y: 4, x: 6 }],
+		7: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 2 }, { y: 4, x: 6 }, { y: 4, x: 4 }],
+		8: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 2 }, { y: 4, x: 6 }, { y: 2, x: 4 }, { y: 6, x: 4 }],
+		9: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 },
+			{ y: 2, x: 2 },
+			{ y: 4, x: 2 },
+			{ y: 4, x: 6 },
+			{ y: 2, x: 4 },
+			{ y: 6, x: 4 },
+			{ y: 4, x: 4 }
+		]
+	}
+}
+
+const getHandicapPlacements = (boardSize: number, handicapStones: number) => {
+	const byBoardSize = handicapPlacementsByBoardSize[boardSize]
+	if (!byBoardSize) return null
+	return byBoardSize[handicapStones] ?? null
+}
+
+export const serializeSgfContent = (boardSize: number, moves: GameMove[], handicapStones = 0) => {
 	const safeBoardSize = Number.isInteger(boardSize) && boardSize >= 2 && boardSize <= 19 ? boardSize : 19
+	const safeHandicapStones =
+		Number.isInteger(handicapStones) && (handicapStones === 0 || (handicapStones >= 2 && handicapStones <= 9))
+			? handicapStones
+			: 0
+	const handicapPlacements = getHandicapPlacements(safeBoardSize, safeHandicapStones)
+	if (safeHandicapStones > 0 && !handicapPlacements) {
+		throw new Error('Cannot export SGF: handicap is only supported on 9x9, 13x13, and 19x19 boards.')
+	}
+	const abProperty =
+		safeHandicapStones > 0
+			? `AB${(handicapPlacements ?? [])
+					.map((point) => {
+						const coordinate = encodeCoordinate(point.x, point.y)
+						if (!coordinate) {
+							throw new Error('Cannot export SGF: invalid handicap placement.')
+						}
+						return `[${coordinate}]`
+					})
+					.join('')}`
+			: ''
+	const haProperty = safeHandicapStones > 0 ? `HA[${safeHandicapStones}]` : ''
+	const firstMoveColor: 'B' | 'W' = safeHandicapStones > 0 ? 'W' : 'B'
 	const sgfMoves = moves
 		.map((move, moveIndex) => {
-			const key = moveIndex % 2 === 0 ? 'B' : 'W'
+			const key = moveIndex % 2 === 0 ? firstMoveColor : firstMoveColor === 'B' ? 'W' : 'B'
 			if ('type' in move && move.type === 'pass') {
 				return `;${key}[]`
 			}
@@ -255,5 +368,5 @@ export const serializeSgfContent = (boardSize: number, moves: GameMove[]) => {
 		})
 		.join('')
 
-	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${sgfMoves})`
+	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${haProperty}${abProperty}${sgfMoves})`
 }

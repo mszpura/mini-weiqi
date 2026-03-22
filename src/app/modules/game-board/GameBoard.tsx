@@ -7,6 +7,8 @@ import '../../svg-renderer.scss'
 type GameBoardProps = {
 	boardSize: number
 	onBoardSizeChange: (size: number) => void
+	handicapStones: number
+	onHandicapChange: (stones: number) => void
 	blackPlayer: PlayerSlot | null
 	whitePlayer: PlayerSlot | null
 	onJoinBlack: () => void
@@ -39,6 +41,8 @@ type GameBoardProps = {
 export const GameBoard = ({
 	boardSize,
 	onBoardSizeChange,
+	handicapStones,
+	onHandicapChange,
 	blackPlayer,
 	whitePlayer,
 	onJoinBlack,
@@ -122,6 +126,7 @@ export const GameBoard = ({
 		const game = new Game({
 			element: boardElement,
 			boardSize,
+			handicapStones,
 			_hooks: {
 				handleClick: (y, x) => {
 					const g = gameRef.current
@@ -165,7 +170,7 @@ export const GameBoard = ({
 			boardElement.innerHTML = ''
 			gameRef.current = null
 		}
-	}, [boardScale, boardSize, moves])
+	}, [boardScale, boardSize, handicapStones, moves])
 
 	const canShowExitMode =
 		gameStarted &&
@@ -173,7 +178,9 @@ export const GameBoard = ({
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
 	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
-	const currentTurn: 'black' | 'white' = moves.length % 2 === 0 ? 'black' : 'white'
+	const firstMoveColor: 'black' | 'white' = handicapStones > 0 ? 'white' : 'black'
+	const currentTurn: 'black' | 'white' =
+		moves.length % 2 === 0 ? firstMoveColor : firstMoveColor === 'black' ? 'white' : 'black'
 	const canPassAs = (color: 'black' | 'white') =>
 		gameMode === 'normal' &&
 		playerColor === color &&
@@ -283,6 +290,28 @@ export const GameBoard = ({
 									<option value={9}>9x9</option>
 									<option value={13}>13x13</option>
 									<option value={19}>19x19</option>
+								</select>
+							</div>
+							<div className="game-options-panel-group">
+								<div className="game-board-size-label">Handicap</div>
+								<select
+									className="game-options-select"
+									name="handicapStones"
+									value={handicapStones}
+									onChange={(event) => onHandicapChange(Number(event.target.value))}
+								>
+									<option value={0}>0</option>
+									<option value={1} disabled>
+										1 (unsupported)
+									</option>
+									<option value={2}>2</option>
+									<option value={3}>3</option>
+									<option value={4}>4</option>
+									<option value={5}>5</option>
+									<option value={6}>6</option>
+									<option value={7}>7</option>
+									<option value={8}>8</option>
+									<option value={9}>9</option>
 								</select>
 							</div>
 							<div className="game-options-panel-group">

@@ -10,6 +10,8 @@ declare module 'tenuki' {
 	type GameOptions = {
 		element?: HTMLElement
 		boardSize?: number
+		handicapStones?: number
+		freeHandicapPlacement?: boolean
 		_hooks?: TenukiHooks
 	}
 

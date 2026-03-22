@@ -50,6 +50,13 @@ type AppContentProps = {
 	onNavigate: (path: string) => void
 }
 
+const normalizeHandicapStones = (value: number) => {
+	if (!Number.isInteger(value)) return 0
+	if (value === 0) return 0
+	if (value >= 2 && value <= 9) return value
+	return 0
+}
+
 function AppContent({ onNavigate }: AppContentProps) {
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
@@ -57,6 +64,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		() => ({
 			gameBoard: ['game-board', channelKey],
 			boardSize: ['board-size', channelKey],
+			handicapStones: ['handicap-stones', channelKey],
 			gameMode: ['game-mode', channelKey],
 			gameStarted: ['game-started', channelKey],
 			blackPlayer: ['player-black', channelKey],
@@ -69,6 +77,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	)
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, syncKeys.gameBoard)
 	const [boardSize, setBoardSize] = useSyncState(19, syncKeys.boardSize)
+	const [handicapStones, setHandicapStones] = useSyncState(0, syncKeys.handicapStones)
 	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', syncKeys.gameMode)
 	const [gameStarted, setGameStarted] = useSyncState(false, syncKeys.gameStarted)
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.blackPlayer)
@@ -93,6 +102,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		currentPlayer?.id === blackPlayer?.id ? 'black' : currentPlayer?.id === whitePlayer?.id ? 'white' : null
 	const isSeated = currentPlayer?.id === blackPlayer?.id || currentPlayer?.id === whitePlayer?.id
 	const isUnauthenticated = !session?.user?.id
+	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
 
 	const handleJoinBlack = () => {
 		if (!gameStarted) return
@@ -133,7 +143,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	}, [gameResult, gameStarted, setMoves])
 
 	const buildScoreFromMoves = useCallback(() => {
-		const game = new Game({ boardSize })
+		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
 		for (const move of moves) {
 			if (isPassMove(move)) {
 				game.pass()
@@ -142,7 +152,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 		}
 		return game.score()
-	}, [boardSize, moves])
+	}, [boardSize, effectiveHandicapStones, moves])
 
 	const handleResign = useCallback(() => {
 		if (!gameStarted) return
@@ -172,6 +182,22 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer(null)
 		setGameStarted(true)
 	}, [setBlackPlayer, setGameResult, setGameStarted, setMoves, setWhitePlayer])
+
+	const handleHandicapChange = useCallback(
+		(nextHandicapStones: number) => {
+			if (nextHandicapStones === handicapStones) return
+			shouldJumpToLatestMoveRef.current = false
+			previousMovesLengthRef.current = 0
+			setMoves([])
+			setDisplayedMoveCount(0)
+			setGameResult(null)
+			setBlackPlayer(null)
+			setWhitePlayer(null)
+			setGameStarted(false)
+			setHandicapStones(normalizeHandicapStones(nextHandicapStones))
+		},
+		[handicapStones, setBlackPlayer, setGameResult, setGameStarted, setHandicapStones, setMoves, setWhitePlayer]
+	)
 
 	const handleBoardSizeChange = useCallback(
 		(nextBoardSize: number) => {
@@ -211,6 +237,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 				if (importedBoardSize !== boardSize) {
 					setBoardSize(importedBoardSize)
 				}
+				setHandicapStones(normalizeHandicapStones(parsed.game.handicapStones ?? 0))
 				setMoves(parsed.game.moves)
 				setDisplayedMoveCount(parsed.game.moves.length)
 				setGameResult(null)
@@ -218,7 +245,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 				window.alert('Failed to read SGF file.')
 			}
 		},
-		[boardSize, setBoardSize, setGameResult, setMoves]
+		[boardSize, setBoardSize, setGameResult, setHandicapStones, setMoves]
 	)
 
 	const handleExitMode = useCallback(() => {
@@ -261,7 +288,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const shownMoves = useMemo(() => moves.slice(0, displayedMoveCount), [displayedMoveCount, moves])
 
 	const gameSnapshot = useMemo(() => {
-		const game = new Game({ boardSize })
+		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
 		for (const move of shownMoves) {
 			if (isPassMove(move)) {
 				game.pass()
@@ -278,10 +305,10 @@ function AppContent({ onNavigate }: AppContentProps) {
 			white: state.blackStonesCaptured,
 			score
 		}
-	}, [boardSize, shownMoves])
+	}, [boardSize, effectiveHandicapStones, shownMoves])
 
 	const fullGameSnapshot = useMemo(() => {
-		const game = new Game({ boardSize })
+		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
 		for (const move of moves) {
 			if (isPassMove(move)) {
 				game.pass()
@@ -294,7 +321,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			isOver: game.isOver(),
 			score
 		}
-	}, [boardSize, moves])
+	}, [boardSize, effectiveHandicapStones, moves])
 
 	const effectiveGameResult = useMemo<GameResult | null>(() => {
 		if (gameResult) return gameResult
@@ -315,7 +342,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (!effectiveGameResult) return
 
 		try {
-			const sgf = serializeSgfContent(boardSize, moves)
+			const sgf = serializeSgfContent(boardSize, moves, effectiveHandicapStones)
 			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
 			const url = window.URL.createObjectURL(file)
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -330,7 +357,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, effectiveGameResult, gameMode, gameStarted, moves])
+	}, [boardSize, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, moves])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
@@ -359,6 +386,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 				<GameBoard
 					boardSize={boardSize}
 					onBoardSizeChange={handleBoardSizeChange}
+					handicapStones={effectiveHandicapStones}
+					onHandicapChange={handleHandicapChange}
 					blackPlayer={blackPlayer}
 					whitePlayer={whitePlayer}
 					onJoinBlack={handleJoinBlack}
