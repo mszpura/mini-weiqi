@@ -1,6 +1,6 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, type ChangeEvent } from 'react'
 import { Game } from 'tenuki'
 import { isPassMove, type GameMode, type GameMove, type GameResult } from './models/game'
 import type { PlayerSlot } from './models/player'
@@ -30,7 +30,8 @@ function AppContent() {
 			blackPlayer: ['player-black', channelKey],
 			whitePlayer: ['player-white', channelKey],
 			moves: ['game-moves', channelKey],
-			gameResult: ['game-result', channelKey]
+			gameResult: ['game-result', channelKey],
+			displayedMoveCount: ['displayed-move-count', channelKey]
 		}),
 		[channelKey]
 	)
@@ -41,8 +42,8 @@ function AppContent() {
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
 	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
 	const [gameResult, setGameResult] = useSyncState<GameResult | null>(null, syncKeys.gameResult)
+	const [displayedMoveCount, setDisplayedMoveCount] = useSyncState(0, syncKeys.displayedMoveCount)
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const [displayedMoveCount, setDisplayedMoveCount] = useState(0)
 	const previousMovesLengthRef = useRef(0)
 	const user = session?.user
 	
