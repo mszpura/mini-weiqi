@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
 import { isPassMove, type GameMode, type GameMove, type GameResult } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
@@ -59,12 +59,16 @@ export const GameBoard = ({
 	onReturnToMenu,
 	hideJoinButtons = false
 }: GameBoardProps) => {
+	const BOARD_SCALE_STEP = 0.2
+	const MIN_BOARD_SCALE = 0.6
+	const MAX_BOARD_SCALE = 3
 	const boardRef = useRef<HTMLDivElement>(null)
 	const gameRef = useRef<Game | null>(null)
 	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
 	const gameModeRef = useRef<GameMode>(gameMode)
 	const gameResultRef = useRef<GameResult | null>(gameResult)
 	const isViewingLatestMoveRef = useRef<boolean>(isViewingLatestMove)
+	const [boardScale, setBoardScale] = useState(1)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (gameResultRef.current) return false
@@ -141,7 +145,7 @@ export const GameBoard = ({
 			boardElement.innerHTML = ''
 			gameRef.current = null
 		}
-	}, [boardSize, moves])
+	}, [boardScale, boardSize, moves])
 
 	const canReturnToMenu = Boolean(gameResult) || (!blackPlayer && !whitePlayer)
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
@@ -169,6 +173,14 @@ export const GameBoard = ({
 			: gameResult
 				? 'Game ended by two passes'
 				: null
+	const canIncreaseBoardScale = boardScale < MAX_BOARD_SCALE - 0.001
+	const canDecreaseBoardScale = boardScale > MIN_BOARD_SCALE + 0.001
+	const handleIncreaseBoardScale = () => {
+		setBoardScale((previousScale) => Math.min(MAX_BOARD_SCALE, Number((previousScale + BOARD_SCALE_STEP).toFixed(2))))
+	}
+	const handleDecreaseBoardScale = () => {
+		setBoardScale((previousScale) => Math.max(MIN_BOARD_SCALE, Number((previousScale - BOARD_SCALE_STEP).toFixed(2))))
+	}
 
 	return (
 		<div className="game-board">
@@ -214,7 +226,31 @@ export const GameBoard = ({
 					ref={boardRef}
 					className="tenuki-board tenuki-svg-renderer"
 					data-include-coordinates="true"
+					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
+				<div className="game-board-size-controls">
+					<div className="game-board-size-label">Board Size</div>
+					<div className="game-board-size-buttons">
+						<button
+							className="game-board-size-button"
+							type="button"
+							onClick={handleIncreaseBoardScale}
+							disabled={!canIncreaseBoardScale}
+							aria-label="Increase board size"
+						>
+							+
+						</button>
+						<button
+							className="game-board-size-button"
+							type="button"
+							onClick={handleDecreaseBoardScale}
+							disabled={!canDecreaseBoardScale}
+							aria-label="Decrease board size"
+						>
+							-
+						</button>
+					</div>
+				</div>
 				{showNavigation ? (
 					<div className="game-board-nav-controls">
 						<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
