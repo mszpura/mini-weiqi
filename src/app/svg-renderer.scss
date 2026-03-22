@@ -90,6 +90,25 @@ $board-darker-color: hsl(41, 36%, 40%);
 	justify-items: center;
 }
 
+.game-setup-popup {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 25;
+	width: min(360px, calc(100vw - 24px));
+	padding: 14px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.4);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.95) 0%, rgba(20, 16, 12, 0.92) 100%);
+	box-shadow:
+		0 18px 32px rgba(0, 0, 0, 0.38),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	display: grid;
+	align-content: start;
+	row-gap: 12px;
+}
+
 .game-options-select {
 	width: min(220px, 100%);
 	padding: 8px 10px;

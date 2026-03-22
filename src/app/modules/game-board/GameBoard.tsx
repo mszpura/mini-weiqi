@@ -77,7 +77,7 @@ export const GameBoard = ({
 	const gameStartedRef = useRef<boolean>(gameStarted)
 	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
-	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(true)
+	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (!gameStartedRef.current) return false
@@ -259,6 +259,41 @@ export const GameBoard = ({
 					</div>
 				) : null}
 			</div>
+			{shouldShowSetupOptions ? (
+				<div className="game-setup-popup" role="dialog" aria-label="Game setup">
+					<div className="game-options-panel-title">Setup</div>
+					<div className="game-options-panel-group">
+						<div className="game-board-size-label">Game Mode</div>
+						<select
+							className="game-options-select"
+							name="gameMode"
+							value={gameMode}
+							onChange={(event) => onGameModeChange(event.target.value as GameMode)}
+						>
+							<option value="normal">Normal Game</option>
+							<option value="shared">Shared Game</option>
+						</select>
+					</div>
+					<div className="game-options-panel-group">
+						<div className="game-board-size-label">Board Size</div>
+						<select
+							className="game-options-select"
+							name="boardSize"
+							value={boardSize}
+							onChange={(event) => onBoardSizeChange(Number(event.target.value))}
+						>
+							<option value={9}>9x9</option>
+							<option value={13}>13x13</option>
+							<option value={19}>19x19</option>
+						</select>
+					</div>
+					<div className="game-options-panel-group">
+						<button className="game-side-button game-side-button--start" type="button" onClick={onStartGame}>
+							Start
+						</button>
+					</div>
+				</div>
+			) : null}
 			<div className="game-side-slot">
 				<div className="player-card player-card--white">
 					<div className="player-avatar-wrap player-avatar-wrap--white">
@@ -308,41 +343,6 @@ export const GameBoard = ({
 			{isOptionsPanelOpen ? (
 				<aside className="game-options-panel" id="game-options-panel">
 					<div className="game-options-panel-title">Options</div>
-					{shouldShowSetupOptions ? (
-						<>
-							<div className="game-options-panel-group">
-								<div className="game-board-size-label">Game Mode</div>
-								<select
-									className="game-options-select"
-									name="gameMode"
-									value={gameMode}
-									onChange={(event) => onGameModeChange(event.target.value as GameMode)}
-								>
-									<option value="normal">Normal Game</option>
-									<option value="shared">Shared Game</option>
-								</select>
-							</div>
-							<div className="game-options-panel-group">
-								<div className="game-board-size-label">Board Size</div>
-								<select
-									className="game-options-select"
-									name="boardSize"
-									value={boardSize}
-									onChange={(event) => onBoardSizeChange(Number(event.target.value))}
-								>
-									<option value={9}>9x9</option>
-									<option value={13}>13x13</option>
-									<option value={19}>19x19</option>
-								</select>
-							</div>
-							<div className="game-options-panel-group">
-								<button className="game-side-button game-side-button--start" type="button" onClick={onStartGame}>
-									Start
-								</button>
-							</div>
-						</>
-					) : null}
-					{shouldShowSetupOptions ? <div className="game-options-divider" role="presentation" /> : null}
 					<div className="game-board-size-controls">
 						<div className="game-board-size-label">Board Zoom</div>
 						<div className="game-board-size-buttons">
