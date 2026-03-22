@@ -1,4 +1,4 @@
-export type GameMode = 'normal' | 'rengo' | 'shared'
+export type GameMode = 'normal' | 'shared'
 
 type PlayMove = {
 	type: 'play'

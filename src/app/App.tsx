@@ -173,6 +173,22 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameStarted(true)
 	}, [setBlackPlayer, setGameResult, setGameStarted, setMoves, setWhitePlayer])
 
+	const handleBoardSizeChange = useCallback(
+		(nextBoardSize: number) => {
+			if (nextBoardSize === boardSize) return
+			shouldJumpToLatestMoveRef.current = false
+			previousMovesLengthRef.current = 0
+			setMoves([])
+			setDisplayedMoveCount(0)
+			setGameResult(null)
+			setBlackPlayer(null)
+			setWhitePlayer(null)
+			setGameStarted(false)
+			setBoardSize(nextBoardSize)
+		},
+		[boardSize, setBlackPlayer, setBoardSize, setGameResult, setGameStarted, setMoves, setWhitePlayer]
+	)
+
 	const handleSgfFileChange = useCallback(
 		async (event: ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0]
@@ -191,11 +207,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 					window.alert(parsed.error)
 					return
 				}
+				const importedBoardSize = parsed.game.boardSize ?? boardSize
+				if (importedBoardSize !== boardSize) {
+					setBoardSize(importedBoardSize)
+				}
 				setMoves(parsed.game.moves)
 				setDisplayedMoveCount(parsed.game.moves.length)
-				if (parsed.game.boardSize && parsed.game.boardSize !== boardSize) {
-					setBoardSize(parsed.game.boardSize)
-				}
 				setGameResult(null)
 			} catch {
 				window.alert('Failed to read SGF file.')
@@ -204,23 +221,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 		[boardSize, setBoardSize, setGameResult, setMoves]
 	)
 
-	const handleReturnToMenu = useCallback(() => {
+	const handleExitMode = useCallback(() => {
 		setMoves([])
 		setDisplayedMoveCount(0)
 		setGameResult(null)
 		setBlackPlayer(null)
 		setWhitePlayer(null)
 		setGameStarted(false)
-		setShowGameBoard(false)
-	}, [setBlackPlayer, setGameResult, setGameStarted, setMoves, setShowGameBoard, setWhitePlayer])
-
-	const handleNewGame = useCallback(() => {
-		setMoves([])
-		setDisplayedMoveCount(0)
-		setGameResult(null)
-		setBlackPlayer(null)
-		setWhitePlayer(null)
-	}, [setBlackPlayer, setGameResult, setMoves, setWhitePlayer])
+	}, [setBlackPlayer, setGameResult, setGameStarted, setMoves, setWhitePlayer])
 
 	useEffect(() => {
 		const previousLength = previousMovesLengthRef.current
@@ -327,7 +335,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 				<input ref={fileInputRef} type="file" accept=".sgf" hidden onChange={handleSgfFileChange} />
 				<GameBoard
 					boardSize={boardSize}
-					onBoardSizeChange={setBoardSize}
+					onBoardSizeChange={handleBoardSizeChange}
 					blackPlayer={blackPlayer}
 					whitePlayer={whitePlayer}
 					onJoinBlack={handleJoinBlack}
@@ -352,8 +360,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onResign={handleResign}
 					onImportSgf={handleImportSgf}
 					gameResult={effectiveGameResult}
-					onNewGame={handleNewGame}
-					onReturnToMenu={handleReturnToMenu}
+					onExitMode={handleExitMode}
 					hideJoinButtons={isUnauthenticated}
 				/>
 			</div>

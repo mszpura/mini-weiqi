@@ -31,8 +31,7 @@ type GameBoardProps = {
 	onResign: () => void
 	onImportSgf: () => void
 	gameResult: GameResult | null
-	onNewGame: () => void
-	onReturnToMenu: () => void
+	onExitMode: () => void
 	hideJoinButtons?: boolean
 }
 
@@ -63,8 +62,7 @@ export const GameBoard = ({
 	onResign,
 	onImportSgf,
 	gameResult,
-	onNewGame,
-	onReturnToMenu,
+	onExitMode,
 	hideJoinButtons = false
 }: GameBoardProps) => {
 	const BOARD_SCALE_STEP = 0.2
@@ -167,7 +165,9 @@ export const GameBoard = ({
 		}
 	}, [boardScale, boardSize, moves])
 
-	const canReturnToMenu = Boolean(gameResult) || (!blackPlayer && !whitePlayer)
+	const canShowExitMode =
+		gameStarted &&
+		(gameMode !== 'normal' || (moves.length === 0 && !gameResult))
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
 	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
@@ -184,7 +184,7 @@ export const GameBoard = ({
 	const showResignForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showNavigation = gameMode === 'shared'
-	const showNewGame = gameMode === 'normal' && Boolean(gameResult)
+	const shouldShowSetupOptions = !gameStarted || Boolean(gameResult)
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
 	const reasonLabel =
@@ -308,7 +308,7 @@ export const GameBoard = ({
 			{isOptionsPanelOpen ? (
 				<aside className="game-options-panel" id="game-options-panel">
 					<div className="game-options-panel-title">Options</div>
-					{!gameStarted ? (
+					{shouldShowSetupOptions ? (
 						<>
 							<div className="game-options-panel-group">
 								<div className="game-board-size-label">Game Mode</div>
@@ -319,7 +319,6 @@ export const GameBoard = ({
 									onChange={(event) => onGameModeChange(event.target.value as GameMode)}
 								>
 									<option value="normal">Normal Game</option>
-									<option value="rengo">Rengo</option>
 									<option value="shared">Shared Game</option>
 								</select>
 							</div>
@@ -343,7 +342,7 @@ export const GameBoard = ({
 							</div>
 						</>
 					) : null}
-					<div className="game-options-divider" role="presentation" />
+					{shouldShowSetupOptions ? <div className="game-options-divider" role="presentation" /> : null}
 					<div className="game-board-size-controls">
 						<div className="game-board-size-label">Board Zoom</div>
 						<div className="game-board-size-buttons">
@@ -386,21 +385,16 @@ export const GameBoard = ({
 							</div>
 						</div>
 					) : null}
-					{showImportSgf || showNewGame || canReturnToMenu ? (
+					{showImportSgf || canShowExitMode ? (
 						<div className="game-board-controls">
 							{showImportSgf ? (
 								<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
 									Import SGF
 								</button>
 							) : null}
-							{showNewGame ? (
-								<button className="game-side-button game-side-button--new-game" type="button" onClick={onNewGame}>
-									New Game
-								</button>
-							) : null}
-							{canReturnToMenu ? (
-								<button className="game-return-button" type="button" onClick={onReturnToMenu}>
-									Return
+							{canShowExitMode ? (
+								<button className="game-return-button" type="button" onClick={onExitMode}>
+									Exit mode
 								</button>
 							) : null}
 						</div>
