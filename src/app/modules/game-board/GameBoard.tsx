@@ -15,6 +15,13 @@ type GameBoardProps = {
 	moves: GameMove[]
 	capturedByBlack: number
 	capturedByWhite: number
+	isViewingLatestMove: boolean
+	canMoveBackward: boolean
+	canMoveForward: boolean
+	onMoveToStart: () => void
+	onMoveBackward: () => void
+	onMoveForward: () => void
+	onMoveToEnd: () => void
 	onPlayMove: (y: number, x: number) => void
 	onPassTurn: () => void
 	onResign: () => void
@@ -35,6 +42,13 @@ export const GameBoard = ({
 	moves,
 	capturedByBlack,
 	capturedByWhite,
+	isViewingLatestMove,
+	canMoveBackward,
+	canMoveForward,
+	onMoveToStart,
+	onMoveBackward,
+	onMoveForward,
+	onMoveToEnd,
 	onPlayMove,
 	onPassTurn,
 	onResign,
@@ -48,9 +62,11 @@ export const GameBoard = ({
 	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
 	const gameModeRef = useRef<GameMode>(gameMode)
 	const gameResultRef = useRef<GameResult | null>(gameResult)
+	const isViewingLatestMoveRef = useRef<boolean>(isViewingLatestMove)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (gameResultRef.current) return false
+		if (!isViewingLatestMoveRef.current) return false
 		if (gameModeRef.current === 'shared') return true
 		const activeColor = playerColorRef.current
 		return Boolean(activeColor && game.currentPlayer() === activeColor)
@@ -67,6 +83,10 @@ export const GameBoard = ({
 	useEffect(() => {
 		gameResultRef.current = gameResult
 	}, [gameResult])
+
+	useEffect(() => {
+		isViewingLatestMoveRef.current = isViewingLatestMove
+	}, [isViewingLatestMove])
 
 	useEffect(() => {
 		const boardElement = boardRef.current
@@ -137,6 +157,7 @@ export const GameBoard = ({
 	const showResignForBlack = gameMode === 'normal' && playerColor === 'black' && !gameResult
 	const showResignForWhite = gameMode === 'normal' && playerColor === 'white' && !gameResult
 	const showImportSgf = gameMode === 'shared' && !gameResult
+	const showNavigation = gameMode === 'shared'
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
 	const reasonLabel =
@@ -191,6 +212,22 @@ export const GameBoard = ({
 					className="tenuki-board tenuki-svg-renderer"
 					data-include-coordinates="true"
 				/>
+				{showNavigation ? (
+					<div className="game-board-nav-controls">
+						<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
+							{'<<'}
+						</button>
+						<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
+							{'<'}
+						</button>
+						<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
+							{'>'}
+						</button>
+						<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
+							{'>>'}
+						</button>
+					</div>
+				) : null}
 				{showImportSgf || canReturnToMenu ? (
 					<div className="game-board-controls">
 						{showImportSgf ? (

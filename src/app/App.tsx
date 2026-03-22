@@ -1,6 +1,6 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
-import { useCallback, useMemo, useRef, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Game } from 'tenuki'
 import { isPassMove, type GameMode, type GameMove, type GameResult } from './models/game'
 import type { PlayerSlot } from './models/player'
@@ -42,6 +42,8 @@ function AppContent() {
 	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
 	const [gameResult, setGameResult] = useSyncState<GameResult | null>(null, syncKeys.gameResult)
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const [displayedMoveCount, setDisplayedMoveCount] = useState(0)
+	const previousMovesLengthRef = useRef(0)
 	const user = session?.user
 	
 	const currentPlayer = user
@@ -70,14 +72,22 @@ function AppContent() {
 
 	const handlePlayMove = useCallback(
 		(y: number, x: number) => {
-			setMoves((previousMoves) => [...previousMoves, { type: 'play', y, x }])
+			setMoves((previousMoves) => {
+				const nextMoves = [...previousMoves, { type: 'play', y, x }]
+				setDisplayedMoveCount(nextMoves.length)
+				return nextMoves
+			})
 		},
 		[setMoves]
 	)
 
 	const handlePassTurn = useCallback(() => {
 		if (gameResult) return
-		setMoves((previousMoves) => [...previousMoves, { type: 'pass' }])
+		setMoves((previousMoves) => {
+			const nextMoves = [...previousMoves, { type: 'pass' }]
+			setDisplayedMoveCount(nextMoves.length)
+			return nextMoves
+		})
 	}, [gameResult, setMoves])
 
 	const buildScoreFromMoves = useCallback(() => {
@@ -129,6 +139,7 @@ function AppContent() {
 					return
 				}
 				setMoves(parsed.game.moves)
+				setDisplayedMoveCount(parsed.game.moves.length)
 				if (parsed.game.boardSize && parsed.game.boardSize !== boardSize) {
 					setBoardSize(parsed.game.boardSize)
 				}
@@ -142,13 +153,37 @@ function AppContent() {
 
 	const handleReturnToMenu = useCallback(() => {
 		setMoves([])
+		setDisplayedMoveCount(0)
 		setGameResult(null)
+		setBlackPlayer(null)
+		setWhitePlayer(null)
 		setShowGameBoard(false)
-	}, [setGameResult, setMoves, setShowGameBoard])
+	}, [setBlackPlayer, setGameResult, setMoves, setShowGameBoard, setWhitePlayer])
+
+	useEffect(() => {
+		const previousLength = previousMovesLengthRef.current
+		const currentLength = moves.length
+
+		if (gameMode !== 'shared') {
+			setDisplayedMoveCount(currentLength)
+			previousMovesLengthRef.current = currentLength
+			return
+		}
+
+		if (displayedMoveCount > currentLength) {
+			setDisplayedMoveCount(currentLength)
+		} else if (displayedMoveCount === previousLength) {
+			setDisplayedMoveCount(currentLength)
+		}
+
+		previousMovesLengthRef.current = currentLength
+	}, [displayedMoveCount, gameMode, moves.length])
+
+	const shownMoves = useMemo(() => moves.slice(0, displayedMoveCount), [displayedMoveCount, moves])
 
 	const gameSnapshot = useMemo(() => {
 		const game = new Game({ boardSize })
-		for (const move of moves) {
+		for (const move of shownMoves) {
 			if (isPassMove(move)) {
 				game.pass()
 			} else {
@@ -164,20 +199,64 @@ function AppContent() {
 			white: state.blackStonesCaptured,
 			score
 		}
+	}, [boardSize, shownMoves])
+
+	const fullGameSnapshot = useMemo(() => {
+		const game = new Game({ boardSize })
+		for (const move of moves) {
+			if (isPassMove(move)) {
+				game.pass()
+			} else {
+				game.playAt(move.y, move.x)
+			}
+		}
+		const score = game.score()
+		return {
+			isOver: game.isOver(),
+			score
+		}
 	}, [boardSize, moves])
 
 	const effectiveGameResult = useMemo<GameResult | null>(() => {
 		if (gameResult) return gameResult
-		if (!gameSnapshot.isOver) return null
-		const blackScore = gameSnapshot.score.black
-		const whiteScore = gameSnapshot.score.white
+		if (!fullGameSnapshot.isOver) return null
+		const blackScore = fullGameSnapshot.score.black
+		const whiteScore = fullGameSnapshot.score.white
 		return {
 			winner: blackScore === whiteScore ? 'draw' : blackScore > whiteScore ? 'black' : 'white',
 			blackScore,
 			whiteScore,
 			reason: 'finished'
 		}
-	}, [gameResult, gameSnapshot])
+	}, [fullGameSnapshot, gameResult])
+
+	useEffect(() => {
+		if (gameMode !== 'normal') return
+		if (!effectiveGameResult) return
+		if (!blackPlayer && !whitePlayer) return
+		setBlackPlayer(null)
+		setWhitePlayer(null)
+	}, [blackPlayer, effectiveGameResult, gameMode, setBlackPlayer, setWhitePlayer, whitePlayer])
+
+	const handleMoveToStart = useCallback(() => {
+		if (gameMode !== 'shared') return
+		setDisplayedMoveCount(0)
+	}, [gameMode])
+
+	const handleMoveBackward = useCallback(() => {
+		if (gameMode !== 'shared') return
+		setDisplayedMoveCount((current) => Math.max(0, current - 1))
+	}, [gameMode])
+
+	const handleMoveForward = useCallback(() => {
+		if (gameMode !== 'shared') return
+		setDisplayedMoveCount((current) => Math.min(moves.length, current + 1))
+	}, [gameMode, moves.length])
+
+	const handleMoveToEnd = useCallback(() => {
+		if (gameMode !== 'shared') return
+		setDisplayedMoveCount(moves.length)
+	}, [gameMode, moves.length])
 
 	if (showGameBoard) {
 		return (
@@ -197,9 +276,16 @@ function AppContent() {
 					onJoinWhite={handleJoinWhite}
 					playerColor={playerColor}
 					gameMode={gameMode}
-					moves={moves}
+					moves={shownMoves}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
+					isViewingLatestMove={displayedMoveCount === moves.length}
+					canMoveBackward={displayedMoveCount > 0}
+					canMoveForward={displayedMoveCount < moves.length}
+					onMoveToStart={handleMoveToStart}
+					onMoveBackward={handleMoveBackward}
+					onMoveForward={handleMoveForward}
+					onMoveToEnd={handleMoveToEnd}
 					onPlayMove={handlePlayMove}
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}
