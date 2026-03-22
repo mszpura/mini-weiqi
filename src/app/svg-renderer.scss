@@ -7,6 +7,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	--board-screen-padding-x: 32px;
 	--board-screen-padding-y: 24px;
 	--board-controls-space: 88px;
+	--options-panel-width: min(320px, calc(100vw - 24px));
 	--board-size: min(
 		calc(100svh - var(--board-screen-padding-y) - var(--board-controls-space)),
 		calc(100vw - var(--board-screen-padding-x) - (var(--board-side-width) * 2) - (var(--board-gap) * 2))
@@ -33,6 +34,60 @@ $board-darker-color: hsl(41, 36%, 40%);
 	align-items: center;
 	gap: 12px;
 	flex: 0 1 auto;
+}
+
+.game-options-toggle {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	z-index: 30;
+	min-width: 120px;
+	padding: 10px 16px;
+	border-radius: 999px;
+	border: 1px solid rgba(242, 230, 210, 0.35);
+	background: rgba(20, 16, 12, 0.9);
+	color: #f8f1e5;
+	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
+	font-size: 14px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	box-shadow:
+		0 12px 22px rgba(0, 0, 0, 0.28),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.game-options-panel {
+	position: fixed;
+	top: 16px;
+	right: 16px;
+	bottom: 72px;
+	z-index: 20;
+	width: var(--options-panel-width);
+	padding: 14px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.4);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.95) 0%, rgba(20, 16, 12, 0.92) 100%);
+	box-shadow:
+		0 14px 28px rgba(0, 0, 0, 0.35),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	display: grid;
+	align-content: start;
+	row-gap: 12px;
+	overflow-y: auto;
+}
+
+.game-options-panel-title {
+	color: rgba(248, 241, 229, 0.92);
+	font-size: 14px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	font-weight: 700;
+}
+
+.game-options-panel-group {
+	display: grid;
+	row-gap: 6px;
+	justify-items: center;
 }
 
 .game-board-controls {
@@ -154,7 +209,8 @@ $board-darker-color: hsl(41, 36%, 40%);
 }
 
 .game-return-button {
-	min-width: 140px;
+	min-width: 136px;
+	margin-top: 5px;
 	padding: 10px 16px;
 	border-radius: 999px;
 	border: 1px solid rgba(242, 230, 210, 0.35);
@@ -300,6 +356,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 
 	&--import {
 		min-width: 136px;
+		margin-top: 5px;
 		background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
 	}
 
@@ -718,7 +775,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	.game-board {
 		--board-screen-padding-x: 20px;
 		--board-screen-padding-y: 20px;
-		--board-controls-space: 220px;
+		--board-controls-space: 140px;
 		flex-direction: column;
 		align-items: center;
 		gap: 12px;
@@ -732,6 +789,20 @@ $board-darker-color: hsl(41, 36%, 40%);
 
 	.game-board-center {
 		width: 100%;
+	}
+
+	.game-options-toggle {
+		right: 12px;
+		bottom: 12px;
+	}
+
+	.game-options-panel {
+		top: auto;
+		left: 12px;
+		right: 12px;
+		bottom: 68px;
+		width: auto;
+		max-height: min(70svh, 520px);
 	}
 
 	.tenuki-svg-renderer {

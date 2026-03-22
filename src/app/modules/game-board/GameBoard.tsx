@@ -69,6 +69,7 @@ export const GameBoard = ({
 	const gameResultRef = useRef<GameResult | null>(gameResult)
 	const isViewingLatestMoveRef = useRef<boolean>(isViewingLatestMove)
 	const [boardScale, setBoardScale] = useState(1)
+	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (gameResultRef.current) return false
@@ -181,6 +182,9 @@ export const GameBoard = ({
 	const handleDecreaseBoardScale = () => {
 		setBoardScale((previousScale) => Math.max(MIN_BOARD_SCALE, Number((previousScale - BOARD_SCALE_STEP).toFixed(2))))
 	}
+	const handleToggleOptionsPanel = () => {
+		setIsOptionsPanelOpen((previous) => !previous)
+	}
 
 	return (
 		<div className="game-board">
@@ -228,64 +232,6 @@ export const GameBoard = ({
 					data-include-coordinates="true"
 					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
-				<div className="game-board-size-controls">
-					<div className="game-board-size-label">Board Size</div>
-					<div className="game-board-size-buttons">
-						<button
-							className="game-board-size-button"
-							type="button"
-							onClick={handleIncreaseBoardScale}
-							disabled={!canIncreaseBoardScale}
-							aria-label="Increase board size"
-						>
-							+
-						</button>
-						<button
-							className="game-board-size-button"
-							type="button"
-							onClick={handleDecreaseBoardScale}
-							disabled={!canDecreaseBoardScale}
-							aria-label="Decrease board size"
-						>
-							-
-						</button>
-					</div>
-				</div>
-				{showNavigation ? (
-					<div className="game-board-nav-controls">
-						<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
-							{'<<'}
-						</button>
-						<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
-							{'<'}
-						</button>
-						<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
-							{'>'}
-						</button>
-						<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
-							{'>>'}
-						</button>
-					</div>
-				) : null}
-				{showImportSgf || showNewGame || canReturnToMenu ? (
-					<div className="game-board-controls">
-						{showImportSgf ? (
-							<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
-								Import SGF
-							</button>
-						) : null}
-						{showNewGame ? (
-							<button className="game-side-button game-side-button--new-game" type="button" onClick={onNewGame}>
-								New Game
-							</button>
-						) : null}
-						{canReturnToMenu ? (
-							<button className="game-return-button" type="button" onClick={onReturnToMenu}>
-								Return
-							</button>
-						) : null}
-					</div>
-				) : null}
 				{gameResult ? (
 					<div className="game-result-popup" role="status" aria-live="polite">
 						<div className="game-result-title">{winnerLabel}</div>
@@ -331,6 +277,81 @@ export const GameBoard = ({
 					) : null}
 				</div>
 			</div>
+			<button
+				className="game-options-toggle"
+				type="button"
+				onClick={handleToggleOptionsPanel}
+				aria-expanded={isOptionsPanelOpen}
+				aria-controls="game-options-panel"
+			>
+				Options
+			</button>
+			{isOptionsPanelOpen ? (
+				<aside className="game-options-panel" id="game-options-panel">
+					<div className="game-options-panel-title">Options</div>
+					<div className="game-board-size-controls">
+						<div className="game-board-size-label">Board Size</div>
+						<div className="game-board-size-buttons">
+							<button
+								className="game-board-size-button"
+								type="button"
+								onClick={handleIncreaseBoardScale}
+								disabled={!canIncreaseBoardScale}
+								aria-label="Increase board size"
+							>
+								+
+							</button>
+							<button
+								className="game-board-size-button"
+								type="button"
+								onClick={handleDecreaseBoardScale}
+								disabled={!canDecreaseBoardScale}
+								aria-label="Decrease board size"
+							>
+								-
+							</button>
+						</div>
+					</div>
+					{showNavigation ? (
+						<div className="game-options-panel-group">
+							<div className="game-board-size-label">Navigation</div>
+							<div className="game-board-nav-controls">
+								<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
+									{'<<'}
+								</button>
+								<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
+									{'<'}
+								</button>
+								<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
+									{'>'}
+								</button>
+								<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
+									{'>>'}
+								</button>
+							</div>
+						</div>
+					) : null}
+					{showImportSgf || showNewGame || canReturnToMenu ? (
+						<div className="game-board-controls">
+							{showImportSgf ? (
+								<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
+									Import SGF
+								</button>
+							) : null}
+							{showNewGame ? (
+								<button className="game-side-button game-side-button--new-game" type="button" onClick={onNewGame}>
+									New Game
+								</button>
+							) : null}
+							{canReturnToMenu ? (
+								<button className="game-return-button" type="button" onClick={onReturnToMenu}>
+									Return
+								</button>
+							) : null}
+						</div>
+					) : null}
+				</aside>
+			) : null}
 		</div>
 	)
 }
