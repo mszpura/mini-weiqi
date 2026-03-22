@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
-import { isPassMove, type GameMode, type GameMove, type GameResult } from '../../models/game'
+import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTimeLimit } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 
@@ -16,6 +16,8 @@ type GameBoardProps = {
 	playerColor: 'black' | 'white' | null
 	gameMode: GameMode
 	onGameModeChange: (mode: GameMode) => void
+	timeLimit: GameTimeLimit
+	onTimeLimitChange: (timeLimit: GameTimeLimit) => void
 	gameStarted: boolean
 	onStartGame: () => void
 	moves: GameMove[]
@@ -34,6 +36,8 @@ type GameBoardProps = {
 	onImportSgf: () => void
 	onDownloadSgf: () => void
 	gameResult: GameResult | null
+	blackTimeMs: number | null
+	whiteTimeMs: number | null
 	onExitMode: () => void
 	hideJoinButtons?: boolean
 }
@@ -50,6 +54,8 @@ export const GameBoard = ({
 	playerColor,
 	gameMode,
 	onGameModeChange,
+	timeLimit,
+	onTimeLimitChange,
 	gameStarted,
 	onStartGame,
 	moves,
@@ -68,6 +74,8 @@ export const GameBoard = ({
 	onImportSgf,
 	onDownloadSgf,
 	gameResult,
+	blackTimeMs,
+	whiteTimeMs,
 	onExitMode,
 	hideJoinButtons = false
 }: GameBoardProps) => {
@@ -81,6 +89,8 @@ export const GameBoard = ({
 	const gameResultRef = useRef<GameResult | null>(gameResult)
 	const isViewingLatestMoveRef = useRef<boolean>(isViewingLatestMove)
 	const gameStartedRef = useRef<boolean>(gameStarted)
+	const blackPlayerRef = useRef<PlayerSlot | null>(blackPlayer)
+	const whitePlayerRef = useRef<PlayerSlot | null>(whitePlayer)
 	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
@@ -90,6 +100,7 @@ export const GameBoard = ({
 		if (gameResultRef.current) return false
 		if (!isViewingLatestMoveRef.current) return false
 		if (gameModeRef.current === 'shared') return true
+		if (!blackPlayerRef.current || !whitePlayerRef.current) return false
 		const activeColor = playerColorRef.current
 		return Boolean(activeColor && game.currentPlayer() === activeColor)
 	}
@@ -113,6 +124,14 @@ export const GameBoard = ({
 	useEffect(() => {
 		gameStartedRef.current = gameStarted
 	}, [gameStarted])
+
+	useEffect(() => {
+		blackPlayerRef.current = blackPlayer
+	}, [blackPlayer])
+
+	useEffect(() => {
+		whitePlayerRef.current = whitePlayer
+	}, [whitePlayer])
 
 	useEffect(() => {
 		onPlayMoveRef.current = onPlayMove
@@ -178,19 +197,21 @@ export const GameBoard = ({
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
 	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
+	const areBothSeatsTaken = Boolean(blackPlayer && whitePlayer)
 	const firstMoveColor: 'black' | 'white' = handicapStones > 0 ? 'white' : 'black'
 	const currentTurn: 'black' | 'white' =
 		moves.length % 2 === 0 ? firstMoveColor : firstMoveColor === 'black' ? 'white' : 'black'
 	const canPassAs = (color: 'black' | 'white') =>
 		gameMode === 'normal' &&
+		Boolean(blackPlayer && whitePlayer) &&
 		playerColor === color &&
 		!gameResult &&
 		!gameRef.current?.isOver() &&
 		currentTurn === color
 	const showPassForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black'
 	const showPassForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white'
-	const showResignForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black' && !gameResult
-	const showResignForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white' && !gameResult
+	const showResignForBlack = gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'black' && !gameResult
+	const showResignForWhite = gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showDownloadSgf = gameStarted && gameMode === 'normal' && Boolean(gameResult)
 	const showNavigation = gameMode === 'shared'
@@ -200,9 +221,20 @@ export const GameBoard = ({
 	const reasonLabel =
 		gameResult?.reason === 'resign'
 			? `${gameResult.resignedBy === 'black' ? 'Black' : 'White'} resigned`
+			: gameResult?.reason === 'time'
+				? `${gameResult.timedOutBy === 'black' ? 'Black' : 'White'} lost on time`
 			: gameResult
 				? 'Game ended by two passes'
 				: null
+	const formatClock = (timeMs: number | null) => {
+		if (timeMs === null) return null
+		const clampedMs = Math.max(0, Math.floor(timeMs))
+		const totalSeconds = Math.floor(clampedMs / 1000)
+		const minutes = Math.floor(totalSeconds / 60)
+		const seconds = totalSeconds % 60
+		return `${minutes}:${String(seconds).padStart(2, '0')}`
+	}
+	const showClocks = blackTimeMs !== null && whiteTimeMs !== null
 	const canIncreaseBoardScale = boardScale < MAX_BOARD_SCALE - 0.001
 	const canDecreaseBoardScale = boardScale > MIN_BOARD_SCALE + 0.001
 	const handleIncreaseBoardScale = () => {
@@ -232,6 +264,7 @@ export const GameBoard = ({
 					</div>
 					<div className="player-card-name">{blackPlayer?.username ?? 'Black'}</div>
 					<div className="player-card-captured">Captured: {capturedByBlack}</div>
+					{showClocks ? <div className="player-card-time">Time: {formatClock(blackTimeMs)}</div> : null}
 					{showPassForBlack ? (
 						<button
 							className="game-side-button game-side-button--pass"
@@ -279,6 +312,20 @@ export const GameBoard = ({
 									<option value="shared">Shared Game</option>
 								</select>
 							</div>
+							{gameMode === 'normal' ? (
+								<div className="game-options-panel-group">
+									<div className="game-board-size-label">Time limit</div>
+									<select
+										className="game-options-select"
+										name="timeLimit"
+										value={timeLimit}
+										onChange={(event) => onTimeLimitChange(event.target.value as GameTimeLimit)}
+									>
+										<option value="no-limit">No limit</option>
+										<option value="fisher-15-10">Fisher 15m + 10s</option>
+									</select>
+								</div>
+							) : null}
 							<div className="game-options-panel-group">
 								<div className="game-board-size-label">Board Size</div>
 								<select
@@ -350,6 +397,7 @@ export const GameBoard = ({
 					</div>
 					<div className="player-card-name">{whitePlayer?.username ?? 'White'}</div>
 					<div className="player-card-captured">Captured: {capturedByWhite}</div>
+					{showClocks ? <div className="player-card-time">Time: {formatClock(whiteTimeMs)}</div> : null}
 					{showPassForWhite ? (
 						<button
 							className="game-side-button game-side-button--pass"

@@ -1,4 +1,5 @@
 export type GameMode = 'normal' | 'shared'
+export type GameTimeLimit = 'no-limit' | 'fisher-15-10'
 
 type PlayMove = {
 	type: 'play'
@@ -20,6 +21,14 @@ export type GameResult = {
 	winner: GameWinner
 	blackScore: number
 	whiteScore: number
-	reason: 'resign' | 'finished'
+	reason: 'resign' | 'finished' | 'time'
 	resignedBy?: 'black' | 'white'
+	timedOutBy?: 'black' | 'white'
+}
+
+export type GameClockState = {
+	blackTimeMs: number
+	whiteTimeMs: number
+	activeColor: 'black' | 'white'
+	turnStartedAtMs: number
 }
