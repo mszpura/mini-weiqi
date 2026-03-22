@@ -26,6 +26,7 @@ declare module 'tenuki' {
 		constructor(options?: GameOptions)
 		renderer?: GameRenderer
 		playAt(y: number, x: number): boolean
+		pass(): boolean
 		isOver(): boolean
 		isIllegalAt(y: number, x: number): boolean
 		currentPlayer(): StoneColor

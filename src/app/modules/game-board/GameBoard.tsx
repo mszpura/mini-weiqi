@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
-import type { GameMode, GameMove } from '../../models/game'
+import { isPassMove, type GameMode, type GameMove } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 
@@ -16,6 +16,7 @@ type GameBoardProps = {
 	capturedByBlack: number
 	capturedByWhite: number
 	onPlayMove: (y: number, x: number) => void
+	onPassTurn: () => void
 	onReturnToMenu: () => void
 	hideJoinButtons?: boolean
 }
@@ -32,6 +33,7 @@ export const GameBoard = ({
 	capturedByBlack,
 	capturedByWhite,
 	onPlayMove,
+	onPassTurn,
 	onReturnToMenu,
 	hideJoinButtons = false
 }: GameBoardProps) => {
@@ -87,7 +89,11 @@ export const GameBoard = ({
 		})
 
 		for (const move of moves) {
-			game.playAt(move.y, move.x)
+			if (isPassMove(move)) {
+				game.pass()
+			} else {
+				game.playAt(move.y, move.x)
+			}
 		}
 
 		gameRef.current = game
@@ -104,6 +110,17 @@ export const GameBoard = ({
 	}, [boardSize, moves])
 
 	const canReturnToMenu = !blackPlayer && !whitePlayer
+	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
+	const canShowJoinBlack = !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
+	const canShowJoinWhite = !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
+	const currentTurn: 'black' | 'white' = moves.length % 2 === 0 ? 'black' : 'white'
+	const canPassAs = (color: 'black' | 'white') =>
+		gameMode === 'normal' &&
+		playerColor === color &&
+		!gameRef.current?.isOver() &&
+		currentTurn === color
+	const showPassForBlack = gameMode === 'normal' && playerColor === 'black'
+	const showPassForWhite = gameMode === 'normal' && playerColor === 'white'
 
 	return (
 		<div className="game-board">
@@ -122,11 +139,21 @@ export const GameBoard = ({
 					</div>
 					<div className="player-card-name">{blackPlayer?.username ?? 'Black'}</div>
 					<div className="player-card-captured">Captured: {capturedByBlack}</div>
-					{blackPlayer || hideJoinButtons ? null : (
+					{showPassForBlack ? (
+						<button
+							className="game-side-button game-side-button--pass"
+							type="button"
+							onClick={onPassTurn}
+							disabled={!canPassAs('black')}
+						>
+							Pass
+						</button>
+					) : null}
+					{canShowJoinBlack ? (
 						<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
 							Join as Black
 						</button>
-					)}
+					) : null}
 				</div>
 			</div>
 			<div className="game-board-center">
@@ -156,11 +183,21 @@ export const GameBoard = ({
 					</div>
 					<div className="player-card-name">{whitePlayer?.username ?? 'White'}</div>
 					<div className="player-card-captured">Captured: {capturedByWhite}</div>
-					{whitePlayer || hideJoinButtons ? null : (
+					{showPassForWhite ? (
+						<button
+							className="game-side-button game-side-button--pass"
+							type="button"
+							onClick={onPassTurn}
+							disabled={!canPassAs('white')}
+						>
+							Pass
+						</button>
+					) : null}
+					{canShowJoinWhite ? (
 						<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
 							Join as White
 						</button>
-					)}
+					) : null}
 				</div>
 			</div>
 		</div>

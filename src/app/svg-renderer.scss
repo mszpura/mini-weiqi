@@ -163,6 +163,31 @@ $board-darker-color: hsl(41, 36%, 40%);
 		background: linear-gradient(135deg, #e6d8c2 0%, #f5ead9 55%, #ffffff 100%);
 		color: #2b2116;
 	}
+
+	&--pass {
+		min-width: 112px;
+		padding: 9px 14px;
+		font-size: 12px;
+		letter-spacing: 0.12em;
+		background: linear-gradient(135deg, #5b4a36 0%, #7a6247 55%, #8f7353 100%);
+	}
+
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		transform: none;
+		box-shadow:
+			0 6px 10px rgba(0, 0, 0, 0.2),
+			inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	}
+
+	&:disabled:hover {
+		transform: none;
+		border-color: rgba(242, 230, 210, 0.35);
+		box-shadow:
+			0 6px 10px rgba(0, 0, 0, 0.2),
+			inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	}
 }
 
 .player-avatar-wrap {

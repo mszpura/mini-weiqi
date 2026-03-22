@@ -2,7 +2,7 @@ import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
 import { useCallback, useMemo } from 'react'
 import { Game } from 'tenuki'
-import type { GameMode, GameMove } from './models/game'
+import { isPassMove, type GameMode, type GameMove } from './models/game'
 import type { PlayerSlot } from './models/player'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
@@ -66,10 +66,14 @@ function AppContent() {
 
 	const handlePlayMove = useCallback(
 		(y: number, x: number) => {
-			setMoves((previousMoves) => [...previousMoves, { y, x }])
+			setMoves((previousMoves) => [...previousMoves, { type: 'play', y, x }])
 		},
 		[setMoves]
 	)
+
+	const handlePassTurn = useCallback(() => {
+		setMoves((previousMoves) => [...previousMoves, { type: 'pass' }])
+	}, [setMoves])
 
 	const handleReturnToMenu = useCallback(() => {
 		setMoves([])
@@ -79,7 +83,11 @@ function AppContent() {
 	const capturedStones = useMemo(() => {
 		const game = new Game({ boardSize })
 		for (const move of moves) {
-			game.playAt(move.y, move.x)
+			if (isPassMove(move)) {
+				game.pass()
+			} else {
+				game.playAt(move.y, move.x)
+			}
 		}
 
 		const state = game.currentState()
@@ -104,6 +112,7 @@ function AppContent() {
 					capturedByBlack={capturedStones.black}
 					capturedByWhite={capturedStones.white}
 					onPlayMove={handlePlayMove}
+					onPassTurn={handlePassTurn}
 					onReturnToMenu={handleReturnToMenu}
 					hideJoinButtons={isUnauthenticated}
 				/>
