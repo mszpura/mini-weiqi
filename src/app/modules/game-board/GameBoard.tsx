@@ -30,6 +30,7 @@ type GameBoardProps = {
 	onPassTurn: () => void
 	onResign: () => void
 	onImportSgf: () => void
+	onDownloadSgf: () => void
 	gameResult: GameResult | null
 	onExitMode: () => void
 	hideJoinButtons?: boolean
@@ -61,6 +62,7 @@ export const GameBoard = ({
 	onPassTurn,
 	onResign,
 	onImportSgf,
+	onDownloadSgf,
 	gameResult,
 	onExitMode,
 	hideJoinButtons = false
@@ -183,6 +185,7 @@ export const GameBoard = ({
 	const showResignForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black' && !gameResult
 	const showResignForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
+	const showDownloadSgf = gameStarted && gameMode === 'normal' && Boolean(gameResult)
 	const showNavigation = gameMode === 'shared'
 	const shouldShowSetupOptions = !gameStarted || Boolean(gameResult)
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
@@ -294,6 +297,11 @@ export const GameBoard = ({
 							<div className="game-result-title">{winnerLabel}</div>
 							<div className="game-result-score">{scoreLabel}</div>
 							<div className="game-result-reason">{reasonLabel}</div>
+							{showDownloadSgf ? (
+								<button className="game-side-button game-side-button--download" type="button" onClick={onDownloadSgf}>
+									Download SGF
+								</button>
+							) : null}
 						</div>
 					) : null}
 				</div>

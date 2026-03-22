@@ -39,6 +39,13 @@ const decodeCoordinate = (value: string) => {
 	return { y, x }
 }
 
+const encodeCoordinate = (x: number, y: number) => {
+	if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x > 25 || y > 25) {
+		return null
+	}
+	return `${String.fromCharCode(97 + x)}${String.fromCharCode(97 + y)}`
+}
+
 const skipPropertyValue = (content: string, startIndex: number) => {
 	let index = startIndex + 1
 	while (index < content.length) {
@@ -230,4 +237,23 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 			moves
 		}
 	}
+}
+
+export const serializeSgfContent = (boardSize: number, moves: GameMove[]) => {
+	const safeBoardSize = Number.isInteger(boardSize) && boardSize >= 2 && boardSize <= 19 ? boardSize : 19
+	const sgfMoves = moves
+		.map((move, moveIndex) => {
+			const key = moveIndex % 2 === 0 ? 'B' : 'W'
+			if ('type' in move && move.type === 'pass') {
+				return `;${key}[]`
+			}
+			const coordinate = encodeCoordinate(move.x, move.y)
+			if (!coordinate || move.x >= safeBoardSize || move.y >= safeBoardSize) {
+				throw new Error('Cannot export SGF: move coordinate is outside board size.')
+			}
+			return `;${key}[${coordinate}]`
+		})
+		.join('')
+
+	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${sgfMoves})`
 }

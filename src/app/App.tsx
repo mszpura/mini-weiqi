@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import { Game } from 'tenuki'
 import { isPassMove, type GameMode, type GameMove, type GameResult } from './models/game'
 import type { PlayerSlot } from './models/player'
-import { parseSgfContent } from './models/sgf'
+import { parseSgfContent, serializeSgfContent } from './models/sgf'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
@@ -309,6 +309,29 @@ function AppContent({ onNavigate }: AppContentProps) {
 		}
 	}, [fullGameSnapshot, gameResult])
 
+	const handleDownloadSgf = useCallback(() => {
+		if (!gameStarted) return
+		if (gameMode !== 'normal') return
+		if (!effectiveGameResult) return
+
+		try {
+			const sgf = serializeSgfContent(boardSize, moves)
+			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
+			const url = window.URL.createObjectURL(file)
+			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
+			document.body.append(link)
+			link.click()
+			link.remove()
+			window.URL.revokeObjectURL(url)
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
+			window.alert(message)
+		}
+	}, [boardSize, effectiveGameResult, gameMode, gameStarted, moves])
+
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
 		setDisplayedMoveCount(0)
@@ -359,6 +382,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}
 					onImportSgf={handleImportSgf}
+					onDownloadSgf={handleDownloadSgf}
 					gameResult={effectiveGameResult}
 					onExitMode={handleExitMode}
 					hideJoinButtons={isUnauthenticated}

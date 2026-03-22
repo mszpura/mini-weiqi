@@ -453,6 +453,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	display: grid;
 	row-gap: 4px;
 	text-align: center;
+	justify-items: center;
 }
 
 .game-result-title {
@@ -471,6 +472,15 @@ $board-darker-color: hsl(41, 36%, 40%);
 	font-size: 12px;
 	opacity: 0.82;
 	letter-spacing: 0.04em;
+}
+
+.game-result-popup .game-side-button--download {
+	min-width: 144px;
+	margin-top: 8px;
+	padding: 9px 14px;
+	font-size: 12px;
+	letter-spacing: 0.1em;
+	background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
 }
 
 .player-avatar-wrap {
