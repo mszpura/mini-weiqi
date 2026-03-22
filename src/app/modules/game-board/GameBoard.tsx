@@ -18,6 +18,7 @@ type GameBoardProps = {
 	onPlayMove: (y: number, x: number) => void
 	onPassTurn: () => void
 	onResign: () => void
+	onImportSgf: () => void
 	gameResult: GameResult | null
 	onReturnToMenu: () => void
 	hideJoinButtons?: boolean
@@ -37,6 +38,7 @@ export const GameBoard = ({
 	onPlayMove,
 	onPassTurn,
 	onResign,
+	onImportSgf,
 	gameResult,
 	onReturnToMenu,
 	hideJoinButtons = false
@@ -132,8 +134,9 @@ export const GameBoard = ({
 		currentTurn === color
 	const showPassForBlack = gameMode === 'normal' && playerColor === 'black'
 	const showPassForWhite = gameMode === 'normal' && playerColor === 'white'
-	const showResignForBlack = playerColor === 'black' && !gameResult
-	const showResignForWhite = playerColor === 'white' && !gameResult
+	const showResignForBlack = gameMode === 'normal' && playerColor === 'black' && !gameResult
+	const showResignForWhite = gameMode === 'normal' && playerColor === 'white' && !gameResult
+	const showImportSgf = gameMode === 'shared' && !gameResult
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
 	const reasonLabel =
@@ -188,17 +191,26 @@ export const GameBoard = ({
 					className="tenuki-board tenuki-svg-renderer"
 					data-include-coordinates="true"
 				/>
+				{showImportSgf || canReturnToMenu ? (
+					<div className="game-board-controls">
+						{showImportSgf ? (
+							<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
+								Import SGF
+							</button>
+						) : null}
+						{canReturnToMenu ? (
+							<button className="game-return-button" type="button" onClick={onReturnToMenu}>
+								Return
+							</button>
+						) : null}
+					</div>
+				) : null}
 				{gameResult ? (
 					<div className="game-result-popup" role="status" aria-live="polite">
 						<div className="game-result-title">{winnerLabel}</div>
 						<div className="game-result-score">{scoreLabel}</div>
 						<div className="game-result-reason">{reasonLabel}</div>
 					</div>
-				) : null}
-				{canReturnToMenu ? (
-					<button className="game-return-button" type="button" onClick={onReturnToMenu}>
-						Return
-					</button>
 				) : null}
 			</div>
 			<div className="game-side-slot">

@@ -1,9 +1,10 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useRef, type ChangeEvent } from 'react'
 import { Game } from 'tenuki'
 import { isPassMove, type GameMode, type GameMove, type GameResult } from './models/game'
 import type { PlayerSlot } from './models/player'
+import { parseSgfContent } from './models/sgf'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
@@ -40,6 +41,7 @@ function AppContent() {
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
 	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
 	const [gameResult, setGameResult] = useSyncState<GameResult | null>(null, syncKeys.gameResult)
+	const fileInputRef = useRef<HTMLInputElement>(null)
 	const user = session?.user
 	
 	const currentPlayer = user
@@ -103,6 +105,41 @@ function AppContent() {
 		})
 	}, [buildScoreFromMoves, gameResult, playerColor, setGameResult])
 
+	const handleImportSgf = useCallback(() => {
+		if (gameMode !== 'shared') return
+		fileInputRef.current?.click()
+	}, [gameMode])
+
+	const handleSgfFileChange = useCallback(
+		async (event: ChangeEvent<HTMLInputElement>) => {
+			const file = event.target.files?.[0]
+			event.target.value = ''
+			if (!file) return
+
+			if (!file.name.toLowerCase().endsWith('.sgf')) {
+				window.alert('Please select a .sgf file.')
+				return
+			}
+
+			try {
+				const content = await file.text()
+				const parsed = parseSgfContent(content, boardSize)
+				if (!parsed.ok) {
+					window.alert(parsed.error)
+					return
+				}
+				setMoves(parsed.game.moves)
+				if (parsed.game.boardSize && parsed.game.boardSize !== boardSize) {
+					setBoardSize(parsed.game.boardSize)
+				}
+				setGameResult(null)
+			} catch {
+				window.alert('Failed to read SGF file.')
+			}
+		},
+		[boardSize, setBoardSize, setGameResult, setMoves]
+	)
+
 	const handleReturnToMenu = useCallback(() => {
 		setMoves([])
 		setGameResult(null)
@@ -145,6 +182,13 @@ function AppContent() {
 	if (showGameBoard) {
 		return (
 			<div className="app-shell app-shell--board">
+				<input
+					ref={fileInputRef}
+					type="file"
+					accept=".sgf"
+					hidden
+					onChange={handleSgfFileChange}
+				/>
 				<GameBoard
 					boardSize={boardSize}
 					blackPlayer={blackPlayer}
@@ -159,6 +203,7 @@ function AppContent() {
 					onPlayMove={handlePlayMove}
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}
+					onImportSgf={handleImportSgf}
 					gameResult={effectiveGameResult}
 					onReturnToMenu={handleReturnToMenu}
 					hideJoinButtons={isUnauthenticated}

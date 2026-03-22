@@ -35,6 +35,13 @@ $board-darker-color: hsl(41, 36%, 40%);
 	flex: 0 1 auto;
 }
 
+.game-board-controls {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+}
+
 .game-return-button {
 	min-width: 140px;
 	padding: 10px 16px;
@@ -178,6 +185,11 @@ $board-darker-color: hsl(41, 36%, 40%);
 		font-size: 12px;
 		letter-spacing: 0.12em;
 		background: linear-gradient(135deg, #5e221f 0%, #8b312a 55%, #b3463b 100%);
+	}
+
+	&--import {
+		min-width: 136px;
+		background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
 	}
 
 	&:disabled {
