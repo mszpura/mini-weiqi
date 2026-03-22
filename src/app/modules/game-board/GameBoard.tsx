@@ -27,6 +27,7 @@ type GameBoardProps = {
 	onResign: () => void
 	onImportSgf: () => void
 	gameResult: GameResult | null
+	onNewGame: () => void
 	onReturnToMenu: () => void
 	hideJoinButtons?: boolean
 }
@@ -54,6 +55,7 @@ export const GameBoard = ({
 	onResign,
 	onImportSgf,
 	gameResult,
+	onNewGame,
 	onReturnToMenu,
 	hideJoinButtons = false
 }: GameBoardProps) => {
@@ -158,6 +160,7 @@ export const GameBoard = ({
 	const showResignForWhite = gameMode === 'normal' && playerColor === 'white' && !gameResult
 	const showImportSgf = gameMode === 'shared' && !gameResult
 	const showNavigation = gameMode === 'shared'
+	const showNewGame = gameMode === 'normal' && Boolean(gameResult)
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
 	const reasonLabel =
@@ -228,11 +231,16 @@ export const GameBoard = ({
 						</button>
 					</div>
 				) : null}
-				{showImportSgf || canReturnToMenu ? (
+				{showImportSgf || showNewGame || canReturnToMenu ? (
 					<div className="game-board-controls">
 						{showImportSgf ? (
 							<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
 								Import SGF
+							</button>
+						) : null}
+						{showNewGame ? (
+							<button className="game-side-button game-side-button--new-game" type="button" onClick={onNewGame}>
+								New Game
 							</button>
 						) : null}
 						{canReturnToMenu ? (

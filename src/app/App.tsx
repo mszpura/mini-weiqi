@@ -160,6 +160,14 @@ function AppContent() {
 		setShowGameBoard(false)
 	}, [setBlackPlayer, setGameResult, setMoves, setShowGameBoard, setWhitePlayer])
 
+	const handleNewGame = useCallback(() => {
+		setMoves([])
+		setDisplayedMoveCount(0)
+		setGameResult(null)
+		setBlackPlayer(null)
+		setWhitePlayer(null)
+	}, [setBlackPlayer, setGameResult, setMoves, setWhitePlayer])
+
 	useEffect(() => {
 		const previousLength = previousMovesLengthRef.current
 		const currentLength = moves.length
@@ -230,14 +238,6 @@ function AppContent() {
 		}
 	}, [fullGameSnapshot, gameResult])
 
-	useEffect(() => {
-		if (gameMode !== 'normal') return
-		if (!effectiveGameResult) return
-		if (!blackPlayer && !whitePlayer) return
-		setBlackPlayer(null)
-		setWhitePlayer(null)
-	}, [blackPlayer, effectiveGameResult, gameMode, setBlackPlayer, setWhitePlayer, whitePlayer])
-
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
 		setDisplayedMoveCount(0)
@@ -291,6 +291,7 @@ function AppContent() {
 					onResign={handleResign}
 					onImportSgf={handleImportSgf}
 					gameResult={effectiveGameResult}
+					onNewGame={handleNewGame}
 					onReturnToMenu={handleReturnToMenu}
 					hideJoinButtons={isUnauthenticated}
 				/>

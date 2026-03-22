@@ -242,6 +242,11 @@ $board-darker-color: hsl(41, 36%, 40%);
 		background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
 	}
 
+	&--new-game {
+		min-width: 136px;
+		background: linear-gradient(135deg, #355f1f 0%, #4a8430 55%, #62a944 100%);
+	}
+
 	&:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
