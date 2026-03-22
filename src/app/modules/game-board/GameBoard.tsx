@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Game } from 'tenuki'
-import { isPassMove, type GameMode, type GameMove } from '../../models/game'
+import { isPassMove, type GameMode, type GameMove, type GameResult } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 
@@ -17,6 +17,8 @@ type GameBoardProps = {
 	capturedByWhite: number
 	onPlayMove: (y: number, x: number) => void
 	onPassTurn: () => void
+	onResign: () => void
+	gameResult: GameResult | null
 	onReturnToMenu: () => void
 	hideJoinButtons?: boolean
 }
@@ -34,6 +36,8 @@ export const GameBoard = ({
 	capturedByWhite,
 	onPlayMove,
 	onPassTurn,
+	onResign,
+	gameResult,
 	onReturnToMenu,
 	hideJoinButtons = false
 }: GameBoardProps) => {
@@ -41,8 +45,10 @@ export const GameBoard = ({
 	const gameRef = useRef<Game | null>(null)
 	const playerColorRef = useRef<'black' | 'white' | null>(playerColor)
 	const gameModeRef = useRef<GameMode>(gameMode)
+	const gameResultRef = useRef<GameResult | null>(gameResult)
 
 	const canCurrentUserPlay = (game: Game) => {
+		if (gameResultRef.current) return false
 		if (gameModeRef.current === 'shared') return true
 		const activeColor = playerColorRef.current
 		return Boolean(activeColor && game.currentPlayer() === activeColor)
@@ -55,6 +61,10 @@ export const GameBoard = ({
 	useEffect(() => {
 		gameModeRef.current = gameMode
 	}, [gameMode])
+
+	useEffect(() => {
+		gameResultRef.current = gameResult
+	}, [gameResult])
 
 	useEffect(() => {
 		const boardElement = boardRef.current
@@ -109,7 +119,7 @@ export const GameBoard = ({
 		}
 	}, [boardSize, moves])
 
-	const canReturnToMenu = !blackPlayer && !whitePlayer
+	const canReturnToMenu = Boolean(gameResult) || (!blackPlayer && !whitePlayer)
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack = !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
 	const canShowJoinWhite = !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
@@ -117,10 +127,21 @@ export const GameBoard = ({
 	const canPassAs = (color: 'black' | 'white') =>
 		gameMode === 'normal' &&
 		playerColor === color &&
+		!gameResult &&
 		!gameRef.current?.isOver() &&
 		currentTurn === color
 	const showPassForBlack = gameMode === 'normal' && playerColor === 'black'
 	const showPassForWhite = gameMode === 'normal' && playerColor === 'white'
+	const showResignForBlack = playerColor === 'black' && !gameResult
+	const showResignForWhite = playerColor === 'white' && !gameResult
+	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
+	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
+	const reasonLabel =
+		gameResult?.reason === 'resign'
+			? `${gameResult.resignedBy === 'black' ? 'Black' : 'White'} resigned`
+			: gameResult
+				? 'Game ended by two passes'
+				: null
 
 	return (
 		<div className="game-board">
@@ -149,6 +170,11 @@ export const GameBoard = ({
 							Pass
 						</button>
 					) : null}
+					{showResignForBlack ? (
+						<button className="game-side-button game-side-button--resign" type="button" onClick={onResign}>
+							Resign
+						</button>
+					) : null}
 					{canShowJoinBlack ? (
 						<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
 							Join as Black
@@ -162,6 +188,13 @@ export const GameBoard = ({
 					className="tenuki-board tenuki-svg-renderer"
 					data-include-coordinates="true"
 				/>
+				{gameResult ? (
+					<div className="game-result-popup" role="status" aria-live="polite">
+						<div className="game-result-title">{winnerLabel}</div>
+						<div className="game-result-score">{scoreLabel}</div>
+						<div className="game-result-reason">{reasonLabel}</div>
+					</div>
+				) : null}
 				{canReturnToMenu ? (
 					<button className="game-return-button" type="button" onClick={onReturnToMenu}>
 						Return
@@ -191,6 +224,11 @@ export const GameBoard = ({
 							disabled={!canPassAs('white')}
 						>
 							Pass
+						</button>
+					) : null}
+					{showResignForWhite ? (
+						<button className="game-side-button game-side-button--resign" type="button" onClick={onResign}>
+							Resign
 						</button>
 					) : null}
 					{canShowJoinWhite ? (

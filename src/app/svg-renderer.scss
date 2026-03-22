@@ -172,6 +172,14 @@ $board-darker-color: hsl(41, 36%, 40%);
 		background: linear-gradient(135deg, #5b4a36 0%, #7a6247 55%, #8f7353 100%);
 	}
 
+	&--resign {
+		min-width: 112px;
+		padding: 9px 14px;
+		font-size: 12px;
+		letter-spacing: 0.12em;
+		background: linear-gradient(135deg, #5e221f 0%, #8b312a 55%, #b3463b 100%);
+	}
+
 	&:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
@@ -188,6 +196,39 @@ $board-darker-color: hsl(41, 36%, 40%);
 			0 6px 10px rgba(0, 0, 0, 0.2),
 			inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	}
+}
+
+.game-result-popup {
+	min-width: min(360px, 92vw);
+	padding: 12px 16px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.5);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.92) 0%, rgba(20, 16, 12, 0.88) 100%);
+	box-shadow:
+		0 12px 26px rgba(0, 0, 0, 0.3),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	color: #f8f1e5;
+	display: grid;
+	row-gap: 4px;
+	text-align: center;
+}
+
+.game-result-title {
+	font-size: 16px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.game-result-score {
+	font-size: 14px;
+	letter-spacing: 0.04em;
+}
+
+.game-result-reason {
+	font-size: 12px;
+	opacity: 0.82;
+	letter-spacing: 0.04em;
 }
 
 .player-avatar-wrap {

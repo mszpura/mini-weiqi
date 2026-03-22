@@ -22,11 +22,17 @@ declare module 'tenuki' {
 		whiteStonesCaptured: number
 	}
 
+	type GameScore = {
+		black: number
+		white: number
+	}
+
 	export class Game {
 		constructor(options?: GameOptions)
 		renderer?: GameRenderer
 		playAt(y: number, x: number): boolean
 		pass(): boolean
+		score(): GameScore
 		isOver(): boolean
 		isIllegalAt(y: number, x: number): boolean
 		currentPlayer(): StoneColor
