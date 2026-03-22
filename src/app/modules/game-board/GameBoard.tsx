@@ -251,47 +251,51 @@ export const GameBoard = ({
 					data-include-coordinates="true"
 					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
-				{gameResult ? (
-					<div className="game-result-popup" role="status" aria-live="polite">
-						<div className="game-result-title">{winnerLabel}</div>
-						<div className="game-result-score">{scoreLabel}</div>
-						<div className="game-result-reason">{reasonLabel}</div>
-					</div>
-				) : null}
 			</div>
-			{shouldShowSetupOptions ? (
-				<div className="game-setup-popup" role="dialog" aria-label="Game setup">
-					<div className="game-options-panel-title">Setup</div>
-					<div className="game-options-panel-group">
-						<div className="game-board-size-label">Game Mode</div>
-						<select
-							className="game-options-select"
-							name="gameMode"
-							value={gameMode}
-							onChange={(event) => onGameModeChange(event.target.value as GameMode)}
-						>
-							<option value="normal">Normal Game</option>
-							<option value="shared">Shared Game</option>
-						</select>
-					</div>
-					<div className="game-options-panel-group">
-						<div className="game-board-size-label">Board Size</div>
-						<select
-							className="game-options-select"
-							name="boardSize"
-							value={boardSize}
-							onChange={(event) => onBoardSizeChange(Number(event.target.value))}
-						>
-							<option value={9}>9x9</option>
-							<option value={13}>13x13</option>
-							<option value={19}>19x19</option>
-						</select>
-					</div>
-					<div className="game-options-panel-group">
-						<button className="game-side-button game-side-button--start" type="button" onClick={onStartGame}>
-							Start
-						</button>
-					</div>
+			{shouldShowSetupOptions || gameResult ? (
+				<div className="game-center-overlays">
+					{shouldShowSetupOptions ? (
+						<div className="game-setup-popup" role="dialog" aria-label="Game setup">
+							<div className="game-options-panel-title">Setup</div>
+							<div className="game-options-panel-group">
+								<div className="game-board-size-label">Game Mode</div>
+								<select
+									className="game-options-select"
+									name="gameMode"
+									value={gameMode}
+									onChange={(event) => onGameModeChange(event.target.value as GameMode)}
+								>
+									<option value="normal">Normal Game</option>
+									<option value="shared">Shared Game</option>
+								</select>
+							</div>
+							<div className="game-options-panel-group">
+								<div className="game-board-size-label">Board Size</div>
+								<select
+									className="game-options-select"
+									name="boardSize"
+									value={boardSize}
+									onChange={(event) => onBoardSizeChange(Number(event.target.value))}
+								>
+									<option value={9}>9x9</option>
+									<option value={13}>13x13</option>
+									<option value={19}>19x19</option>
+								</select>
+							</div>
+							<div className="game-options-panel-group">
+								<button className="game-side-button game-side-button--start" type="button" onClick={onStartGame}>
+									Start
+								</button>
+							</div>
+						</div>
+					) : null}
+					{gameResult ? (
+						<div className="game-result-popup" role="status" aria-live="polite">
+							<div className="game-result-title">{winnerLabel}</div>
+							<div className="game-result-score">{scoreLabel}</div>
+							<div className="game-result-reason">{reasonLabel}</div>
+						</div>
+					) : null}
 				</div>
 			) : null}
 			<div className="game-side-slot">
