@@ -1,6 +1,6 @@
 import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
-import { useCallback, useEffect, useMemo, useRef, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Game } from 'tenuki'
 import { isPassMove, type GameMode, type GameMove, type GameResult } from './models/game'
 import type { PlayerSlot } from './models/player'
@@ -10,16 +10,45 @@ import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
 
 export default function App() {
+	const [pathname, setPathname] = useState(window.location.pathname)
+
+	useEffect(() => {
+		const handlePopstate = () => setPathname(window.location.pathname)
+		window.addEventListener('popstate', handlePopstate)
+		return () => window.removeEventListener('popstate', handlePopstate)
+	}, [])
+
+	const navigateTo = useCallback(
+		(path: string) => {
+			if (window.location.pathname === path) return
+			window.history.pushState({}, '', path)
+			setPathname(path)
+		},
+		[setPathname]
+	)
+
+	if (pathname === '/privacy-policy') {
+		return <LegalPage type="privacy" onBackHome={() => navigateTo('/')} />
+	}
+
+	if (pathname === '/terms-of-service') {
+		return <LegalPage type="terms" onBackHome={() => navigateTo('/')} />
+	}
+
 	return (
 		<DiscordContextProvider authenticate scope={['identify', 'guilds']}>
 			<SyncContextProvider>
-				<AppContent />
+				<AppContent onNavigate={navigateTo} />
 			</SyncContextProvider>
 		</DiscordContextProvider>
 	)
 }
 
-function AppContent() {
+type AppContentProps = {
+	onNavigate: (path: string) => void
+}
+
+function AppContent({ onNavigate }: AppContentProps) {
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const syncKeys = useMemo(
@@ -308,7 +337,125 @@ function AppContent() {
 				onBoardSizeChange={setBoardSize}
 				gameMode={gameMode}
 				onGameModeChange={setGameMode}
+				onOpenPrivacyPolicy={() => onNavigate('/privacy-policy')}
+				onOpenTermsOfService={() => onNavigate('/terms-of-service')}
 			/>
 		</div>
+	)
+}
+
+type LegalPageProps = {
+	type: 'privacy' | 'terms'
+	onBackHome: () => void
+}
+
+const LegalPage = ({ type, onBackHome }: LegalPageProps) => {
+	if (type === 'privacy') {
+		return (
+			<main className="legal-page">
+				<div className="legal-page__container">
+					<h1>Privacy Policy</h1>
+					<p>Last updated: March 22, 2026</p>
+					<p>
+						This Privacy Policy explains how Mini Weiqi (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) collects, uses, and
+						protects information when you use our mobile game service.
+					</p>
+					<h2>Information We Collect</h2>
+					<p>
+						We may collect account identifiers (such as user ID and username), gameplay data, device and technical
+						information, and limited diagnostic logs needed to keep the service running.
+					</p>
+					<h2>How We Use Information</h2>
+					<p>
+						We use collected information to provide core gameplay features, synchronize matches, improve
+						performance, prevent abuse, and comply with legal obligations.
+					</p>
+					<h2>Data Sharing</h2>
+					<p>
+						We do not sell your personal information. We may share data with trusted service providers for hosting,
+						analytics, and infrastructure support, and when required by law.
+					</p>
+					<h2>Data Retention</h2>
+					<p>
+						We keep data only as long as necessary to operate the game, resolve disputes, enforce agreements, and
+						meet legal requirements.
+					</p>
+					<h2>Children&apos;s Privacy</h2>
+					<p>
+						Our service is not directed to children under 13 (or the applicable age in your region). If you believe
+						a child provided personal data, contact us and we will take appropriate action.
+					</p>
+					<h2>Your Rights</h2>
+					<p>
+						Depending on your location, you may have rights to access, correct, delete, or restrict processing of
+						your personal data.
+					</p>
+					<h2>Contact</h2>
+					<p>
+						For privacy questions, please contact us at{' '}
+						<a href="mailto:privacy@miniweiqi.example">privacy@miniweiqi.example</a>.
+					</p>
+					<button className="legal-page__back-link" type="button" onClick={onBackHome}>
+						Back to Home
+					</button>
+				</div>
+			</main>
+		)
+	}
+
+	return (
+		<main className="legal-page">
+			<div className="legal-page__container">
+				<h1>Terms of Service</h1>
+				<p>Last updated: March 22, 2026</p>
+				<p>
+					These Terms of Service govern your access to and use of Mini Weiqi. By using the service, you agree to
+					these terms.
+				</p>
+				<h2>Eligibility and Accounts</h2>
+				<p>
+					You must be legally able to agree to these terms. You are responsible for activity associated with your
+					account and for keeping your login credentials secure.
+				</p>
+				<h2>License and Acceptable Use</h2>
+				<p>
+					We grant you a limited, non-exclusive, revocable license to use the game for personal, non-commercial
+					entertainment. You must not cheat, exploit bugs, reverse engineer the service, or disrupt other users.
+				</p>
+				<h2>Virtual Items and Purchases</h2>
+				<p>
+					Any virtual items, subscriptions, or in-app purchases are licensed, not sold. Availability and pricing may
+					change. Except where required by law, purchases are non-refundable.
+				</p>
+				<h2>Service Availability</h2>
+				<p>
+					We may modify, suspend, or discontinue features at any time. We do not guarantee uninterrupted or
+					error-free operation.
+				</p>
+				<h2>Termination</h2>
+				<p>
+					We may suspend or terminate access if you violate these terms or if needed to protect the service, users,
+					or legal compliance.
+				</p>
+				<h2>Disclaimers and Limitation of Liability</h2>
+				<p>
+					The service is provided &quot;as is&quot; and &quot;as available.&quot; To the maximum extent permitted by law, we disclaim
+					warranties and are not liable for indirect, incidental, special, or consequential damages.
+				</p>
+				<h2>Changes to Terms</h2>
+				<p>
+					We may update these terms from time to time. Continued use of the service after changes means you accept
+					the updated terms.
+				</p>
+				<h2>Contact</h2>
+				<p>
+					For questions about these terms, contact{' '}
+					<a href="mailto:legal@miniweiqi.example">legal@miniweiqi.example</a>.
+				</p>
+				<button className="legal-page__back-link" type="button" onClick={onBackHome}>
+					Back to Home
+				</button>
+			</div>
+		</main>
 	)
 }

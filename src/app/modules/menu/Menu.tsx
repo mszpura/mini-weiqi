@@ -8,9 +8,19 @@ type MenuProps = {
 	onBoardSizeChange: (size: number) => void
 	gameMode: GameMode
 	onGameModeChange: (mode: GameMode) => void
+	onOpenPrivacyPolicy: () => void
+	onOpenTermsOfService: () => void
 }
 
-export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange, gameMode, onGameModeChange }: MenuProps) => {
+export const Menu = ({
+	onSharedGame,
+	boardSize,
+	onBoardSizeChange,
+	gameMode,
+	onGameModeChange,
+	onOpenPrivacyPolicy,
+	onOpenTermsOfService
+}: MenuProps) => {
 	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
 	const username = user?.username || 'Logged as Guest'
@@ -92,6 +102,14 @@ export const Menu = ({ onSharedGame, boardSize, onBoardSizeChange, gameMode, onG
 			<a href="https://buymeacoffee.com/szpur" target="_blank" rel="noreferrer">
 				Buy me a coffee
 			</a>
+			<div className="menu-legal-links">
+				<button type="button" className="menu-legal-link" onClick={onOpenPrivacyPolicy}>
+					Privacy Policy
+				</button>
+				<button type="button" className="menu-legal-link" onClick={onOpenTermsOfService}>
+					Terms of Service
+				</button>
+			</div>
 		</div>
 	)
 }

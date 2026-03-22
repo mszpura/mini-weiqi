@@ -199,6 +199,63 @@ video {
 	margin-bottom: 10px;
 }
 
+.menu-legal-links {
+	margin-top: 10px;
+	display: flex;
+	gap: 10px;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.menu-legal-link {
+	border: none;
+	background: none;
+	padding: 0;
+	color: #646cff;
+	text-decoration: underline;
+}
+
+.legal-page {
+	min-height: 100svh;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 24px 16px;
+	box-sizing: border-box;
+}
+
+.legal-page__container {
+	width: min(860px, 100%);
+	text-align: left;
+	background: rgba(26, 20, 14, 0.5);
+	border: 1px solid rgba(242, 230, 210, 0.25);
+	border-radius: 16px;
+	padding: 20px;
+}
+
+.legal-page__container h1 {
+	font-size: 2rem;
+	margin: 0 0 12px;
+}
+
+.legal-page__container h2 {
+	margin: 18px 0 8px;
+	font-size: 1.2rem;
+}
+
+.legal-page__container p {
+	margin: 0 0 10px;
+}
+
+.legal-page__back-link {
+	margin-top: 12px;
+	border: none;
+	background: none;
+	padding: 0;
+	color: #646cff;
+	text-decoration: underline;
+}
+
 @media (prefers-color-scheme: light) {
 	:root {
 		color: #213547;
