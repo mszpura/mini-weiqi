@@ -6,12 +6,16 @@ import '../../svg-renderer.scss'
 
 type GameBoardProps = {
 	boardSize: number
+	onBoardSizeChange: (size: number) => void
 	blackPlayer: PlayerSlot | null
 	whitePlayer: PlayerSlot | null
 	onJoinBlack: () => void
 	onJoinWhite: () => void
 	playerColor: 'black' | 'white' | null
 	gameMode: GameMode
+	onGameModeChange: (mode: GameMode) => void
+	gameStarted: boolean
+	onStartGame: () => void
 	moves: GameMove[]
 	capturedByBlack: number
 	capturedByWhite: number
@@ -34,12 +38,16 @@ type GameBoardProps = {
 
 export const GameBoard = ({
 	boardSize,
+	onBoardSizeChange,
 	blackPlayer,
 	whitePlayer,
 	onJoinBlack,
 	onJoinWhite,
 	playerColor,
 	gameMode,
+	onGameModeChange,
+	gameStarted,
+	onStartGame,
 	moves,
 	capturedByBlack,
 	capturedByWhite,
@@ -68,10 +76,13 @@ export const GameBoard = ({
 	const gameModeRef = useRef<GameMode>(gameMode)
 	const gameResultRef = useRef<GameResult | null>(gameResult)
 	const isViewingLatestMoveRef = useRef<boolean>(isViewingLatestMove)
+	const gameStartedRef = useRef<boolean>(gameStarted)
+	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
-	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
+	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(true)
 
 	const canCurrentUserPlay = (game: Game) => {
+		if (!gameStartedRef.current) return false
 		if (gameResultRef.current) return false
 		if (!isViewingLatestMoveRef.current) return false
 		if (gameModeRef.current === 'shared') return true
@@ -96,6 +107,14 @@ export const GameBoard = ({
 	}, [isViewingLatestMove])
 
 	useEffect(() => {
+		gameStartedRef.current = gameStarted
+	}, [gameStarted])
+
+	useEffect(() => {
+		onPlayMoveRef.current = onPlayMove
+	}, [onPlayMove])
+
+	useEffect(() => {
 		const boardElement = boardRef.current
 		if (!boardElement) return
 
@@ -110,7 +129,7 @@ export const GameBoard = ({
 					if (g.isOver()) return
 					if (g.isIllegalAt(y, x)) return
 					if (!canCurrentUserPlay(g)) return
-					onPlayMove(y, x)
+					onPlayMoveRef.current(y, x)
 				},
 				hoverValue: (y, x) => {
 					const g = gameRef.current
@@ -150,8 +169,8 @@ export const GameBoard = ({
 
 	const canReturnToMenu = Boolean(gameResult) || (!blackPlayer && !whitePlayer)
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
-	const canShowJoinBlack = !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
-	const canShowJoinWhite = !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
+	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
+	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
 	const currentTurn: 'black' | 'white' = moves.length % 2 === 0 ? 'black' : 'white'
 	const canPassAs = (color: 'black' | 'white') =>
 		gameMode === 'normal' &&
@@ -159,11 +178,11 @@ export const GameBoard = ({
 		!gameResult &&
 		!gameRef.current?.isOver() &&
 		currentTurn === color
-	const showPassForBlack = gameMode === 'normal' && playerColor === 'black'
-	const showPassForWhite = gameMode === 'normal' && playerColor === 'white'
-	const showResignForBlack = gameMode === 'normal' && playerColor === 'black' && !gameResult
-	const showResignForWhite = gameMode === 'normal' && playerColor === 'white' && !gameResult
-	const showImportSgf = gameMode === 'shared' && !gameResult
+	const showPassForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black'
+	const showPassForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white'
+	const showResignForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black' && !gameResult
+	const showResignForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white' && !gameResult
+	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showNavigation = gameMode === 'shared'
 	const showNewGame = gameMode === 'normal' && Boolean(gameResult)
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
@@ -289,8 +308,44 @@ export const GameBoard = ({
 			{isOptionsPanelOpen ? (
 				<aside className="game-options-panel" id="game-options-panel">
 					<div className="game-options-panel-title">Options</div>
+					{!gameStarted ? (
+						<>
+							<div className="game-options-panel-group">
+								<div className="game-board-size-label">Game Mode</div>
+								<select
+									className="game-options-select"
+									name="gameMode"
+									value={gameMode}
+									onChange={(event) => onGameModeChange(event.target.value as GameMode)}
+								>
+									<option value="normal">Normal Game</option>
+									<option value="rengo">Rengo</option>
+									<option value="shared">Shared Game</option>
+								</select>
+							</div>
+							<div className="game-options-panel-group">
+								<div className="game-board-size-label">Board Size</div>
+								<select
+									className="game-options-select"
+									name="boardSize"
+									value={boardSize}
+									onChange={(event) => onBoardSizeChange(Number(event.target.value))}
+								>
+									<option value={9}>9x9</option>
+									<option value={13}>13x13</option>
+									<option value={19}>19x19</option>
+								</select>
+							</div>
+							<div className="game-options-panel-group">
+								<button className="game-side-button game-side-button--start" type="button" onClick={onStartGame}>
+									Start
+								</button>
+							</div>
+						</>
+					) : null}
+					<div className="game-options-divider" role="presentation" />
 					<div className="game-board-size-controls">
-						<div className="game-board-size-label">Board Size</div>
+						<div className="game-board-size-label">Board Zoom</div>
 						<div className="game-board-size-buttons">
 							<button
 								className="game-board-size-button"

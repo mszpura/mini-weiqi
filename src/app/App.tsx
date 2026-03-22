@@ -58,6 +58,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			gameBoard: ['game-board', channelKey],
 			boardSize: ['board-size', channelKey],
 			gameMode: ['game-mode', channelKey],
+			gameStarted: ['game-started', channelKey],
 			blackPlayer: ['player-black', channelKey],
 			whitePlayer: ['player-white', channelKey],
 			moves: ['game-moves', channelKey],
@@ -69,6 +70,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, syncKeys.gameBoard)
 	const [boardSize, setBoardSize] = useSyncState(19, syncKeys.boardSize)
 	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', syncKeys.gameMode)
+	const [gameStarted, setGameStarted] = useSyncState(false, syncKeys.gameStarted)
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.blackPlayer)
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
 	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
@@ -93,12 +95,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const isUnauthenticated = !session?.user?.id
 
 	const handleJoinBlack = () => {
+		if (!gameStarted) return
 		if (isUnauthenticated) return
 		if (!currentPlayer || blackPlayer || isSeated) return
 		setBlackPlayer(currentPlayer)
 	}
 
 	const handleJoinWhite = () => {
+		if (!gameStarted) return
 		if (isUnauthenticated) return
 		if (!currentPlayer || whitePlayer || isSeated) return
 		setWhitePlayer(currentPlayer)
@@ -106,6 +110,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handlePlayMove = useCallback(
 		(y: number, x: number) => {
+			if (!gameStarted) return
 			shouldJumpToLatestMoveRef.current = true
 			setMoves((previousMoves) => {
 				const nextMoves = [...previousMoves, { type: 'play', y, x }]
@@ -113,10 +118,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 				return nextMoves
 			})
 		},
-		[setMoves]
+		[gameStarted, setMoves]
 	)
 
 	const handlePassTurn = useCallback(() => {
+		if (!gameStarted) return
 		if (gameResult) return
 		shouldJumpToLatestMoveRef.current = true
 		setMoves((previousMoves) => {
@@ -124,7 +130,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setDisplayedMoveCount(nextMoves.length)
 			return nextMoves
 		})
-	}, [gameResult, setMoves])
+	}, [gameResult, gameStarted, setMoves])
 
 	const buildScoreFromMoves = useCallback(() => {
 		const game = new Game({ boardSize })
@@ -139,6 +145,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	}, [boardSize, moves])
 
 	const handleResign = useCallback(() => {
+		if (!gameStarted) return
 		if (!playerColor || gameResult) return
 		const score = buildScoreFromMoves()
 		const winner = playerColor === 'black' ? 'white' : 'black'
@@ -149,12 +156,22 @@ function AppContent({ onNavigate }: AppContentProps) {
 			reason: 'resign',
 			resignedBy: playerColor
 		})
-	}, [buildScoreFromMoves, gameResult, playerColor, setGameResult])
+	}, [buildScoreFromMoves, gameResult, gameStarted, playerColor, setGameResult])
 
 	const handleImportSgf = useCallback(() => {
+		if (!gameStarted) return
 		if (gameMode !== 'shared') return
 		fileInputRef.current?.click()
-	}, [gameMode])
+	}, [gameMode, gameStarted])
+
+	const handleStartGame = useCallback(() => {
+		setMoves([])
+		setDisplayedMoveCount(0)
+		setGameResult(null)
+		setBlackPlayer(null)
+		setWhitePlayer(null)
+		setGameStarted(true)
+	}, [setBlackPlayer, setGameResult, setGameStarted, setMoves, setWhitePlayer])
 
 	const handleSgfFileChange = useCallback(
 		async (event: ChangeEvent<HTMLInputElement>) => {
@@ -193,8 +210,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameResult(null)
 		setBlackPlayer(null)
 		setWhitePlayer(null)
+		setGameStarted(false)
 		setShowGameBoard(false)
-	}, [setBlackPlayer, setGameResult, setMoves, setShowGameBoard, setWhitePlayer])
+	}, [setBlackPlayer, setGameResult, setGameStarted, setMoves, setShowGameBoard, setWhitePlayer])
 
 	const handleNewGame = useCallback(() => {
 		setMoves([])
@@ -309,12 +327,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 				<input ref={fileInputRef} type="file" accept=".sgf" hidden onChange={handleSgfFileChange} />
 				<GameBoard
 					boardSize={boardSize}
+					onBoardSizeChange={setBoardSize}
 					blackPlayer={blackPlayer}
 					whitePlayer={whitePlayer}
 					onJoinBlack={handleJoinBlack}
 					onJoinWhite={handleJoinWhite}
 					playerColor={playerColor}
 					gameMode={gameMode}
+					onGameModeChange={setGameMode}
+					gameStarted={gameStarted}
+					onStartGame={handleStartGame}
 					moves={shownMoves}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
@@ -341,11 +363,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	return (
 		<div className="app-shell app-shell--menu">
 			<Menu
-				onSharedGame={() => setShowGameBoard(true)}
-				boardSize={boardSize}
-				onBoardSizeChange={setBoardSize}
-				gameMode={gameMode}
-				onGameModeChange={setGameMode}
+				onStart={() => setShowGameBoard(true)}
 				onOpenPrivacyPolicy={() => onNavigate('/privacy-policy')}
 				onOpenTermsOfService={() => onNavigate('/terms-of-service')}
 			/>

@@ -90,6 +90,33 @@ $board-darker-color: hsl(41, 36%, 40%);
 	justify-items: center;
 }
 
+.game-options-select {
+	width: min(220px, 100%);
+	padding: 8px 10px;
+	border-radius: 10px;
+	border: 1px solid rgba(242, 230, 210, 0.4);
+	background: rgba(20, 16, 12, 0.85);
+	color: #f8f1e5;
+	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
+	letter-spacing: 0.08em;
+
+	&:focus {
+		outline: 2px solid rgba(248, 241, 229, 0.45);
+		outline-offset: 2px;
+	}
+
+	&:disabled {
+		opacity: 0.55;
+		cursor: not-allowed;
+	}
+}
+
+.game-options-divider {
+	height: 1px;
+	margin: 2px 0 4px;
+	background: linear-gradient(90deg, rgba(242, 230, 210, 0) 0%, rgba(242, 230, 210, 0.45) 50%, rgba(242, 230, 210, 0) 100%);
+}
+
 .game-board-controls {
 	display: flex;
 	flex-wrap: wrap;
@@ -361,6 +388,11 @@ $board-darker-color: hsl(41, 36%, 40%);
 	}
 
 	&--new-game {
+		min-width: 136px;
+		background: linear-gradient(135deg, #355f1f 0%, #4a8430 55%, #62a944 100%);
+	}
+
+	&--start {
 		min-width: 136px;
 		background: linear-gradient(135deg, #355f1f 0%, #4a8430 55%, #62a944 100%);
 	}
