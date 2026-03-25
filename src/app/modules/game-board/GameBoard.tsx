@@ -259,6 +259,45 @@ export const GameBoard = ({
 		setIsOptionsPanelOpen((previous) => !previous)
 	}
 
+	useEffect(() => {
+		if (!showNavigation) return
+
+		const handleKeydown = (event: KeyboardEvent) => {
+			const target = event.target
+			if (target instanceof HTMLElement) {
+				const tagName = target.tagName
+				const isTypingField = tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT'
+				if (isTypingField || target.isContentEditable) return
+			}
+
+			if (event.key === 'ArrowLeft' && canMoveBackward) {
+				event.preventDefault()
+				onMoveBackward()
+				return
+			}
+
+			if (event.key === 'ArrowRight' && canMoveForward) {
+				event.preventDefault()
+				onMoveForward()
+				return
+			}
+
+			if (event.key === 'ArrowDown' && canMoveBackward) {
+				event.preventDefault()
+				onMoveToStart()
+				return
+			}
+
+			if (event.key === 'ArrowUp' && canMoveForward) {
+				event.preventDefault()
+				onMoveToEnd()
+			}
+		}
+
+		window.addEventListener('keydown', handleKeydown)
+		return () => window.removeEventListener('keydown', handleKeydown)
+	}, [canMoveBackward, canMoveForward, onMoveBackward, onMoveForward, onMoveToEnd, onMoveToStart, showNavigation])
+
 	return (
 		<div className="game-board">
 			<div className="game-side-slot">
