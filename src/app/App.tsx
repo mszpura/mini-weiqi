@@ -602,8 +602,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handleDownloadSgf = useCallback(() => {
 		if (!gameStarted) return
-		if (gameMode !== 'normal') return
-		if (!effectiveGameResult) return
+		if (gameMode === 'normal' && !effectiveGameResult) return
 
 		try {
 			const sgf = serializeSgfContent(boardSize, moves, effectiveHandicapStones)

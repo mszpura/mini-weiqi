@@ -9,6 +9,8 @@ type RightOptionsMenuProps = {
 	onToggleSound: () => void
 	showImportSgf: boolean
 	onImportSgf: () => void
+	showDownloadSgf: boolean
+	onDownloadSgf: () => void
 	canShowExitMode: boolean
 	onExitMode: () => void
 }
@@ -24,6 +26,8 @@ export const RightOptionsMenu = ({
 	onToggleSound,
 	showImportSgf,
 	onImportSgf,
+	showDownloadSgf,
+	onDownloadSgf,
 	canShowExitMode,
 	onExitMode
 }: RightOptionsMenuProps) => {
@@ -70,19 +74,27 @@ export const RightOptionsMenu = ({
 							{soundEnabled ? 'Disable sound' : 'Enable sound'}
 						</button>
 					</div>
-					{showImportSgf || canShowExitMode ? (
-						<div className="game-board-controls">
-							{showImportSgf ? (
-								<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
-									Import SGF
-								</button>
-							) : null}
-							{canShowExitMode ? (
-								<button className="game-return-button" type="button" onClick={onExitMode}>
-									Exit mode
-								</button>
-							) : null}
-						</div>
+					{showImportSgf || showDownloadSgf || canShowExitMode ? (
+						<>
+							<div className="game-options-divider" />
+							<div className="game-board-controls">
+								{showImportSgf ? (
+									<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
+										Import SGF
+									</button>
+								) : null}
+								{showDownloadSgf ? (
+									<button className="game-side-button game-side-button--download" type="button" onClick={onDownloadSgf}>
+										Download SGF
+									</button>
+								) : null}
+								{canShowExitMode ? (
+									<button className="game-return-button" type="button" onClick={onExitMode}>
+										Exit mode
+									</button>
+								) : null}
+							</div>
+						</>
 					) : null}
 				</aside>
 			) : null}

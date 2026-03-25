@@ -221,6 +221,7 @@ export const GameBoard = ({
 	const showResignForWhite = gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showDownloadSgf = gameStarted && gameMode === 'normal' && Boolean(gameResult)
+	const showDownloadSgfInOptions = gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const shouldShowSetupOptions = !gameStarted || Boolean(gameResult)
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
@@ -445,6 +446,8 @@ export const GameBoard = ({
 				onToggleSound={onToggleSound}
 				showImportSgf={showImportSgf}
 				onImportSgf={onImportSgf}
+				showDownloadSgf={showDownloadSgfInOptions}
+				onDownloadSgf={onDownloadSgf}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>

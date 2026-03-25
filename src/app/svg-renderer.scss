@@ -466,7 +466,6 @@ $board-darker-color: hsl(41, 36%, 40%);
 
 	&--import {
 		min-width: 136px;
-		margin-top: 5px;
 		background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
 	}
 
@@ -539,6 +538,11 @@ $board-darker-color: hsl(41, 36%, 40%);
 	font-size: 12px;
 	letter-spacing: 0.1em;
 	background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
+}
+
+.game-options-panel .game-side-button--download {
+	background: linear-gradient(135deg, #8ecf7b 0%, #a6dc93 55%, #c2e9b3 100%);
+	color: #1f2a16;
 }
 
 .player-avatar-wrap {
