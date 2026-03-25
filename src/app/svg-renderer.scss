@@ -25,7 +25,58 @@ $board-darker-color: hsl(41, 36%, 40%);
 	flex: 0 0 var(--board-side-width);
 	min-width: 160px;
 	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: center;
 	justify-content: center;
+}
+
+.player-clock {
+	min-width: 160px;
+	padding: 10px 12px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.45);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.9) 0%, rgba(20, 16, 12, 0.82) 100%);
+	box-shadow:
+		0 10px 20px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	display: grid;
+	justify-items: center;
+	row-gap: 4px;
+
+	&--black {
+		border-color: rgba(242, 230, 210, 0.35);
+	}
+
+	&--white {
+		border-color: rgba(255, 255, 255, 0.7);
+		background: linear-gradient(180deg, rgba(248, 240, 227, 0.96) 0%, rgba(232, 219, 197, 0.92) 100%);
+	}
+}
+
+.player-clock-label {
+	color: rgba(248, 241, 229, 0.9);
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	font-weight: 700;
+
+	.player-clock--white & {
+		color: rgba(43, 33, 22, 0.85);
+	}
+}
+
+.player-clock-value {
+	color: rgba(248, 241, 229, 0.96);
+	font-size: 30px;
+	font-weight: 800;
+	line-height: 1;
+	letter-spacing: 0.04em;
+	font-variant-numeric: tabular-nums;
+
+	.player-clock--white & {
+		color: rgba(43, 33, 22, 0.94);
+	}
 }
 
 .game-board-center {
@@ -343,17 +394,6 @@ $board-darker-color: hsl(41, 36%, 40%);
 
 	.player-card--white & {
 		color: rgba(43, 33, 22, 0.85);
-	}
-}
-
-.player-card-time {
-	color: rgba(248, 241, 229, 0.94);
-	font-size: 12px;
-	letter-spacing: 0.05em;
-	font-weight: 700;
-
-	.player-card--white & {
-		color: rgba(43, 33, 22, 0.9);
 	}
 }
 

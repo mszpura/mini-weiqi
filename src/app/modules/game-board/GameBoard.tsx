@@ -258,6 +258,12 @@ export const GameBoard = ({
 	return (
 		<div className="game-board">
 			<div className="game-side-slot">
+				{showClocks ? (
+					<div className="player-clock player-clock--black" aria-live="polite">
+						<div className="player-clock-label">Time</div>
+						<div className="player-clock-value">{formatClock(blackTimeMs)}</div>
+					</div>
+				) : null}
 				<div className="player-card player-card--black">
 					<div className="player-avatar-wrap player-avatar-wrap--black">
 						{blackPlayer?.avatar ? (
@@ -272,7 +278,6 @@ export const GameBoard = ({
 					</div>
 					<div className="player-card-name">{blackPlayer?.username ?? 'Black'}</div>
 					<div className="player-card-captured">Captured: {capturedByBlack}</div>
-					{showClocks ? <div className="player-card-time">Time: {formatClock(blackTimeMs)}</div> : null}
 					{showPassForBlack ? (
 						<button
 							className="game-side-button game-side-button--pass"
@@ -394,6 +399,12 @@ export const GameBoard = ({
 				</div>
 			) : null}
 			<div className="game-side-slot">
+				{showClocks ? (
+					<div className="player-clock player-clock--white" aria-live="polite">
+						<div className="player-clock-label">Time</div>
+						<div className="player-clock-value">{formatClock(whiteTimeMs)}</div>
+					</div>
+				) : null}
 				<div className="player-card player-card--white">
 					<div className="player-avatar-wrap player-avatar-wrap--white">
 						{whitePlayer?.avatar ? (
@@ -408,7 +419,6 @@ export const GameBoard = ({
 					</div>
 					<div className="player-card-name">{whitePlayer?.username ?? 'White'}</div>
 					<div className="player-card-captured">Captured: {capturedByWhite}</div>
-					{showClocks ? <div className="player-card-time">Time: {formatClock(whiteTimeMs)}</div> : null}
 					{showPassForWhite ? (
 						<button
 							className="game-side-button game-side-button--pass"
