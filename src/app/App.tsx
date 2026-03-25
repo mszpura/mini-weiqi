@@ -134,6 +134,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const previousMovesLengthRef = useRef(0)
 	const shouldJumpToLatestMoveRef = useRef(false)
+	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
+	const countdownPlayedTurnRef = useRef<string | null>(null)
 	const user = session?.user
 
 	const currentPlayer = user
@@ -171,6 +173,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 			if (!gameStarted) return
 			if (gameResult) return
 			if (gameMode === 'normal' && !areBothSeatsTaken) return
+			const audio = countdownAudioRef.current
+			if (audio) {
+				audio.pause()
+				audio.currentTime = 0
+			}
 			const nowMs = Date.now()
 			if (fisherClockConfig && gameClock) {
 				setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
@@ -189,6 +196,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (gameMode === 'normal' && !areBothSeatsTaken) return
+		const audio = countdownAudioRef.current
+		if (audio) {
+			audio.pause()
+			audio.currentTime = 0
+		}
 		const nowMs = Date.now()
 		if (fisherClockConfig && gameClock) {
 			setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
@@ -393,6 +405,18 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const shownMoves = useMemo(() => moves.slice(0, displayedMoveCount), [displayedMoveCount, moves])
 
 	useEffect(() => {
+		const audio = new Audio('/counting.mp3')
+		audio.preload = 'auto'
+		countdownAudioRef.current = audio
+
+		return () => {
+			audio.pause()
+			audio.src = ''
+			countdownAudioRef.current = null
+		}
+	}, [])
+
+	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (gameMode !== 'normal') return
@@ -454,6 +478,43 @@ function AppContent({ onNavigate }: AppContentProps) {
 			whiteTimeMs: settled.whiteTimeMs
 		}
 	}, [clockTick, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
+
+	useEffect(() => {
+		if (!gameStarted) return
+		if (gameResult) return
+		if (gameMode !== 'normal') return
+		if (!fisherClockConfig) return
+		if (!gameClock || !displayedClocks) return
+
+		const audio = countdownAudioRef.current
+		if (!audio) return
+
+		const activeRemainingMs =
+			gameClock.activeColor === 'black' ? displayedClocks.blackTimeMs : displayedClocks.whiteTimeMs
+		if (activeRemainingMs <= 0 || activeRemainingMs > 10_000) {
+			audio.pause()
+			audio.currentTime = 0
+			return
+		}
+
+		const turnKey = `${gameClock.activeColor}:${gameClock.turnStartedAtMs}`
+		if (countdownPlayedTurnRef.current === turnKey) return
+		countdownPlayedTurnRef.current = turnKey
+
+		audio.currentTime = 0
+		void audio.play().catch((error) => {
+			console.warn('Failed to play countdown audio.', error)
+		})
+	}, [displayedClocks, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
+
+	useEffect(() => {
+		if (gameStarted && !gameResult && gameMode === 'normal' && fisherClockConfig) return
+		const audio = countdownAudioRef.current
+		if (!audio) return
+		audio.pause()
+		audio.currentTime = 0
+		countdownPlayedTurnRef.current = null
+	}, [fisherClockConfig, gameMode, gameResult, gameStarted])
 
 	useEffect(() => {
 		if (!gameStarted) return
