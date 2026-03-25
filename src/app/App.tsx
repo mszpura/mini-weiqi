@@ -2,7 +2,17 @@ import { DiscordContextProvider, useDiscordSdk } from '../hooks/useDiscordSdk'
 import { SyncContextProvider, useSyncState } from '@robojs/sync'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Game } from 'tenuki'
-import { isPassMove, type GameClockState, type GameMode, type GameMove, type GameResult, type GameTimeLimit } from './models/game'
+import {
+	getFisherClockConfig,
+	getTimeLimitOptionsForBoardSize,
+	isPassMove,
+	isTimeLimitAllowedForBoardSize,
+	type GameClockState,
+	type GameMode,
+	type GameMove,
+	type GameResult,
+	type GameTimeLimit
+} from './models/game'
 import type { PlayerSlot } from './models/player'
 import { parseSgfContent, serializeSgfContent } from './models/sgf'
 import './App.css'
@@ -57,9 +67,6 @@ const normalizeHandicapStones = (value: number) => {
 	return 0
 }
 
-const FISHER_INITIAL_TIME_MS = 15 * 60 * 1000
-const FISHER_INCREMENT_MS = 10 * 1000
-
 const getFirstMoveColor = (handicapStones: number): 'black' | 'white' => (handicapStones > 0 ? 'white' : 'black')
 const getOppositeColor = (color: 'black' | 'white'): 'black' | 'white' => (color === 'black' ? 'white' : 'black')
 
@@ -73,11 +80,11 @@ const settleActiveClock = (clock: GameClockState, nowMs: number) => {
 	}
 }
 
-const applyFisherMove = (clock: GameClockState, nowMs: number): GameClockState => {
+const applyFisherMove = (clock: GameClockState, nowMs: number, incrementMs: number): GameClockState => {
 	const settled = settleActiveClock(clock, nowMs)
 	if (clock.activeColor === 'black') {
 		return {
-			blackTimeMs: settled.blackTimeMs + FISHER_INCREMENT_MS,
+			blackTimeMs: settled.blackTimeMs + incrementMs,
 			whiteTimeMs: settled.whiteTimeMs,
 			activeColor: 'white',
 			turnStartedAtMs: nowMs
@@ -85,7 +92,7 @@ const applyFisherMove = (clock: GameClockState, nowMs: number): GameClockState =
 	}
 	return {
 		blackTimeMs: settled.blackTimeMs,
-		whiteTimeMs: settled.whiteTimeMs + FISHER_INCREMENT_MS,
+		whiteTimeMs: settled.whiteTimeMs + incrementMs,
 		activeColor: 'black',
 		turnStartedAtMs: nowMs
 	}
@@ -143,6 +150,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const areBothSeatsTaken = Boolean(blackPlayer && whitePlayer)
 	const isUnauthenticated = !session?.user?.id
 	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
+	const fisherClockConfig = gameMode === 'normal' ? getFisherClockConfig(timeLimit) : null
 
 	const handleJoinBlack = () => {
 		if (!gameStarted) return
@@ -164,8 +172,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 			if (gameResult) return
 			if (gameMode === 'normal' && !areBothSeatsTaken) return
 			const nowMs = Date.now()
-			if (gameMode === 'normal' && timeLimit === 'fisher-15-10' && gameClock) {
-				setGameClock(applyFisherMove(gameClock, nowMs))
+			if (fisherClockConfig && gameClock) {
+				setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
 			}
 			shouldJumpToLatestMoveRef.current = true
 			setMoves((previousMoves) => {
@@ -174,7 +182,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 				return nextMoves
 			})
 		},
-		[areBothSeatsTaken, gameClock, gameMode, gameResult, gameStarted, setGameClock, setMoves, timeLimit]
+		[areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock, setMoves]
 	)
 
 	const handlePassTurn = useCallback(() => {
@@ -182,8 +190,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (gameResult) return
 		if (gameMode === 'normal' && !areBothSeatsTaken) return
 		const nowMs = Date.now()
-		if (gameMode === 'normal' && timeLimit === 'fisher-15-10' && gameClock) {
-			setGameClock(applyFisherMove(gameClock, nowMs))
+		if (fisherClockConfig && gameClock) {
+			setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
 		}
 		shouldJumpToLatestMoveRef.current = true
 		setMoves((previousMoves) => {
@@ -191,7 +199,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setDisplayedMoveCount(nextMoves.length)
 			return nextMoves
 		})
-	}, [areBothSeatsTaken, gameClock, gameMode, gameResult, gameStarted, setGameClock, setMoves, timeLimit])
+	}, [areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock, setMoves])
 
 	const buildScoreFromMoves = useCallback(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
@@ -266,8 +274,22 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameStarted(false)
 			setGameClock(null)
 			setBoardSize(nextBoardSize)
+			if (!isTimeLimitAllowedForBoardSize(timeLimit, nextBoardSize)) {
+				setTimeLimit(getTimeLimitOptionsForBoardSize(nextBoardSize)[0]?.value ?? 'no-limit')
+			}
 		},
-		[boardSize, setBlackPlayer, setBoardSize, setGameClock, setGameResult, setGameStarted, setMoves, setWhitePlayer]
+		[
+			boardSize,
+			setBlackPlayer,
+			setBoardSize,
+			setGameClock,
+			setGameResult,
+			setGameStarted,
+			setMoves,
+			setTimeLimit,
+			setWhitePlayer,
+			timeLimit
+		]
 	)
 
 	const handleSgfFileChange = useCallback(
@@ -374,7 +396,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (gameMode !== 'normal') return
-		if (timeLimit !== 'fisher-15-10') return
+		if (!fisherClockConfig) return
 		if (!gameClock) return
 
 		const intervalId = window.setInterval(() => {
@@ -384,13 +406,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return () => {
 			window.clearInterval(intervalId)
 		}
-	}, [gameClock, gameMode, gameResult, gameStarted, timeLimit])
+	}, [fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (gameMode !== 'normal') return
-		if (timeLimit !== 'fisher-15-10') return
+		if (!fisherClockConfig) return
 		if (!gameClock) return
 
 		const nowMs = Date.now()
@@ -412,42 +434,49 @@ function AppContent({ onNavigate }: AppContentProps) {
 			reason: 'time',
 			timedOutBy
 		})
-	}, [buildScoreFromMoves, clockTick, gameClock, gameMode, gameResult, gameStarted, setGameClock, setGameResult, timeLimit])
+	}, [buildScoreFromMoves, clockTick, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock, setGameResult])
 
 	const displayedClocks = useMemo(() => {
-		if (!gameStarted || gameMode !== 'normal' || timeLimit !== 'fisher-15-10') return null
+		if (!gameStarted || gameMode !== 'normal' || !fisherClockConfig) return null
 		if (!gameClock) {
 			return {
-				blackTimeMs: FISHER_INITIAL_TIME_MS,
-				whiteTimeMs: FISHER_INITIAL_TIME_MS
+				blackTimeMs: fisherClockConfig.initialTimeMs,
+				whiteTimeMs: fisherClockConfig.initialTimeMs
 			}
 		}
 		const nowMs = Date.now()
 		const settled =
-			gameStarted && !gameResult && gameMode === 'normal' && timeLimit === 'fisher-15-10'
+			gameStarted && !gameResult && gameMode === 'normal' && Boolean(fisherClockConfig)
 				? settleActiveClock(gameClock, nowMs)
 				: { blackTimeMs: gameClock.blackTimeMs, whiteTimeMs: gameClock.whiteTimeMs }
 		return {
 			blackTimeMs: settled.blackTimeMs,
 			whiteTimeMs: settled.whiteTimeMs
 		}
-	}, [clockTick, gameClock, gameMode, gameResult, gameStarted, timeLimit])
+	}, [clockTick, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (gameMode !== 'normal') return
-		if (timeLimit !== 'fisher-15-10') return
+		if (!fisherClockConfig) return
 		if (gameClock) return
 		if (!areBothSeatsTaken) return
 
 		setGameClock({
-			blackTimeMs: FISHER_INITIAL_TIME_MS,
-			whiteTimeMs: FISHER_INITIAL_TIME_MS,
+			blackTimeMs: fisherClockConfig.initialTimeMs,
+			whiteTimeMs: fisherClockConfig.initialTimeMs,
 			activeColor: getFirstMoveColor(effectiveHandicapStones),
 			turnStartedAtMs: Date.now()
 		})
-	}, [areBothSeatsTaken, effectiveHandicapStones, gameClock, gameMode, gameResult, gameStarted, setGameClock, timeLimit])
+	}, [areBothSeatsTaken, effectiveHandicapStones, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock])
+
+	useEffect(() => {
+		if (gameStarted) return
+		if (gameMode !== 'normal') return
+		if (isTimeLimitAllowedForBoardSize(timeLimit, boardSize)) return
+		setTimeLimit(getTimeLimitOptionsForBoardSize(boardSize)[0]?.value ?? 'no-limit')
+	}, [boardSize, gameMode, gameStarted, setTimeLimit, timeLimit])
 
 	const gameSnapshot = useMemo(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })

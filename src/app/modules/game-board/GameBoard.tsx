@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
-import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTimeLimit } from '../../models/game'
+import {
+	getTimeLimitOptionsForBoardSize,
+	isPassMove,
+	type GameMode,
+	type GameMove,
+	type GameResult,
+	type GameTimeLimit
+} from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 
@@ -94,6 +101,7 @@ export const GameBoard = ({
 	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
+	const timeLimitOptions = getTimeLimitOptionsForBoardSize(boardSize)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (!gameStartedRef.current) return false
@@ -312,20 +320,6 @@ export const GameBoard = ({
 									<option value="shared">Shared Game</option>
 								</select>
 							</div>
-							{gameMode === 'normal' ? (
-								<div className="game-options-panel-group">
-									<div className="game-board-size-label">Time limit</div>
-									<select
-										className="game-options-select"
-										name="timeLimit"
-										value={timeLimit}
-										onChange={(event) => onTimeLimitChange(event.target.value as GameTimeLimit)}
-									>
-										<option value="no-limit">No limit</option>
-										<option value="fisher-15-10">Fisher 15m + 10s</option>
-									</select>
-								</div>
-							) : null}
 							<div className="game-options-panel-group">
 								<div className="game-board-size-label">Board Size</div>
 								<select
@@ -339,6 +333,23 @@ export const GameBoard = ({
 									<option value={19}>19x19</option>
 								</select>
 							</div>
+							{gameMode === 'normal' ? (
+								<div className="game-options-panel-group">
+									<div className="game-board-size-label">Time limit</div>
+									<select
+										className="game-options-select"
+										name="timeLimit"
+										value={timeLimit}
+										onChange={(event) => onTimeLimitChange(event.target.value as GameTimeLimit)}
+									>
+										{timeLimitOptions.map((option) => (
+											<option key={option.value} value={option.value}>
+												{option.label}
+											</option>
+										))}
+									</select>
+								</div>
+							) : null}
 							<div className="game-options-panel-group">
 								<div className="game-board-size-label">Handicap</div>
 								<select
