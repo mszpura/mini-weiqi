@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
-import {
-	getTimeLimitOptionsForBoardSize,
-	isPassMove,
-	type GameMode,
-	type GameMove,
-	type GameResult,
-	type GameTimeLimit
-} from '../../models/game'
+import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTimeLimit } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
+import { GameResultPopup } from './GameResultPopup'
+import { RightOptionsMenu } from './RightOptionsMenu'
+import { SetupMenu } from './SetupMenu'
 
 type GameBoardProps = {
 	boardSize: number
@@ -105,7 +101,6 @@ export const GameBoard = ({
 	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
-	const timeLimitOptions = getTimeLimitOptionsForBoardSize(boardSize)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (!gameStartedRef.current) return false
@@ -373,90 +368,26 @@ export const GameBoard = ({
 			{shouldShowSetupOptions || gameResult ? (
 				<div className="game-center-overlays">
 					{shouldShowSetupOptions ? (
-						<div className="game-setup-popup" role="dialog" aria-label="Game setup">
-							<div className="game-options-panel-title">Setup</div>
-							<div className="game-options-panel-group">
-								<div className="game-board-size-label">Game Mode</div>
-								<select
-									className="game-options-select"
-									name="gameMode"
-									value={gameMode}
-									onChange={(event) => onGameModeChange(event.target.value as GameMode)}
-								>
-									<option value="normal">Normal Game</option>
-									<option value="shared">Shared Game</option>
-								</select>
-							</div>
-							<div className="game-options-panel-group">
-								<div className="game-board-size-label">Board Size</div>
-								<select
-									className="game-options-select"
-									name="boardSize"
-									value={boardSize}
-									onChange={(event) => onBoardSizeChange(Number(event.target.value))}
-								>
-									<option value={9}>9x9</option>
-									<option value={13}>13x13</option>
-									<option value={19}>19x19</option>
-								</select>
-							</div>
-							{gameMode === 'normal' ? (
-								<div className="game-options-panel-group">
-									<div className="game-board-size-label">Time limit</div>
-									<select
-										className="game-options-select"
-										name="timeLimit"
-										value={timeLimit}
-										onChange={(event) => onTimeLimitChange(event.target.value as GameTimeLimit)}
-									>
-										{timeLimitOptions.map((option) => (
-											<option key={option.value} value={option.value}>
-												{option.label}
-											</option>
-										))}
-									</select>
-								</div>
-							) : null}
-							<div className="game-options-panel-group">
-								<div className="game-board-size-label">Handicap</div>
-								<select
-									className="game-options-select"
-									name="handicapStones"
-									value={handicapStones}
-									onChange={(event) => onHandicapChange(Number(event.target.value))}
-								>
-									<option value={0}>0</option>
-									<option value={1} disabled>
-										1 (unsupported)
-									</option>
-									<option value={2}>2</option>
-									<option value={3}>3</option>
-									<option value={4}>4</option>
-									<option value={5}>5</option>
-									<option value={6}>6</option>
-									<option value={7}>7</option>
-									<option value={8}>8</option>
-									<option value={9}>9</option>
-								</select>
-							</div>
-							<div className="game-options-panel-group">
-								<button className="game-side-button game-side-button--start" type="button" onClick={onStartGame}>
-									Start
-								</button>
-							</div>
-						</div>
+						<SetupMenu
+							gameMode={gameMode}
+							onGameModeChange={onGameModeChange}
+							boardSize={boardSize}
+							onBoardSizeChange={onBoardSizeChange}
+							timeLimit={timeLimit}
+							onTimeLimitChange={onTimeLimitChange}
+							handicapStones={handicapStones}
+							onHandicapChange={onHandicapChange}
+							onStartGame={onStartGame}
+						/>
 					) : null}
 					{gameResult ? (
-						<div className="game-result-popup" role="status" aria-live="polite">
-							<div className="game-result-title">{winnerLabel}</div>
-							<div className="game-result-score">{scoreLabel}</div>
-							<div className="game-result-reason">{reasonLabel}</div>
-							{showDownloadSgf ? (
-								<button className="game-side-button game-side-button--download" type="button" onClick={onDownloadSgf}>
-									Download SGF
-								</button>
-							) : null}
-						</div>
+						<GameResultPopup
+							winnerLabel={winnerLabel}
+							scoreLabel={scoreLabel}
+							reasonLabel={reasonLabel}
+							showDownloadSgf={showDownloadSgf}
+							onDownloadSgf={onDownloadSgf}
+						/>
 					) : null}
 				</div>
 			) : null}
@@ -503,63 +434,20 @@ export const GameBoard = ({
 					) : null}
 				</div>
 			</div>
-			<button
-				className="game-options-toggle"
-				type="button"
-				onClick={handleToggleOptionsPanel}
-				aria-expanded={isOptionsPanelOpen}
-				aria-controls="game-options-panel"
-			>
-				Options
-			</button>
-			{isOptionsPanelOpen ? (
-				<aside className="game-options-panel" id="game-options-panel">
-					<div className="game-options-panel-title">Options</div>
-					<div className="game-board-size-controls">
-						<div className="game-board-size-label">Board Zoom</div>
-						<div className="game-board-size-buttons">
-							<button
-								className="game-board-size-button"
-								type="button"
-								onClick={handleIncreaseBoardScale}
-								disabled={!canIncreaseBoardScale}
-								aria-label="Increase board size"
-							>
-								+
-							</button>
-							<button
-								className="game-board-size-button"
-								type="button"
-								onClick={handleDecreaseBoardScale}
-								disabled={!canDecreaseBoardScale}
-								aria-label="Decrease board size"
-							>
-								-
-							</button>
-						</div>
-					</div>
-					<div className="game-options-panel-group">
-						<div className="game-board-size-label">Sound</div>
-						<button className="game-nav-button" type="button" onClick={onToggleSound}>
-							{soundEnabled ? 'Disable sound' : 'Enable sound'}
-						</button>
-					</div>
-					{showImportSgf || canShowExitMode ? (
-						<div className="game-board-controls">
-							{showImportSgf ? (
-								<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
-									Import SGF
-								</button>
-							) : null}
-							{canShowExitMode ? (
-								<button className="game-return-button" type="button" onClick={onExitMode}>
-									Exit mode
-								</button>
-							) : null}
-						</div>
-					) : null}
-				</aside>
-			) : null}
+			<RightOptionsMenu
+				isOpen={isOptionsPanelOpen}
+				onToggle={handleToggleOptionsPanel}
+				onIncreaseBoardScale={handleIncreaseBoardScale}
+				onDecreaseBoardScale={handleDecreaseBoardScale}
+				canIncreaseBoardScale={canIncreaseBoardScale}
+				canDecreaseBoardScale={canDecreaseBoardScale}
+				soundEnabled={soundEnabled}
+				onToggleSound={onToggleSound}
+				showImportSgf={showImportSgf}
+				onImportSgf={onImportSgf}
+				canShowExitMode={canShowExitMode}
+				onExitMode={onExitMode}
+			/>
 		</div>
 	)
 }
