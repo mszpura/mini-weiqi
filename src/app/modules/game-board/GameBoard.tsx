@@ -223,6 +223,7 @@ export const GameBoard = ({
 	const showDownloadSgf = gameStarted && gameMode === 'normal' && Boolean(gameResult)
 	const showDownloadSgfInOptions = gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
+	const moveNumber = moves.length
 	const shouldShowSetupOptions = !gameStarted || Boolean(gameResult)
 	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
@@ -346,25 +347,28 @@ export const GameBoard = ({
 					data-include-coordinates="true"
 					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
-				{showNavigation ? (
-					<div className="game-board-nav-bottom">
-						<div className="game-board-size-label">Navigation</div>
-						<div className="game-board-nav-controls">
-							<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
-								{'<<'}
-							</button>
-							<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
-								{'<'}
-							</button>
-							<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
-								{'>'}
-							</button>
-							<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
-								{'>>'}
-							</button>
+				<div className="game-board-bottom">
+					{showNavigation ? (
+						<div className="game-board-nav-bottom">
+							<div className="game-board-size-label">Navigation</div>
+							<div className="game-board-nav-controls">
+								<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
+									{'<<'}
+								</button>
+								<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
+									{'<'}
+								</button>
+								<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
+									{'>'}
+								</button>
+								<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
+									{'>>'}
+								</button>
+							</div>
 						</div>
-					</div>
-				) : null}
+					) : null}
+					<div className="game-board-move-label">MOVE {moveNumber}</div>
+				</div>
 			</div>
 			{shouldShowSetupOptions || gameResult ? (
 				<div className="game-center-overlays">

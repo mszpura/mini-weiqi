@@ -214,6 +214,34 @@ $board-darker-color: hsl(41, 36%, 40%);
 	width: 100%;
 }
 
+.game-board-bottom {
+	position: relative;
+	display: grid;
+	justify-items: center;
+	align-items: start;
+	row-gap: 6px;
+	width: 100%;
+	min-height: 28px;
+}
+
+.game-board-bottom .game-board-nav-bottom {
+	grid-column: 1;
+	grid-row: 1;
+	width: 100%;
+}
+
+.game-board-move-label {
+	position: absolute;
+	right: 0;
+	top: 2px;
+	color: rgba(248, 241, 229, 0.92);
+	font-size: 12px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	font-weight: 700;
+	text-align: right;
+}
+
 .game-board-size-controls {
 	display: grid;
 	justify-items: center;
@@ -922,6 +950,10 @@ $board-darker-color: hsl(41, 36%, 40%);
 
 	.game-board-nav-bottom {
 		margin-top: 2px;
+	}
+
+	.game-board-bottom {
+		min-height: 30px;
 	}
 
 	.game-options-toggle {
