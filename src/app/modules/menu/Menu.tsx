@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDiscordSdk } from '../../../hooks/useDiscordSdk'
+import { featureFlags } from '../../config/featureFlags'
 
 type MenuProps = {
 	onStart: () => void
@@ -19,6 +20,11 @@ export const Menu = ({
 	const [channelName, setChannelName] = useState<string | null>(null)
 
 	useEffect(() => {
+		if (!featureFlags.channelName) {
+			setChannelName(null)
+			return
+		}
+
 		let cancelled = false
 
 		const loadChannelName = async () => {
@@ -53,7 +59,7 @@ export const Menu = ({
 			<button className="menu-button shared-game-button" type="button" onClick={onStart} aria-label="Start game">
 				<img className="menu-button-image" src="/play_button.png" alt="" />
 			</button>
-			{channelName ? <div className="discord-channel">Channel: {channelName}</div> : null}
+			{featureFlags.channelName && channelName ? <div className="discord-channel">Channel: {channelName}</div> : null}
 			<div className="discord-user">
 				{avatarUrl ? (
 					<img className="discord-avatar" src={avatarUrl} alt={`${username} avatar`} />
