@@ -114,7 +114,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 			gameResult: ['game-result', channelKey],
 			displayedMoveCount: ['displayed-move-count', channelKey],
 			timeLimit: ['time-limit', channelKey],
-			gameClock: ['game-clock', channelKey]
+			gameClock: ['game-clock', channelKey],
+			soundEnabled: ['sound-enabled', channelKey]
 		}),
 		[channelKey]
 	)
@@ -130,6 +131,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [displayedMoveCount, setDisplayedMoveCount] = useSyncState(0, syncKeys.displayedMoveCount)
 	const [timeLimit, setTimeLimit] = useSyncState<GameTimeLimit>('no-limit', syncKeys.timeLimit)
 	const [gameClock, setGameClock] = useSyncState<GameClockState | null>(null, syncKeys.gameClock)
+	const [soundEnabled, setSoundEnabled] = useSyncState(true, syncKeys.soundEnabled)
 	const [clockTick, setClockTick] = useState(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const previousMovesLengthRef = useRef(0)
@@ -184,7 +186,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 			shouldJumpToLatestMoveRef.current = true
 			setMoves((previousMoves) => {
-				const nextMoves = [...previousMoves, { type: 'play', y, x }]
+				const nextMove: GameMove = { type: 'play', y, x }
+				const nextMoves: GameMove[] = [...previousMoves, nextMove]
 				setDisplayedMoveCount(nextMoves.length)
 				return nextMoves
 			})
@@ -207,7 +210,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 		}
 		shouldJumpToLatestMoveRef.current = true
 		setMoves((previousMoves) => {
-			const nextMoves = [...previousMoves, { type: 'pass' }]
+			const nextMove: GameMove = { type: 'pass' }
+			const nextMoves: GameMove[] = [...previousMoves, nextMove]
 			setDisplayedMoveCount(nextMoves.length)
 			return nextMoves
 		})
@@ -484,6 +488,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (gameResult) return
 		if (gameMode !== 'normal') return
 		if (!fisherClockConfig) return
+		if (!soundEnabled) return
 		if (!gameClock || !displayedClocks) return
 
 		const audio = countdownAudioRef.current
@@ -491,7 +496,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 		const activeRemainingMs =
 			gameClock.activeColor === 'black' ? displayedClocks.blackTimeMs : displayedClocks.whiteTimeMs
-		if (activeRemainingMs <= 0 || activeRemainingMs > 10_000) {
+		if (activeRemainingMs <= 0 || activeRemainingMs > 11_000) {
 			audio.pause()
 			audio.currentTime = 0
 			return
@@ -505,16 +510,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 		void audio.play().catch((error) => {
 			console.warn('Failed to play countdown audio.', error)
 		})
-	}, [displayedClocks, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
+	}, [displayedClocks, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, soundEnabled])
 
 	useEffect(() => {
-		if (gameStarted && !gameResult && gameMode === 'normal' && fisherClockConfig) return
+		if (gameStarted && !gameResult && gameMode === 'normal' && fisherClockConfig && soundEnabled) return
 		const audio = countdownAudioRef.current
 		if (!audio) return
 		audio.pause()
 		audio.currentTime = 0
 		countdownPlayedTurnRef.current = null
-	}, [fisherClockConfig, gameMode, gameResult, gameStarted])
+	}, [fisherClockConfig, gameMode, gameResult, gameStarted, soundEnabled])
 
 	useEffect(() => {
 		if (!gameStarted) return
@@ -678,6 +683,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}
 					onExitMode={handleExitMode}
 					hideJoinButtons={isUnauthenticated}
+					soundEnabled={soundEnabled}
+					onToggleSound={() => setSoundEnabled((current) => !current)}
 				/>
 			</div>
 		)

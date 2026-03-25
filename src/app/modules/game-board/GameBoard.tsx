@@ -46,6 +46,8 @@ type GameBoardProps = {
 	blackTimeMs: number | null
 	whiteTimeMs: number | null
 	onExitMode: () => void
+	soundEnabled: boolean
+	onToggleSound: () => void
 	hideJoinButtons?: boolean
 }
 
@@ -84,6 +86,8 @@ export const GameBoard = ({
 	blackTimeMs,
 	whiteTimeMs,
 	onExitMode,
+	soundEnabled,
+	onToggleSound,
 	hideJoinButtons = false
 }: GameBoardProps) => {
 	const BOARD_SCALE_STEP = 0.2
@@ -307,6 +311,25 @@ export const GameBoard = ({
 					data-include-coordinates="true"
 					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
+				{showNavigation ? (
+					<div className="game-board-nav-bottom">
+						<div className="game-board-size-label">Navigation</div>
+						<div className="game-board-nav-controls">
+							<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
+								{'<<'}
+							</button>
+							<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
+								{'<'}
+							</button>
+							<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
+								{'>'}
+							</button>
+							<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
+								{'>>'}
+							</button>
+						</div>
+					</div>
+				) : null}
 			</div>
 			{shouldShowSetupOptions || gameResult ? (
 				<div className="game-center-overlays">
@@ -476,25 +499,12 @@ export const GameBoard = ({
 							</button>
 						</div>
 					</div>
-					{showNavigation ? (
-						<div className="game-options-panel-group">
-							<div className="game-board-size-label">Navigation</div>
-							<div className="game-board-nav-controls">
-								<button className="game-nav-button" type="button" onClick={onMoveToStart} disabled={!canMoveBackward}>
-									{'<<'}
-								</button>
-								<button className="game-nav-button" type="button" onClick={onMoveBackward} disabled={!canMoveBackward}>
-									{'<'}
-								</button>
-								<button className="game-nav-button" type="button" onClick={onMoveForward} disabled={!canMoveForward}>
-									{'>'}
-								</button>
-								<button className="game-nav-button" type="button" onClick={onMoveToEnd} disabled={!canMoveForward}>
-									{'>>'}
-								</button>
-							</div>
-						</div>
-					) : null}
+					<div className="game-options-panel-group">
+						<div className="game-board-size-label">Sound</div>
+						<button className="game-nav-button" type="button" onClick={onToggleSound}>
+							{soundEnabled ? 'Disable sound' : 'Enable sound'}
+						</button>
+					</div>
 					{showImportSgf || canShowExitMode ? (
 						<div className="game-board-controls">
 							{showImportSgf ? (
