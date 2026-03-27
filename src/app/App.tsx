@@ -137,6 +137,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const previousMovesLengthRef = useRef(0)
 	const shouldJumpToLatestMoveRef = useRef(false)
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
+	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
 	const countdownPlayedTurnRef = useRef<string | null>(null)
 	const user = session?.user
 
@@ -170,6 +171,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer(currentPlayer)
 	}
 
+	const playStoneSound = useCallback(() => {
+		if (!soundEnabled) return
+		const audio = stoneAudioRef.current
+		if (!audio) return
+		audio.currentTime = 0
+		void audio.play().catch((error) => {
+			console.warn('Failed to play stone audio.', error)
+		})
+	}, [soundEnabled])
+
 	const handlePlayMove = useCallback(
 		(y: number, x: number) => {
 			if (!gameStarted) return
@@ -180,6 +191,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 				audio.pause()
 				audio.currentTime = 0
 			}
+			playStoneSound()
 			const nowMs = Date.now()
 			if (fisherClockConfig && gameClock) {
 				setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
@@ -192,7 +204,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 				return nextMoves
 			})
 		},
-		[areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock, setMoves]
+		[areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock, setMoves]
 	)
 
 	const handlePassTurn = useCallback(() => {
@@ -204,6 +216,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			audio.pause()
 			audio.currentTime = 0
 		}
+		playStoneSound()
 		const nowMs = Date.now()
 		if (fisherClockConfig && gameClock) {
 			setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
@@ -215,7 +228,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setDisplayedMoveCount(nextMoves.length)
 			return nextMoves
 		})
-	}, [areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock, setMoves])
+	}, [areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock, setMoves])
 
 	const buildScoreFromMoves = useCallback(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
@@ -417,6 +430,18 @@ function AppContent({ onNavigate }: AppContentProps) {
 			audio.pause()
 			audio.src = ''
 			countdownAudioRef.current = null
+		}
+	}, [])
+
+	useEffect(() => {
+		const audio = new Audio('/stone.mp3')
+		audio.preload = 'auto'
+		stoneAudioRef.current = audio
+
+		return () => {
+			audio.pause()
+			audio.src = ''
+			stoneAudioRef.current = null
 		}
 	}, [])
 

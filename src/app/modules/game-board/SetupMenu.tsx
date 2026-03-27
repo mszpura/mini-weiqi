@@ -97,6 +97,11 @@ export const SetupMenu = ({
 					Start
 				</button>
 			</div>
+			<div className="game-options-panel-group">
+				<p className="game-setup-info-hint">
+					Need help? Use the <strong>Info</strong> button at the bottom-left to view detailed rules for game modes, time limits, and handicap settings.
+				</p>
+			</div>
 		</div>
 	)
 }

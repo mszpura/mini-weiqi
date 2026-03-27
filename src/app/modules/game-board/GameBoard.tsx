@@ -4,6 +4,7 @@ import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTim
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 import { GameResultPopup } from './GameResultPopup'
+import { InfoMenu } from './InfoMenu'
 import { RightOptionsMenu } from './RightOptionsMenu'
 import { SetupMenu } from './SetupMenu'
 
@@ -101,6 +102,7 @@ export const GameBoard = ({
 	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
+	const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (!gameStartedRef.current) return false
@@ -254,6 +256,9 @@ export const GameBoard = ({
 	}
 	const handleToggleOptionsPanel = () => {
 		setIsOptionsPanelOpen((previous) => !previous)
+	}
+	const handleToggleInfoPanel = () => {
+		setIsInfoPanelOpen((previous) => !previous)
 	}
 
 	useEffect(() => {
@@ -455,6 +460,7 @@ export const GameBoard = ({
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>
+			<InfoMenu isOpen={isInfoPanelOpen} onToggle={handleToggleInfoPanel} />
 		</div>
 	)
 }

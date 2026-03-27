@@ -107,10 +107,50 @@ $board-darker-color: hsl(41, 36%, 40%);
 		inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+.game-info-toggle {
+	position: fixed;
+	left: 16px;
+	bottom: 16px;
+	z-index: 30;
+	min-width: 120px;
+	padding: 10px 16px;
+	border-radius: 999px;
+	border: 1px solid rgba(242, 230, 210, 0.35);
+	background: rgba(20, 16, 12, 0.9);
+	color: #f8f1e5;
+	font-family: 'Garamond', 'Palatino Linotype', 'Book Antiqua', 'Times New Roman', serif;
+	font-size: 14px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	box-shadow:
+		0 12px 22px rgba(0, 0, 0, 0.28),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
 .game-options-panel {
 	position: fixed;
 	top: 16px;
 	right: 16px;
+	bottom: 72px;
+	z-index: 20;
+	width: var(--options-panel-width);
+	padding: 14px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.4);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.95) 0%, rgba(20, 16, 12, 0.92) 100%);
+	box-shadow:
+		0 14px 28px rgba(0, 0, 0, 0.35),
+		inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	display: grid;
+	align-content: start;
+	row-gap: 12px;
+	overflow-y: auto;
+}
+
+.game-info-panel {
+	position: fixed;
+	top: 16px;
+	left: 16px;
 	bottom: 72px;
 	z-index: 20;
 	width: var(--options-panel-width);
@@ -139,6 +179,24 @@ $board-darker-color: hsl(41, 36%, 40%);
 	display: grid;
 	row-gap: 6px;
 	justify-items: center;
+}
+
+.game-info-panel-group {
+	justify-items: stretch;
+}
+
+.game-info-text {
+	margin: 0;
+	color: rgba(248, 241, 229, 0.88);
+	font-size: 14px;
+	line-height: 1.45;
+	text-align: left;
+}
+
+.game-info-divider {
+	height: 1px;
+	margin: 2px 0 4px;
+	background: linear-gradient(90deg, rgba(242, 230, 210, 0) 0%, rgba(242, 230, 210, 0.45) 50%, rgba(242, 230, 210, 0) 100%);
 }
 
 .game-setup-popup {
@@ -301,6 +359,15 @@ $board-darker-color: hsl(41, 36%, 40%);
 			0 6px 10px rgba(0, 0, 0, 0.2),
 			inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	}
+}
+
+.game-setup-info-hint {
+	margin: 0;
+	color: rgba(248, 241, 229, 0.82);
+	font-size: 12px;
+	line-height: 1.4;
+	text-align: center;
+	max-width: 280px;
 }
 
 .game-nav-button {
@@ -961,7 +1028,21 @@ $board-darker-color: hsl(41, 36%, 40%);
 		bottom: 12px;
 	}
 
+	.game-info-toggle {
+		left: 12px;
+		bottom: 12px;
+	}
+
 	.game-options-panel {
+		top: auto;
+		left: 12px;
+		right: 12px;
+		bottom: 68px;
+		width: auto;
+		max-height: min(70svh, 520px);
+	}
+
+	.game-info-panel {
 		top: auto;
 		left: 12px;
 		right: 12px;
