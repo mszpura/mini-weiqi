@@ -667,6 +667,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setDisplayedMoveCount(moves.length)
 	}, [gameMode, moves.length])
 
+	const handleMoveToCount = useCallback(
+		(count: number) => {
+			if (gameMode !== 'shared') return
+			setDisplayedMoveCount(Math.max(0, Math.min(moves.length, count)))
+		},
+		[gameMode, moves.length]
+	)
+
 	if (showGameBoard) {
 		return (
 			<div className="app-shell app-shell--board">
@@ -688,6 +696,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 					gameStarted={gameStarted}
 					onStartGame={handleStartGame}
 					moves={shownMoves}
+					moveTreeMoves={moves}
+					currentMoveCount={displayedMoveCount}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
 					isViewingLatestMove={displayedMoveCount === moves.length}
@@ -697,6 +707,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onMoveBackward={handleMoveBackward}
 					onMoveForward={handleMoveForward}
 					onMoveToEnd={handleMoveToEnd}
+					onMoveToCount={handleMoveToCount}
 					onPlayMove={handlePlayMove}
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}
