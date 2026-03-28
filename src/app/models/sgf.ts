@@ -1,4 +1,4 @@
-import type { GameMove } from './game'
+import { isPassMove, type GameMove, type MoveTreeNode } from './game'
 
 type ParsedSgfGame = {
 	boardSize?: number
@@ -369,4 +369,95 @@ export const serializeSgfContent = (boardSize: number, moves: GameMove[], handic
 		.join('')
 
 	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${haProperty}${abProperty}${sgfMoves})`
+}
+
+const getMoveColorForDepth = (depth: number, handicapStones: number): 'B' | 'W' => {
+	const firstMoveColor: 'B' | 'W' = handicapStones > 0 ? 'W' : 'B'
+	if (depth % 2 === 1) return firstMoveColor
+	return firstMoveColor === 'B' ? 'W' : 'B'
+}
+
+const serializeMoveNode = (move: GameMove, color: 'B' | 'W', boardSize: number) => {
+	if (isPassMove(move)) {
+		return `;${color}[]`
+	}
+	const coordinate = encodeCoordinate(move.x, move.y)
+	if (!coordinate || move.x >= boardSize || move.y >= boardSize) {
+		throw new Error('Cannot export SGF: move coordinate is outside board size.')
+	}
+	return `;${color}[${coordinate}]`
+}
+
+const serializeMoveTreeLine = (
+	moveTree: Record<string, MoveTreeNode>,
+	startNodeId: string,
+	startDepth: number,
+	boardSize: number,
+	handicapStones: number
+) => {
+	let currentId: string | null = startNodeId
+	let depth = startDepth
+	let output = ''
+
+	while (currentId) {
+		const node = moveTree[currentId]
+		if (!node || !node.move) {
+			throw new Error('Cannot export SGF: move tree is invalid.')
+		}
+
+		output += serializeMoveNode(node.move, getMoveColorForDepth(depth, handicapStones), boardSize)
+
+		const [mainChildId, ...variationChildIds] = node.childrenIds
+		if (variationChildIds.length > 0) {
+			output += variationChildIds
+				.map((variationId) => `(${serializeMoveTreeLine(moveTree, variationId, depth + 1, boardSize, handicapStones)})`)
+				.join('')
+		}
+
+		currentId = mainChildId ?? null
+		depth += 1
+	}
+
+	return output
+}
+
+export const serializeSgfTreeContent = (
+	boardSize: number,
+	moveTree: Record<string, MoveTreeNode>,
+	rootMoveId: string,
+	handicapStones = 0
+) => {
+	const safeBoardSize = Number.isInteger(boardSize) && boardSize >= 2 && boardSize <= 19 ? boardSize : 19
+	const safeHandicapStones =
+		Number.isInteger(handicapStones) && (handicapStones === 0 || (handicapStones >= 2 && handicapStones <= 9))
+			? handicapStones
+			: 0
+	const handicapPlacements = getHandicapPlacements(safeBoardSize, safeHandicapStones)
+	if (safeHandicapStones > 0 && !handicapPlacements) {
+		throw new Error('Cannot export SGF: handicap is only supported on 9x9, 13x13, and 19x19 boards.')
+	}
+	const abProperty =
+		safeHandicapStones > 0
+			? `AB${(handicapPlacements ?? [])
+					.map((point) => {
+						const coordinate = encodeCoordinate(point.x, point.y)
+						if (!coordinate) {
+							throw new Error('Cannot export SGF: invalid handicap placement.')
+						}
+						return `[${coordinate}]`
+					})
+					.join('')}`
+			: ''
+	const haProperty = safeHandicapStones > 0 ? `HA[${safeHandicapStones}]` : ''
+	const rootNode = moveTree[rootMoveId]
+	if (!rootNode || rootNode.move) {
+		throw new Error('Cannot export SGF: move tree root is invalid.')
+	}
+	const [mainChildId, ...variationRootIds] = rootNode.childrenIds
+	const mainLine = mainChildId ? serializeMoveTreeLine(moveTree, mainChildId, 1, safeBoardSize, safeHandicapStones) : ''
+	const variations = variationRootIds
+		.map((variationId) => `(${serializeMoveTreeLine(moveTree, variationId, 1, safeBoardSize, safeHandicapStones)})`)
+		.join('')
+
+	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${haProperty}${abProperty}${mainLine}${variations})`
 }

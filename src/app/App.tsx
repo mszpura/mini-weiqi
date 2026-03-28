@@ -15,7 +15,7 @@ import {
 	type MoveTreeNode
 } from './models/game'
 import type { PlayerSlot } from './models/player'
-import { parseSgfContent, serializeSgfContent } from './models/sgf'
+import { parseSgfContent, serializeSgfContent, serializeSgfTreeContent } from './models/sgf'
 import './App.css'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
@@ -732,7 +732,10 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (gameMode === 'normal' && !effectiveGameResult) return
 
 		try {
-			const sgf = serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
+			const sgf =
+				gameMode === 'shared'
+					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
+					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
 			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
 			const url = window.URL.createObjectURL(file)
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -747,7 +750,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, currentLineMoves, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted])
+	}, [boardSize, currentLineMoves, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, moveTree])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
