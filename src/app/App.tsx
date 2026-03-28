@@ -432,24 +432,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 					setBoardSize(importedBoardSize)
 				}
 				setHandicapStones(normalizeHandicapStones(parsed.game.handicapStones ?? 0))
-				const importedTree = createEmptyMoveTree()
-				let currentId = ROOT_MOVE_ID
-				for (const move of parsed.game.moves) {
-					const nextId = createMoveNodeId()
-					importedTree[nextId] = {
-						id: nextId,
-						parentId: currentId,
-						move,
-						childrenIds: []
-					}
-					importedTree[currentId] = {
-						...importedTree[currentId],
-						childrenIds: [...importedTree[currentId].childrenIds, nextId]
-					}
-					currentId = nextId
-				}
-				setMoveTree(importedTree)
-				setCurrentMoveId(currentId)
+				setMoveTree(parsed.game.moveTree)
+				setCurrentMoveId(parsed.game.currentMoveId)
 				setMoves(parsed.game.moves)
 				setDisplayedMoveCount(parsed.game.moves.length)
 				setGameResult(null)
