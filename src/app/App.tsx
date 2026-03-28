@@ -11,7 +11,8 @@ import {
 	type GameMode,
 	type GameMove,
 	type GameResult,
-	type GameTimeLimit
+	type GameTimeLimit,
+	type MoveTreeNode
 } from './models/game'
 import type { PlayerSlot } from './models/player'
 import { parseSgfContent, serializeSgfContent } from './models/sgf'
@@ -98,6 +99,55 @@ const applyFisherMove = (clock: GameClockState, nowMs: number, incrementMs: numb
 	}
 }
 
+const ROOT_MOVE_ID = 'root'
+
+const createEmptyMoveTree = (): Record<string, MoveTreeNode> => ({
+	[ROOT_MOVE_ID]: {
+		id: ROOT_MOVE_ID,
+		parentId: null,
+		move: null,
+		childrenIds: []
+	}
+})
+
+const createMoveNodeId = () =>
+	typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+		? crypto.randomUUID()
+		: `move-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+
+const getLineageNodeIds = (moveTree: Record<string, MoveTreeNode>, nodeId: string): string[] => {
+	const lineage: string[] = []
+	let cursor: string | null = nodeId
+	while (cursor) {
+		const node = moveTree[cursor]
+		if (!node) break
+		lineage.push(node.id)
+		cursor = node.parentId
+	}
+	return lineage.reverse()
+}
+
+const getMovesFromNodeId = (moveTree: Record<string, MoveTreeNode>, nodeId: string): GameMove[] =>
+	getLineageNodeIds(moveTree, nodeId)
+		.map((id) => moveTree[id])
+		.filter((node): node is MoveTreeNode => Boolean(node && node.move))
+		.map((node) => node.move as GameMove)
+
+const getNodeDepth = (moveTree: Record<string, MoveTreeNode>, nodeId: string) =>
+	Math.max(0, getLineageNodeIds(moveTree, nodeId).length - 1)
+
+const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
+	if (a.length !== b.length) return false
+	return a.every((move, index) => {
+		const other = b[index]
+		if (!other) return false
+		if (isPassMove(move) || isPassMove(other)) {
+			return isPassMove(move) && isPassMove(other)
+		}
+		return move.x === other.x && move.y === other.y
+	})
+}
+
 function AppContent({ onNavigate }: AppContentProps) {
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
@@ -111,6 +161,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 			blackPlayer: ['player-black', channelKey],
 			whitePlayer: ['player-white', channelKey],
 			moves: ['game-moves', channelKey],
+			moveTree: ['move-tree', channelKey],
+			currentMoveId: ['current-move-id', channelKey],
 			gameResult: ['game-result', channelKey],
 			displayedMoveCount: ['displayed-move-count', channelKey],
 			timeLimit: ['time-limit', channelKey],
@@ -127,6 +179,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.blackPlayer)
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
 	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
+	const [moveTree, setMoveTree] = useSyncState<Record<string, MoveTreeNode>>(createEmptyMoveTree(), syncKeys.moveTree)
+	const [currentMoveId, setCurrentMoveId] = useSyncState(ROOT_MOVE_ID, syncKeys.currentMoveId)
 	const [gameResult, setGameResult] = useSyncState<GameResult | null>(null, syncKeys.gameResult)
 	const [displayedMoveCount, setDisplayedMoveCount] = useSyncState(0, syncKeys.displayedMoveCount)
 	const [timeLimit, setTimeLimit] = useSyncState<GameTimeLimit>('no-limit', syncKeys.timeLimit)
@@ -134,8 +188,6 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [soundEnabled, setSoundEnabled] = useSyncState(true, syncKeys.soundEnabled)
 	const [clockTick, setClockTick] = useState(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const previousMovesLengthRef = useRef(0)
-	const shouldJumpToLatestMoveRef = useRef(false)
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
 	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
 	const countdownPlayedTurnRef = useRef<string | null>(null)
@@ -156,6 +208,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const isUnauthenticated = !session?.user?.id
 	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
 	const fisherClockConfig = gameMode === 'normal' ? getFisherClockConfig(timeLimit) : null
+	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
+	const currentLineLength = currentLineMoves.length
+	const currentVisibleMoves = useMemo(
+		() => currentLineMoves.slice(0, Math.max(0, Math.min(currentLineLength, displayedMoveCount))),
+		[currentLineLength, currentLineMoves, displayedMoveCount]
+	)
 
 	const handleJoinBlack = () => {
 		if (!gameStarted) return
@@ -181,6 +239,33 @@ function AppContent({ onNavigate }: AppContentProps) {
 		})
 	}, [soundEnabled])
 
+	const appendMoveToTree = useCallback(
+		(nextMove: GameMove) => {
+			const parentNode = moveTree[currentMoveId]
+			if (!parentNode) return
+			const nextMoveId = createMoveNodeId()
+			const nextNode: MoveTreeNode = {
+				id: nextMoveId,
+				parentId: currentMoveId,
+				move: nextMove,
+				childrenIds: []
+			}
+			const nextTree: Record<string, MoveTreeNode> = {
+				...moveTree,
+				[currentMoveId]: {
+					...parentNode,
+					childrenIds: [...parentNode.childrenIds, nextMoveId]
+				},
+				[nextMoveId]: nextNode
+			}
+			setMoveTree(nextTree)
+			setCurrentMoveId(nextMoveId)
+			setDisplayedMoveCount(getNodeDepth(nextTree, nextMoveId))
+			setMoves(getMovesFromNodeId(nextTree, nextMoveId))
+		},
+		[currentMoveId, moveTree, setCurrentMoveId, setDisplayedMoveCount, setMoveTree, setMoves]
+	)
+
 	const handlePlayMove = useCallback(
 		(y: number, x: number) => {
 			if (!gameStarted) return
@@ -196,15 +281,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 			if (fisherClockConfig && gameClock) {
 				setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
 			}
-			shouldJumpToLatestMoveRef.current = true
-			setMoves((previousMoves) => {
-				const nextMove: GameMove = { type: 'play', y, x }
-				const nextMoves: GameMove[] = [...previousMoves, nextMove]
-				setDisplayedMoveCount(nextMoves.length)
-				return nextMoves
-			})
+			appendMoveToTree({ type: 'play', y, x })
 		},
-		[areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock, setMoves]
+		[appendMoveToTree, areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock]
 	)
 
 	const handlePassTurn = useCallback(() => {
@@ -221,18 +300,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (fisherClockConfig && gameClock) {
 			setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
 		}
-		shouldJumpToLatestMoveRef.current = true
-		setMoves((previousMoves) => {
-			const nextMove: GameMove = { type: 'pass' }
-			const nextMoves: GameMove[] = [...previousMoves, nextMove]
-			setDisplayedMoveCount(nextMoves.length)
-			return nextMoves
-		})
-	}, [areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock, setMoves])
+		appendMoveToTree({ type: 'pass' })
+	}, [appendMoveToTree, areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock])
 
 	const buildScoreFromMoves = useCallback(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
-		for (const move of moves) {
+		for (const move of currentLineMoves) {
 			if (isPassMove(move)) {
 				game.pass()
 			} else {
@@ -240,7 +313,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 		}
 		return game.score()
-	}, [boardSize, effectiveHandicapStones, moves])
+	}, [boardSize, currentLineMoves, effectiveHandicapStones])
 
 	const handleResign = useCallback(() => {
 		if (!gameStarted) return
@@ -264,6 +337,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 	}, [gameMode, gameStarted])
 
 	const handleStartGame = useCallback(() => {
+		setMoveTree(createEmptyMoveTree())
+		setCurrentMoveId(ROOT_MOVE_ID)
 		setMoves([])
 		setDisplayedMoveCount(0)
 		setGameResult(null)
@@ -271,13 +346,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer(null)
 		setGameClock(null)
 		setGameStarted(true)
-	}, [setBlackPlayer, setGameClock, setGameResult, setGameStarted, setMoves, setWhitePlayer])
+	}, [setBlackPlayer, setCurrentMoveId, setGameClock, setGameResult, setGameStarted, setMoveTree, setMoves, setWhitePlayer])
 
 	const handleHandicapChange = useCallback(
 		(nextHandicapStones: number) => {
 			if (nextHandicapStones === handicapStones) return
-			shouldJumpToLatestMoveRef.current = false
-			previousMovesLengthRef.current = 0
+			setMoveTree(createEmptyMoveTree())
+			setCurrentMoveId(ROOT_MOVE_ID)
 			setMoves([])
 			setDisplayedMoveCount(0)
 			setGameResult(null)
@@ -287,14 +362,25 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameClock(null)
 			setHandicapStones(normalizeHandicapStones(nextHandicapStones))
 		},
-		[handicapStones, setBlackPlayer, setGameClock, setGameResult, setGameStarted, setHandicapStones, setMoves, setWhitePlayer]
+		[
+			handicapStones,
+			setBlackPlayer,
+			setCurrentMoveId,
+			setGameClock,
+			setGameResult,
+			setGameStarted,
+			setHandicapStones,
+			setMoveTree,
+			setMoves,
+			setWhitePlayer
+		]
 	)
 
 	const handleBoardSizeChange = useCallback(
 		(nextBoardSize: number) => {
 			if (nextBoardSize === boardSize) return
-			shouldJumpToLatestMoveRef.current = false
-			previousMovesLengthRef.current = 0
+			setMoveTree(createEmptyMoveTree())
+			setCurrentMoveId(ROOT_MOVE_ID)
 			setMoves([])
 			setDisplayedMoveCount(0)
 			setGameResult(null)
@@ -311,9 +397,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 			boardSize,
 			setBlackPlayer,
 			setBoardSize,
+			setCurrentMoveId,
 			setGameClock,
 			setGameResult,
 			setGameStarted,
+			setMoveTree,
 			setMoves,
 			setTimeLimit,
 			setWhitePlayer,
@@ -344,6 +432,24 @@ function AppContent({ onNavigate }: AppContentProps) {
 					setBoardSize(importedBoardSize)
 				}
 				setHandicapStones(normalizeHandicapStones(parsed.game.handicapStones ?? 0))
+				const importedTree = createEmptyMoveTree()
+				let currentId = ROOT_MOVE_ID
+				for (const move of parsed.game.moves) {
+					const nextId = createMoveNodeId()
+					importedTree[nextId] = {
+						id: nextId,
+						parentId: currentId,
+						move,
+						childrenIds: []
+					}
+					importedTree[currentId] = {
+						...importedTree[currentId],
+						childrenIds: [...importedTree[currentId].childrenIds, nextId]
+					}
+					currentId = nextId
+				}
+				setMoveTree(importedTree)
+				setCurrentMoveId(currentId)
 				setMoves(parsed.game.moves)
 				setDisplayedMoveCount(parsed.game.moves.length)
 				setGameResult(null)
@@ -351,10 +457,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 				window.alert('Failed to read SGF file.')
 			}
 		},
-		[boardSize, setBoardSize, setGameResult, setHandicapStones, setMoves]
+		[boardSize, setBoardSize, setCurrentMoveId, setGameResult, setHandicapStones, setMoveTree, setMoves]
 	)
 
 	const handleExitMode = useCallback(() => {
+		setMoveTree(createEmptyMoveTree())
+		setCurrentMoveId(ROOT_MOVE_ID)
 		setMoves([])
 		setDisplayedMoveCount(0)
 		setGameResult(null)
@@ -362,13 +470,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer(null)
 		setGameStarted(false)
 		setGameClock(null)
-	}, [setBlackPlayer, setGameClock, setGameResult, setGameStarted, setMoves, setWhitePlayer])
+	}, [setBlackPlayer, setCurrentMoveId, setGameClock, setGameResult, setGameStarted, setMoveTree, setMoves, setWhitePlayer])
 
 	const handleTimeLimitChange = useCallback(
 		(nextTimeLimit: GameTimeLimit) => {
 			if (nextTimeLimit === timeLimit) return
-			shouldJumpToLatestMoveRef.current = false
-			previousMovesLengthRef.current = 0
+			setMoveTree(createEmptyMoveTree())
+			setCurrentMoveId(ROOT_MOVE_ID)
 			setMoves([])
 			setDisplayedMoveCount(0)
 			setGameResult(null)
@@ -380,10 +488,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 		},
 		[
 			setBlackPlayer,
+			setCurrentMoveId,
 			setDisplayedMoveCount,
 			setGameClock,
 			setGameResult,
 			setGameStarted,
+			setMoveTree,
 			setMoves,
 			setTimeLimit,
 			setWhitePlayer,
@@ -392,34 +502,26 @@ function AppContent({ onNavigate }: AppContentProps) {
 	)
 
 	useEffect(() => {
-		const previousLength = previousMovesLengthRef.current
-		const currentLength = moves.length
+		if (gameMode === 'shared') return
+		if (currentMoveId === ROOT_MOVE_ID) return
+		const rootNode = moveTree[ROOT_MOVE_ID]
+		if (!rootNode) return
+		const mainLineChild = rootNode.childrenIds[0]
+		if (!mainLineChild) return
+		setCurrentMoveId(mainLineChild)
+	}, [currentMoveId, gameMode, moveTree, setCurrentMoveId])
 
-		if (gameMode !== 'shared') {
-			shouldJumpToLatestMoveRef.current = false
-			setDisplayedMoveCount(currentLength)
-			previousMovesLengthRef.current = currentLength
-			return
+	useEffect(() => {
+		const safeCount = Math.max(0, Math.min(currentLineLength, displayedMoveCount))
+		if (safeCount !== displayedMoveCount) {
+			setDisplayedMoveCount(safeCount)
 		}
-
-		const shouldJumpToLatest = shouldJumpToLatestMoveRef.current && currentLength > previousLength
-		if (shouldJumpToLatest) {
-			shouldJumpToLatestMoveRef.current = false
-			setDisplayedMoveCount(currentLength)
-			previousMovesLengthRef.current = currentLength
-			return
+		if (!areMovesEqual(currentVisibleMoves, moves)) {
+			setMoves(currentVisibleMoves)
 		}
+	}, [currentLineLength, currentVisibleMoves, displayedMoveCount, moves, setDisplayedMoveCount, setMoves])
 
-		if (displayedMoveCount > currentLength) {
-			setDisplayedMoveCount(currentLength)
-		} else if (displayedMoveCount === previousLength) {
-			setDisplayedMoveCount(currentLength)
-		}
-
-		previousMovesLengthRef.current = currentLength
-	}, [displayedMoveCount, gameMode, moves.length])
-
-	const shownMoves = useMemo(() => moves.slice(0, displayedMoveCount), [displayedMoveCount, moves])
+	const shownMoves = moves
 
 	useEffect(() => {
 		const audio = new Audio('/counting.mp3')
@@ -591,7 +693,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const fullGameSnapshot = useMemo(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
-		for (const move of moves) {
+		for (const move of currentLineMoves) {
 			if (isPassMove(move)) {
 				game.pass()
 			} else {
@@ -603,7 +705,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			isOver: game.isOver(),
 			score
 		}
-	}, [boardSize, effectiveHandicapStones, moves])
+	}, [boardSize, currentLineMoves, effectiveHandicapStones])
 
 	const effectiveGameResult = useMemo<GameResult | null>(() => {
 		if (gameResult) return gameResult
@@ -630,7 +732,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (gameMode === 'normal' && !effectiveGameResult) return
 
 		try {
-			const sgf = serializeSgfContent(boardSize, moves, effectiveHandicapStones)
+			const sgf = serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
 			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
 			const url = window.URL.createObjectURL(file)
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
@@ -645,7 +747,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, moves])
+	}, [boardSize, currentLineMoves, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
@@ -659,20 +761,24 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handleMoveForward = useCallback(() => {
 		if (gameMode !== 'shared') return
-		setDisplayedMoveCount((current) => Math.min(moves.length, current + 1))
-	}, [gameMode, moves.length])
+		setDisplayedMoveCount((current) => Math.min(currentLineLength, current + 1))
+	}, [currentLineLength, gameMode])
 
 	const handleMoveToEnd = useCallback(() => {
 		if (gameMode !== 'shared') return
-		setDisplayedMoveCount(moves.length)
-	}, [gameMode, moves.length])
+		setDisplayedMoveCount(currentLineLength)
+	}, [currentLineLength, gameMode])
 
 	const handleMoveToCount = useCallback(
-		(count: number) => {
+		(count: number, moveId?: string) => {
 			if (gameMode !== 'shared') return
-			setDisplayedMoveCount(Math.max(0, Math.min(moves.length, count)))
+			if (moveId && moveTree[moveId]) {
+				setCurrentMoveId(moveId)
+			}
+			const maxLength = moveId && moveTree[moveId] ? getNodeDepth(moveTree, moveId) : currentLineLength
+			setDisplayedMoveCount(Math.max(0, Math.min(maxLength, count)))
 		},
-		[gameMode, moves.length]
+		[currentLineLength, gameMode, moveTree, setCurrentMoveId]
 	)
 
 	if (showGameBoard) {
@@ -696,13 +802,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 					gameStarted={gameStarted}
 					onStartGame={handleStartGame}
 					moves={shownMoves}
-					moveTreeMoves={moves}
+					moveTree={moveTree}
+					currentMoveId={currentMoveId}
 					currentMoveCount={displayedMoveCount}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
-					isViewingLatestMove={displayedMoveCount === moves.length}
+					isViewingLatestMove={displayedMoveCount === currentLineLength}
 					canMoveBackward={displayedMoveCount > 0}
-					canMoveForward={displayedMoveCount < moves.length}
+					canMoveForward={displayedMoveCount < currentLineLength}
 					onMoveToStart={handleMoveToStart}
 					onMoveBackward={handleMoveBackward}
 					onMoveForward={handleMoveForward}

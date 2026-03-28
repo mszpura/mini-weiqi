@@ -477,6 +477,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	width: 100%;
 	max-width: 184px;
 	padding: 10px 8px;
+	max-height: 420px;
 	border-radius: 14px;
 	border: 1px solid rgba(242, 230, 210, 0.45);
 	background: linear-gradient(180deg, rgba(31, 24, 18, 0.9) 0%, rgba(20, 16, 12, 0.82) 100%);
@@ -484,16 +485,36 @@ $board-darker-color: hsl(41, 36%, 40%);
 		0 10px 20px rgba(0, 0, 0, 0.25),
 		inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	display: grid;
-	row-gap: 0;
+	grid-template-rows: auto minmax(0, 1fr);
+	row-gap: 8px;
+}
+
+.move-tree-title {
+	color: rgba(248, 241, 229, 0.92);
+	font-size: 12px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	font-weight: 700;
+}
+
+.move-tree-branches {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	overflow-y: auto;
+	overflow-x: auto;
+	column-gap: 6px;
+	min-height: 0;
+	max-height: 100%;
+	padding-right: 2px;
 }
 
 .move-tree-list {
 	position: relative;
 	display: grid;
 	row-gap: 0;
-	max-height: 260px;
-	overflow-y: auto;
-	padding-right: 4px;
+	min-width: 28px;
+	flex: 0 0 auto;
 }
 
 .move-tree-item {
@@ -528,12 +549,12 @@ $board-darker-color: hsl(41, 36%, 40%);
 	background: rgba(242, 230, 210, 0.3);
 }
 
-.move-tree-item--start .move-tree-item-line {
-	top: 50%;
+.move-tree-item-line--start {
+	top: 50% !important;
 }
 
-.move-tree-item:last-child .move-tree-item-line {
-	bottom: 50%;
+.move-tree-item-line--last {
+	bottom: 50% !important;
 }
 
 .move-tree-node {

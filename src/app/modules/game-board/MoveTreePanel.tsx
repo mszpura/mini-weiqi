@@ -1,49 +1,89 @@
-import { isPassMove, type GameMove } from '../../models/game'
+import { isPassMove, type MoveTreeNode } from '../../models/game'
 
 type MoveTreePanelProps = {
-	moves: GameMove[]
+	moveTree: Record<string, MoveTreeNode>
+	currentMoveId: string
 	currentMoveCount: number
-	onSelectMoveCount: (moveCount: number) => void
+	onSelectMoveCount: (moveCount: number, moveId?: string) => void
 }
 
-export const MoveTreePanel = ({ moves, currentMoveCount, onSelectMoveCount }: MoveTreePanelProps) => {
-	return (
-		<aside className="move-tree-panel" aria-label="Move tree">
-			<div className="move-tree-list" role="list">
-				<button
-					className={`move-tree-item move-tree-item--start ${currentMoveCount === 0 ? 'is-active' : ''}`}
-					type="button"
-					onClick={() => onSelectMoveCount(0)}
-					role="listitem"
-					aria-label="Move 0"
-				>
-					<span className="move-tree-item-line" aria-hidden="true" />
-					<span className="move-tree-node move-tree-node--start" aria-hidden="true" />
-				</button>
-				{moves.map((move, index) => {
-					const moveCount = index + 1
-					const isBlackMove = index % 2 === 0
-					const colorClass = isBlackMove ? 'black' : 'white'
+const ROOT_MOVE_ID = 'root'
 
-					return (
-						<button
-							key={moveCount}
-							className={`move-tree-item ${currentMoveCount === moveCount ? 'is-active' : ''}`}
-							type="button"
-							onClick={() => onSelectMoveCount(moveCount)}
-							role="listitem"
-							aria-label={`Move ${moveCount}${isPassMove(move) ? ', pass' : ''}`}
-						>
-							<span className="move-tree-item-line" aria-hidden="true" />
-							<span
-								className={`move-tree-node ${
-									isPassMove(move) ? 'move-tree-node--pass' : `move-tree-node--stone move-tree-node--${colorClass}`
-								}`}
-								aria-hidden="true"
-							/>
-						</button>
-					)
-				})}
+const getNodeDepth = (moveTree: Record<string, MoveTreeNode>, nodeId: string) => {
+	let depth = 0
+	let cursor: string | null = nodeId
+	while (cursor) {
+		const node = moveTree[cursor]
+		if (!node || !node.parentId) break
+		depth += 1
+		cursor = node.parentId
+	}
+	return depth
+}
+
+export const MoveTreePanel = ({ moveTree, currentMoveId, currentMoveCount, onSelectMoveCount }: MoveTreePanelProps) => {
+	const rootNode = moveTree[ROOT_MOVE_ID]
+	const leafPaths: string[][] = []
+	const collectPaths = (nodeId: string, path: string[]) => {
+		const node = moveTree[nodeId]
+		if (!node) return
+		const nextPath = [...path, nodeId]
+		if (node.childrenIds.length === 0) {
+			leafPaths.push(nextPath)
+			return
+		}
+		node.childrenIds.forEach((childId) => collectPaths(childId, nextPath))
+	}
+	;(rootNode?.childrenIds ?? []).forEach((childId) => collectPaths(childId, [ROOT_MOVE_ID]))
+	const branchPaths = leafPaths.length > 0 ? leafPaths : [[ROOT_MOVE_ID]]
+
+	return (
+		<aside className="move-tree-panel" aria-label="Moves Tree">
+			<div className="move-tree-title">Moves Tree</div>
+			<div className="move-tree-branches">
+				{branchPaths.map((path) => (
+					<div key={path.join('>')} className="move-tree-list" role="list">
+						{path.map((nodeId, index) => {
+							const node = moveTree[nodeId]
+							if (!node) return null
+							const depth = getNodeDepth(moveTree, nodeId)
+							const isStart = nodeId === ROOT_MOVE_ID
+							const isLast = index === path.length - 1
+							const isActive = isStart
+								? currentMoveCount === 0
+								: currentMoveId === nodeId && currentMoveCount === depth
+							const isBlackMove = depth % 2 === 1
+							const colorClass = isBlackMove ? 'black' : 'white'
+							return (
+								<button
+									key={nodeId}
+									className={`move-tree-item ${isStart ? 'move-tree-item--start' : ''} ${isActive ? 'is-active' : ''}`}
+									type="button"
+									onClick={() => onSelectMoveCount(depth, nodeId)}
+									role="listitem"
+									aria-label={`Move ${depth}${node.move && isPassMove(node.move) ? ', pass' : ''}`}
+								>
+									<span
+										className={`move-tree-item-line ${isStart ? 'move-tree-item-line--start' : ''} ${
+											isLast ? 'move-tree-item-line--last' : ''
+										}`}
+										aria-hidden="true"
+									/>
+									<span
+										className={`move-tree-node ${
+											isStart
+												? 'move-tree-node--start'
+												: node.move && isPassMove(node.move)
+													? 'move-tree-node--pass'
+													: `move-tree-node--stone move-tree-node--${colorClass}`
+										}`}
+										aria-hidden="true"
+									/>
+								</button>
+							)
+						})}
+					</div>
+				))}
 			</div>
 		</aside>
 	)

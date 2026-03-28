@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
 import { featureFlags } from '../../config/featureFlags'
-import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTimeLimit } from '../../models/game'
+import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTimeLimit, type MoveTreeNode } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 import { GameResultPopup } from './GameResultPopup'
@@ -27,7 +27,8 @@ type GameBoardProps = {
 	gameStarted: boolean
 	onStartGame: () => void
 	moves: GameMove[]
-	moveTreeMoves: GameMove[]
+	moveTree: Record<string, MoveTreeNode>
+	currentMoveId: string
 	currentMoveCount: number
 	capturedByBlack: number
 	capturedByWhite: number
@@ -38,7 +39,7 @@ type GameBoardProps = {
 	onMoveBackward: () => void
 	onMoveForward: () => void
 	onMoveToEnd: () => void
-	onMoveToCount: (count: number) => void
+	onMoveToCount: (count: number, moveId?: string) => void
 	onPlayMove: (y: number, x: number) => void
 	onPassTurn: () => void
 	onResign: () => void
@@ -70,7 +71,8 @@ export const GameBoard = ({
 	gameStarted,
 	onStartGame,
 	moves,
-	moveTreeMoves,
+	moveTree,
+	currentMoveId,
 	currentMoveCount,
 	capturedByBlack,
 	capturedByWhite,
@@ -453,7 +455,8 @@ export const GameBoard = ({
 				</div>
 				{featureFlags.moveTree && gameMode === 'shared' && gameStarted ? (
 					<MoveTreePanel
-						moves={moveTreeMoves}
+						moveTree={moveTree}
+						currentMoveId={currentMoveId}
 						currentMoveCount={currentMoveCount}
 						onSelectMoveCount={onMoveToCount}
 					/>
