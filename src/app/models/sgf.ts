@@ -194,14 +194,20 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 
 	const sizeValues = rootProps.get('SZ')
 	const parsedBoardSize = sizeValues ? Number.parseInt(sizeValues[0], 10) : undefined
-	if (typeof parsedBoardSize !== 'undefined' && (!Number.isInteger(parsedBoardSize) || parsedBoardSize < 2 || parsedBoardSize > 19)) {
+	if (
+		typeof parsedBoardSize !== 'undefined' &&
+		(!Number.isInteger(parsedBoardSize) || parsedBoardSize < 2 || parsedBoardSize > 19)
+	) {
 		return { ok: false, error: 'Unsupported board size in SGF. Supported sizes are 2 to 19.' }
 	}
 	const handicapValues = rootProps.get('HA')
 	const parsedHandicapStones = handicapValues ? Number.parseInt(handicapValues[0], 10) : undefined
 	if (
 		typeof parsedHandicapStones !== 'undefined' &&
-		(!Number.isInteger(parsedHandicapStones) || parsedHandicapStones < 0 || parsedHandicapStones > 9 || parsedHandicapStones === 1)
+		(!Number.isInteger(parsedHandicapStones) ||
+			parsedHandicapStones < 0 ||
+			parsedHandicapStones > 9 ||
+			parsedHandicapStones === 1)
 	) {
 		return { ok: false, error: 'Unsupported handicap in SGF. Supported handicap values are 0 or 2 to 9.' }
 	}
@@ -276,7 +282,11 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 		}
 	}
 
-	const walkTree = (tree: SgfTree, startParentId: string, startExpectedColor: 'B' | 'W'): { endParentId: string; endColor: 'B' | 'W' } => {
+	const walkTree = (
+		tree: SgfTree,
+		startParentId: string,
+		startExpectedColor: 'B' | 'W'
+	): { endParentId: string; endColor: 'B' | 'W' } => {
 		let parentId = startParentId
 		let expectedColor = startExpectedColor
 
@@ -332,12 +342,45 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 const handicapPlacementsByBoardSize: Record<number, Record<number, Array<{ y: number; x: number }>>> = {
 	19: {
 		0: [],
-		2: [{ y: 3, x: 15 }, { y: 15, x: 3 }],
-		3: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }],
-		4: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }],
-		5: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }, { y: 9, x: 9 }],
-		6: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }, { y: 9, x: 3 }, { y: 9, x: 15 }],
-		7: [{ y: 3, x: 15 }, { y: 15, x: 3 }, { y: 15, x: 15 }, { y: 3, x: 3 }, { y: 9, x: 3 }, { y: 9, x: 15 }, { y: 9, x: 9 }],
+		2: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 }
+		],
+		3: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 }
+		],
+		4: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 },
+			{ y: 3, x: 3 }
+		],
+		5: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 },
+			{ y: 3, x: 3 },
+			{ y: 9, x: 9 }
+		],
+		6: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 },
+			{ y: 3, x: 3 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 15 }
+		],
+		7: [
+			{ y: 3, x: 15 },
+			{ y: 15, x: 3 },
+			{ y: 15, x: 15 },
+			{ y: 3, x: 3 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 15 },
+			{ y: 9, x: 9 }
+		],
 		8: [
 			{ y: 3, x: 15 },
 			{ y: 15, x: 3 },
@@ -362,13 +405,55 @@ const handicapPlacementsByBoardSize: Record<number, Record<number, Array<{ y: nu
 	},
 	13: {
 		0: [],
-		2: [{ y: 3, x: 9 }, { y: 9, x: 3 }],
-		3: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }],
-		4: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }],
-		5: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 6 }],
-		6: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 3 }, { y: 6, x: 9 }],
-		7: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 3 }, { y: 6, x: 9 }, { y: 6, x: 6 }],
-		8: [{ y: 3, x: 9 }, { y: 9, x: 3 }, { y: 9, x: 9 }, { y: 3, x: 3 }, { y: 6, x: 3 }, { y: 6, x: 9 }, { y: 3, x: 6 }, { y: 9, x: 6 }],
+		2: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 }
+		],
+		3: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 }
+		],
+		4: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 },
+			{ y: 3, x: 3 }
+		],
+		5: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 },
+			{ y: 3, x: 3 },
+			{ y: 6, x: 6 }
+		],
+		6: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 },
+			{ y: 3, x: 3 },
+			{ y: 6, x: 3 },
+			{ y: 6, x: 9 }
+		],
+		7: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 },
+			{ y: 3, x: 3 },
+			{ y: 6, x: 3 },
+			{ y: 6, x: 9 },
+			{ y: 6, x: 6 }
+		],
+		8: [
+			{ y: 3, x: 9 },
+			{ y: 9, x: 3 },
+			{ y: 9, x: 9 },
+			{ y: 3, x: 3 },
+			{ y: 6, x: 3 },
+			{ y: 6, x: 9 },
+			{ y: 3, x: 6 },
+			{ y: 9, x: 6 }
+		],
 		9: [
 			{ y: 3, x: 9 },
 			{ y: 9, x: 3 },
@@ -383,13 +468,55 @@ const handicapPlacementsByBoardSize: Record<number, Record<number, Array<{ y: nu
 	},
 	9: {
 		0: [],
-		2: [{ y: 2, x: 6 }, { y: 6, x: 2 }],
-		3: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }],
-		4: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }],
-		5: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 4 }],
-		6: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 2 }, { y: 4, x: 6 }],
-		7: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 2 }, { y: 4, x: 6 }, { y: 4, x: 4 }],
-		8: [{ y: 2, x: 6 }, { y: 6, x: 2 }, { y: 6, x: 6 }, { y: 2, x: 2 }, { y: 4, x: 2 }, { y: 4, x: 6 }, { y: 2, x: 4 }, { y: 6, x: 4 }],
+		2: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 }
+		],
+		3: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 }
+		],
+		4: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 },
+			{ y: 2, x: 2 }
+		],
+		5: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 },
+			{ y: 2, x: 2 },
+			{ y: 4, x: 4 }
+		],
+		6: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 },
+			{ y: 2, x: 2 },
+			{ y: 4, x: 2 },
+			{ y: 4, x: 6 }
+		],
+		7: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 },
+			{ y: 2, x: 2 },
+			{ y: 4, x: 2 },
+			{ y: 4, x: 6 },
+			{ y: 4, x: 4 }
+		],
+		8: [
+			{ y: 2, x: 6 },
+			{ y: 6, x: 2 },
+			{ y: 6, x: 6 },
+			{ y: 2, x: 2 },
+			{ y: 4, x: 2 },
+			{ y: 4, x: 6 },
+			{ y: 2, x: 4 },
+			{ y: 6, x: 4 }
+		],
 		9: [
 			{ y: 2, x: 6 },
 			{ y: 6, x: 2 },

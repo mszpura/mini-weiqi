@@ -8,11 +8,7 @@ type MenuProps = {
 	onOpenTermsOfService: () => void
 }
 
-export const Menu = ({
-	onStart,
-	onOpenPrivacyPolicy,
-	onOpenTermsOfService
-}: MenuProps) => {
+export const Menu = ({ onStart, onOpenPrivacyPolicy, onOpenTermsOfService }: MenuProps) => {
 	const { session, discordSdk, status } = useDiscordSdk()
 	const user = session?.user
 	const username = user?.username || 'Logged as Guest'

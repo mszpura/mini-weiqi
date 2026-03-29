@@ -39,8 +39,8 @@ export const TermsOfServicePage = ({ onBackHome }: TermsOfServicePageProps) => {
 				</p>
 				<h2>Disclaimers and Limitation of Liability</h2>
 				<p>
-					The service is provided &quot;as is&quot; and &quot;as available.&quot; To the maximum extent permitted by law, we
-					disclaim warranties and are not liable for indirect, incidental, special, or consequential damages.
+					The service is provided &quot;as is&quot; and &quot;as available.&quot; To the maximum extent permitted by
+					law, we disclaim warranties and are not liable for indirect, incidental, special, or consequential damages.
 				</p>
 				<h2>Changes to Terms</h2>
 				<p>

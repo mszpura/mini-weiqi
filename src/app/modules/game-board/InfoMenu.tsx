@@ -30,18 +30,18 @@ export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
 					<div className="game-options-panel-group game-info-panel-group">
 						<div className="game-board-size-label">Shared mode</div>
 						<p className="game-info-text">
-							Everyone in the room can place stones and review moves together. Use it for collaborative analysis, teaching,
-							or replaying games with import and navigation controls. In Shared mode, players can import SGF from the
-							Options menu.
+							Everyone in the room can place stones and review moves together. Use it for collaborative analysis,
+							teaching, or replaying games with import and navigation controls. In Shared mode, players can import SGF
+							from the Options menu.
 						</p>
 					</div>
 					<div className="game-info-divider" />
 					<div className="game-options-panel-group game-info-panel-group">
 						<div className="game-board-size-label">Time limit</div>
 						<p className="game-info-text">
-							Time limits are used in Normal mode only. With Fisher time, each player starts with the selected main time,
-							and after every move or pass that player receives the increment bonus. If your clock reaches zero, you lose
-							on time.
+							Time limits are used in Normal mode only. With Fisher time, each player starts with the selected main
+							time, and after every move or pass that player receives the increment bonus. If your clock reaches zero,
+							you lose on time.
 						</p>
 					</div>
 					<div className="game-info-divider" />

@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
 import { featureFlags } from '../../config/featureFlags'
-import { isPassMove, type GameMode, type GameMove, type GameResult, type GameTimeLimit, type MoveTreeNode } from '../../models/game'
+import {
+	isPassMove,
+	type GameMode,
+	type GameMove,
+	type GameResult,
+	type GameTimeLimit,
+	type MoveTreeNode
+} from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 import { GameResultPopup } from './GameResultPopup'
 import { InfoMenu } from './InfoMenu'
-import { MoveTreePanel } from './MoveTreePanel'
 import { RightOptionsMenu } from './RightOptionsMenu'
 import { SetupMenu } from './SetupMenu'
 
@@ -112,6 +118,7 @@ export const GameBoard = ({
 	const onPlayMoveRef = useRef(onPlayMove)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
+	const [isMoveTreePanelOpen, setIsMoveTreePanelOpen] = useState(false)
 	const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
 
 	const canCurrentUserPlay = (game: Game) => {
@@ -210,9 +217,7 @@ export const GameBoard = ({
 		}
 	}, [boardScale, boardSize, handicapStones, moves])
 
-	const canShowExitMode =
-		gameStarted &&
-		(gameMode !== 'normal' || (moves.length === 0 && !gameResult))
+	const canShowExitMode = gameStarted && (gameMode !== 'normal' || (moves.length === 0 && !gameResult))
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
 	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
@@ -229,24 +234,27 @@ export const GameBoard = ({
 		currentTurn === color
 	const showPassForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black'
 	const showPassForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white'
-	const showResignForBlack = gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'black' && !gameResult
-	const showResignForWhite = gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'white' && !gameResult
+	const showResignForBlack =
+		gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'black' && !gameResult
+	const showResignForWhite =
+		gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showDownloadSgf = gameStarted && gameMode === 'normal' && Boolean(gameResult)
 	const showDownloadSgfInOptions = gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveNumber = moves.length
 	const shouldShowSetupOptions = !gameStarted || Boolean(gameResult)
-	const winnerLabel = gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
+	const winnerLabel =
+		gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
 	const reasonLabel =
 		gameResult?.reason === 'resign'
 			? `${gameResult.resignedBy === 'black' ? 'Black' : 'White'} resigned`
 			: gameResult?.reason === 'time'
 				? `${gameResult.timedOutBy === 'black' ? 'Black' : 'White'} lost on time`
-			: gameResult
-				? 'Game ended by two passes'
-				: null
+				: gameResult
+					? 'Game ended by two passes'
+					: null
 	const formatClock = (timeMs: number | null) => {
 		if (timeMs === null) return null
 		const clampedMs = Math.max(0, Math.floor(timeMs))
@@ -265,7 +273,22 @@ export const GameBoard = ({
 		setBoardScale((previousScale) => Math.max(MIN_BOARD_SCALE, Number((previousScale - BOARD_SCALE_STEP).toFixed(2))))
 	}
 	const handleToggleOptionsPanel = () => {
-		setIsOptionsPanelOpen((previous) => !previous)
+		setIsOptionsPanelOpen((previous) => {
+			const isNextOpen = !previous
+			if (isNextOpen) {
+				setIsMoveTreePanelOpen(false)
+			}
+			return isNextOpen
+		})
+	}
+	const handleToggleMoveTreePanel = () => {
+		setIsMoveTreePanelOpen((previous) => {
+			const isNextOpen = !previous
+			if (isNextOpen) {
+				setIsOptionsPanelOpen(false)
+			}
+			return isNextOpen
+		})
 	}
 	const handleToggleInfoPanel = () => {
 		setIsInfoPanelOpen((previous) => !previous)
@@ -453,18 +476,17 @@ export const GameBoard = ({
 						</button>
 					) : null}
 				</div>
-				{featureFlags.moveTree && gameMode === 'shared' && gameStarted ? (
-					<MoveTreePanel
-						moveTree={moveTree}
-						currentMoveId={currentMoveId}
-						currentMoveCount={currentMoveCount}
-						onSelectMoveCount={onMoveToCount}
-					/>
-				) : null}
 			</div>
 			<RightOptionsMenu
 				isOpen={isOptionsPanelOpen}
 				onToggle={handleToggleOptionsPanel}
+				isMoveTreeOpen={isMoveTreePanelOpen}
+				onToggleMoveTree={handleToggleMoveTreePanel}
+				showMoveTreePanel={featureFlags.moveTree && gameMode === 'shared' && gameStarted}
+				moveTree={moveTree}
+				currentMoveId={currentMoveId}
+				currentMoveCount={currentMoveCount}
+				onSelectMoveCount={onMoveToCount}
 				onIncreaseBoardScale={handleIncreaseBoardScale}
 				onDecreaseBoardScale={handleDecreaseBoardScale}
 				canIncreaseBoardScale={canIncreaseBoardScale}

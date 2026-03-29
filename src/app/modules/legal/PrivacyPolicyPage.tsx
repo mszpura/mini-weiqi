@@ -9,8 +9,8 @@ export const PrivacyPolicyPage = ({ onBackHome }: PrivacyPolicyPageProps) => {
 				<h1>Privacy Policy</h1>
 				<p>Last updated: March 22, 2026</p>
 				<p>
-					This Privacy Policy explains how Mini Weiqi (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) collects, uses, and
-					protects information when you use our mobile game service.
+					This Privacy Policy explains how Mini Weiqi (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) collects, uses,
+					and protects information when you use our mobile game service.
 				</p>
 				<h2>Information We Collect</h2>
 				<p>
@@ -44,7 +44,8 @@ export const PrivacyPolicyPage = ({ onBackHome }: PrivacyPolicyPageProps) => {
 				</p>
 				<h2>Contact</h2>
 				<p>
-					For privacy questions, please contact us at <a href="mailto:szpura.maciej@gmail.com">szpura.maciej@gmail.com</a>.
+					For privacy questions, please contact us at{' '}
+					<a href="mailto:szpura.maciej@gmail.com">szpura.maciej@gmail.com</a>.
 				</p>
 				<button className="legal-page__back-link" type="button" onClick={onBackHome}>
 					Back to Home

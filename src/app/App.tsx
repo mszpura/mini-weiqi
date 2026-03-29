@@ -283,7 +283,17 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 			appendMoveToTree({ type: 'play', y, x })
 		},
-		[appendMoveToTree, areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock]
+		[
+			appendMoveToTree,
+			areBothSeatsTaken,
+			fisherClockConfig,
+			gameClock,
+			gameMode,
+			gameResult,
+			gameStarted,
+			playStoneSound,
+			setGameClock
+		]
 	)
 
 	const handlePassTurn = useCallback(() => {
@@ -301,7 +311,17 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
 		}
 		appendMoveToTree({ type: 'pass' })
-	}, [appendMoveToTree, areBothSeatsTaken, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, playStoneSound, setGameClock])
+	}, [
+		appendMoveToTree,
+		areBothSeatsTaken,
+		fisherClockConfig,
+		gameClock,
+		gameMode,
+		gameResult,
+		gameStarted,
+		playStoneSound,
+		setGameClock
+	])
 
 	const buildScoreFromMoves = useCallback(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
@@ -346,7 +366,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer(null)
 		setGameClock(null)
 		setGameStarted(true)
-	}, [setBlackPlayer, setCurrentMoveId, setGameClock, setGameResult, setGameStarted, setMoveTree, setMoves, setWhitePlayer])
+	}, [
+		setBlackPlayer,
+		setCurrentMoveId,
+		setGameClock,
+		setGameResult,
+		setGameStarted,
+		setMoveTree,
+		setMoves,
+		setWhitePlayer
+	])
 
 	const handleHandicapChange = useCallback(
 		(nextHandicapStones: number) => {
@@ -454,7 +483,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer(null)
 		setGameStarted(false)
 		setGameClock(null)
-	}, [setBlackPlayer, setCurrentMoveId, setGameClock, setGameResult, setGameStarted, setMoveTree, setMoves, setWhitePlayer])
+	}, [
+		setBlackPlayer,
+		setCurrentMoveId,
+		setGameClock,
+		setGameResult,
+		setGameStarted,
+		setMoveTree,
+		setMoves,
+		setWhitePlayer
+	])
 
 	const handleTimeLimitChange = useCallback(
 		(nextTimeLimit: GameTimeLimit) => {
@@ -573,7 +611,17 @@ function AppContent({ onNavigate }: AppContentProps) {
 			reason: 'time',
 			timedOutBy
 		})
-	}, [buildScoreFromMoves, clockTick, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock, setGameResult])
+	}, [
+		buildScoreFromMoves,
+		clockTick,
+		fisherClockConfig,
+		gameClock,
+		gameMode,
+		gameResult,
+		gameStarted,
+		setGameClock,
+		setGameResult
+	])
 
 	const displayedClocks = useMemo(() => {
 		if (!gameStarted || gameMode !== 'normal' || !fisherClockConfig) return null
@@ -646,7 +694,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 			activeColor: getFirstMoveColor(effectiveHandicapStones),
 			turnStartedAtMs: Date.now()
 		})
-	}, [areBothSeatsTaken, effectiveHandicapStones, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, setGameClock])
+	}, [
+		areBothSeatsTaken,
+		effectiveHandicapStones,
+		fisherClockConfig,
+		gameClock,
+		gameMode,
+		gameResult,
+		gameStarted,
+		setGameClock
+	])
 
 	useEffect(() => {
 		if (gameStarted) return

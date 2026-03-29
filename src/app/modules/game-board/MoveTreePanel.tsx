@@ -5,6 +5,7 @@ type MoveTreePanelProps = {
 	currentMoveId: string
 	currentMoveCount: number
 	onSelectMoveCount: (moveCount: number, moveId?: string) => void
+	isEmbedded?: boolean
 }
 
 const ROOT_MOVE_ID = 'root'
@@ -21,7 +22,13 @@ const getNodeDepth = (moveTree: Record<string, MoveTreeNode>, nodeId: string) =>
 	return depth
 }
 
-export const MoveTreePanel = ({ moveTree, currentMoveId, currentMoveCount, onSelectMoveCount }: MoveTreePanelProps) => {
+export const MoveTreePanel = ({
+	moveTree,
+	currentMoveId,
+	currentMoveCount,
+	onSelectMoveCount,
+	isEmbedded = false
+}: MoveTreePanelProps) => {
 	const rootNode = moveTree[ROOT_MOVE_ID]
 	const leafPaths: string[][] = []
 	const collectPaths = (nodeId: string, path: string[]) => {
@@ -38,8 +45,8 @@ export const MoveTreePanel = ({ moveTree, currentMoveId, currentMoveCount, onSel
 	const branchPaths = leafPaths.length > 0 ? leafPaths : [[ROOT_MOVE_ID]]
 
 	return (
-		<aside className="move-tree-panel" aria-label="Moves Tree">
-			<div className="move-tree-title">Moves Tree</div>
+		<div className={`move-tree-panel ${isEmbedded ? 'move-tree-panel--embedded' : ''}`} aria-label="Moves Tree">
+			{isEmbedded ? null : <div className="move-tree-title">Moves Tree</div>}
 			<div className="move-tree-branches">
 				{branchPaths.map((path) => (
 					<div key={path.join('>')} className="move-tree-list" role="list">
@@ -49,9 +56,7 @@ export const MoveTreePanel = ({ moveTree, currentMoveId, currentMoveCount, onSel
 							const depth = getNodeDepth(moveTree, nodeId)
 							const isStart = nodeId === ROOT_MOVE_ID
 							const isLast = index === path.length - 1
-							const isActive = isStart
-								? currentMoveCount === 0
-								: currentMoveId === nodeId && currentMoveCount === depth
+							const isActive = isStart ? currentMoveCount === 0 : currentMoveId === nodeId && currentMoveCount === depth
 							const isBlackMove = depth % 2 === 1
 							const colorClass = isBlackMove ? 'black' : 'white'
 							return (
@@ -85,6 +90,6 @@ export const MoveTreePanel = ({ moveTree, currentMoveId, currentMoveCount, onSel
 					</div>
 				))}
 			</div>
-		</aside>
+		</div>
 	)
 }

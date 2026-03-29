@@ -1,11 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"lib": [
-			"esnext",
-			"DOM",
-			"DOM.Iterable"
-		],
+		"lib": ["esnext", "DOM", "DOM.Iterable"],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
@@ -24,12 +20,6 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": [
-		"**/*.ts",
-		"**/*.tsx",
-		"**/*.d.ts"
-	],
-	"exclude": [
-		"node_modules"
-	]
+	"include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
+	"exclude": ["node_modules"]
 }
