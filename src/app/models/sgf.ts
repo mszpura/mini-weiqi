@@ -257,13 +257,9 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 
 		const color: 'B' | 'W' = typeof blackMove !== 'undefined' ? 'B' : 'W'
 		const value = (blackMove ?? whiteMove ?? '').trim().toLowerCase()
-		if (color !== expectedColor) {
-			parseError = 'Unsupported SGF sequence: only alternating Black/White moves are supported.'
-			return null
-		}
 
 		if (!value || value === 'tt') {
-			return { move: { type: 'pass' }, nextColor: expectedColor === 'B' ? 'W' : 'B' }
+			return { move: { type: 'pass' }, nextColor: color === 'B' ? 'W' : 'B' }
 		}
 
 		const point = decodeCoordinate(value)
@@ -278,7 +274,7 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 
 		return {
 			move: { type: 'play', y: point.y, x: point.x },
-			nextColor: expectedColor === 'B' ? 'W' : 'B'
+			nextColor: color === 'B' ? 'W' : 'B'
 		}
 	}
 
