@@ -121,7 +121,7 @@ const getLineageNodeIds = (moveTree: Record<string, MoveTreeNode>, nodeId: strin
 	const lineage: string[] = []
 	let cursor: string | null = nodeId
 	while (cursor) {
-		const node = moveTree[cursor]
+		const node: MoveTreeNode | undefined = moveTree[cursor]
 		if (!node) break
 		lineage.push(node.id)
 		cursor = node.parentId
@@ -834,7 +834,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
 			const filename = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
-			const isEmbeddedApp = new URLSearchParams(window.location.search).get('frame_id') != null
+			const isEmbeddedApp = typeof discordSdk?.channelId === 'string' && /^\d{17,20}$/.test(discordSdk.channelId)
 
 			if (isEmbeddedApp) {
 				if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
