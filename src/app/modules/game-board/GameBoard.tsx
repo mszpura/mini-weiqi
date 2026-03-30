@@ -57,6 +57,7 @@ type GameBoardProps = {
 	onDownloadSgf: () => void
 	onCopySgf: () => void
 	sgfLinkHref: string | null
+	sgfDownloadFileName: string
 	gameResult: GameResult | null
 	blackTimeMs: number | null
 	whiteTimeMs: number | null
@@ -106,6 +107,7 @@ export const GameBoard = ({
 	onDownloadSgf,
 	onCopySgf,
 	sgfLinkHref,
+	sgfDownloadFileName,
 	gameResult,
 	blackTimeMs,
 	whiteTimeMs,
@@ -455,6 +457,7 @@ export const GameBoard = ({
 								onCopySgf={onCopySgf}
 								showSgfLinkButton={showLinkSgf}
 								sgfLinkHref={sgfLinkHref}
+								sgfDownloadFileName={sgfDownloadFileName}
 								showStartNewGame={isSeatMode}
 								onStartNewGame={onStartNewGame}
 							/>
@@ -528,6 +531,7 @@ export const GameBoard = ({
 				onCopySgf={onCopySgf}
 				showSgfLinkButton={showLinkSgfInOptions}
 				sgfLinkHref={sgfLinkHref}
+				sgfDownloadFileName={sgfDownloadFileName}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>

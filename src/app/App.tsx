@@ -890,6 +890,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return () => window.URL.revokeObjectURL(sgfLinkHref)
 	}, [sgfLinkHref])
 
+	const sgfDownloadFileName = useMemo(() => {
+		const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+		return `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
+	}, [boardSize])
+
 	const handleCopySgf = useCallback(async () => {
 		if (!gameStarted) return
 		if (isSeatMode && !effectiveGameResult) return
@@ -1009,6 +1014,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onDownloadSgf={handleDownloadSgf}
 					onCopySgf={handleCopySgf}
 					sgfLinkHref={sgfLinkHref}
+					sgfDownloadFileName={sgfDownloadFileName}
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}

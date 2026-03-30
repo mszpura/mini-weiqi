@@ -25,6 +25,7 @@ type RightOptionsMenuProps = {
 	onCopySgf: () => void
 	showSgfLinkButton: boolean
 	sgfLinkHref: string | null
+	sgfDownloadFileName: string
 	canShowExitMode: boolean
 	onExitMode: () => void
 }
@@ -53,6 +54,7 @@ export const RightOptionsMenu = ({
 	onCopySgf,
 	showSgfLinkButton,
 	sgfLinkHref,
+	sgfDownloadFileName,
 	canShowExitMode,
 	onExitMode
 }: RightOptionsMenuProps) => {
@@ -135,10 +137,11 @@ export const RightOptionsMenu = ({
 									<a
 										className="game-side-button game-side-button--download"
 										href={sgfLinkHref}
+										download={sgfDownloadFileName}
 										target="_blank"
 										rel="noopener noreferrer"
 									>
-										Open SGF Link
+										SGF Link
 									</a>
 								) : null}
 								{canShowExitMode ? (

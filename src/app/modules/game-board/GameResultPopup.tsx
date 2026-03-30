@@ -8,6 +8,7 @@ type GameResultPopupProps = {
 	onCopySgf: () => void
 	showSgfLinkButton: boolean
 	sgfLinkHref: string | null
+	sgfDownloadFileName: string
 	showStartNewGame: boolean
 	onStartNewGame: () => void
 }
@@ -22,6 +23,7 @@ export const GameResultPopup = ({
 	onCopySgf,
 	showSgfLinkButton,
 	sgfLinkHref,
+	sgfDownloadFileName,
 	showStartNewGame,
 	onStartNewGame
 }: GameResultPopupProps) => {
@@ -44,10 +46,11 @@ export const GameResultPopup = ({
 				<a
 					className="game-side-button game-side-button--download"
 					href={sgfLinkHref}
+					download={sgfDownloadFileName}
 					target="_blank"
 					rel="noopener noreferrer"
 				>
-					Open SGF Link
+					SGF Link
 				</a>
 			) : null}
 			{showStartNewGame ? (
