@@ -162,29 +162,6 @@ const getMainLineLeafFromNode = (moveTree: Record<string, MoveTreeNode>, startNo
 const normalizeGameMode = (mode: GameMode): GameMode =>
 	featureFlags.oneColorGo || mode !== 'one-color' ? mode : 'normal'
 
-type SaveFilePickerAcceptType = {
-	description?: string
-	accept: Record<string, string[]>
-}
-
-type SaveFilePickerOptions = {
-	suggestedName?: string
-	types?: SaveFilePickerAcceptType[]
-}
-
-type SaveFileWritable = {
-	write: (data: BlobPart) => Promise<void>
-	close: () => Promise<void>
-}
-
-type SaveFileHandle = {
-	createWritable: () => Promise<SaveFileWritable>
-}
-
-type WindowWithSaveFilePicker = Window & {
-	showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<SaveFileHandle>
-}
-
 const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 	if (a.length !== b.length) return false
 	return a.every((move, index) => {
@@ -236,7 +213,10 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [timeLimit, setTimeLimit] = useSyncState<GameTimeLimit>('no-limit', syncKeys.timeLimit)
 	const [gameClock, setGameClock] = useSyncState<GameClockState | null>(null, syncKeys.gameClock)
 	const [soundEnabled, setSoundEnabled] = useSyncState(true, syncKeys.soundEnabled)
-	const [oneColorStoneColor, setOneColorStoneColor] = useSyncState<OneColorStoneColor>('black', syncKeys.oneColorStoneColor)
+	const [oneColorStoneColor, setOneColorStoneColor] = useSyncState<OneColorStoneColor>(
+		'black',
+		syncKeys.oneColorStoneColor
+	)
 	const [clockTick, setClockTick] = useState(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -846,7 +826,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setTimeLimit('no-limit')
 	}, [gameStarted, isSeatMode, setTimeLimit, timeLimit])
 
-	const handleDownloadSgf = useCallback(async () => {
+	const handleDownloadSgf = useCallback(() => {
 		if (!gameStarted) return
 		if (isSeatMode && !effectiveGameResult) return
 
@@ -855,50 +835,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 				gameMode === 'shared'
 					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
 					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
-			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-			const filename = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
-			const isMockSdk = '_updateCommandMocks' in discordSdk
-			const showSaveFilePicker = (window as WindowWithSaveFilePicker).showSaveFilePicker
-
-			if (typeof showSaveFilePicker === 'function') {
-				const handle = await showSaveFilePicker({
-					suggestedName: filename,
-					types: [
-						{
-							description: 'Smart Game Format',
-							accept: {
-								'application/x-go-sgf': ['.sgf'],
-								'text/plain': ['.sgf']
-							}
-						}
-					]
-				})
-				const writable = await handle.createWritable()
-				await writable.write(sgf)
-				await writable.close()
-				return
-			}
-
-			if (!isMockSdk) {
-				if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-					await navigator.clipboard.writeText(sgf)
-					window.alert(
-						'Discord embedded apps block direct file downloads. SGF content was copied to your clipboard. Paste it into a local file ending with .sgf.'
-					)
-					return
-				}
-
-				const dataUrl = `data:application/x-go-sgf;charset=utf-8,${encodeURIComponent(sgf)}`
-				await discordSdk.commands.openExternalLink({ url: dataUrl })
-				window.alert(`Opened SGF in your browser. Save the page content as ${filename}.`)
-				return
-			}
-
 			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
 			const url = window.URL.createObjectURL(file)
+			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
 			const link = document.createElement('a')
 			link.href = url
-			link.download = filename
+			link.download = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
 			document.body.append(link)
 			link.click()
 			link.remove()
@@ -907,7 +849,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, currentLineMoves, discordSdk, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, isSeatMode, moveTree])
+	}, [
+		boardSize,
+		currentLineMoves,
+		effectiveGameResult,
+		effectiveHandicapStones,
+		gameMode,
+		gameStarted,
+		isSeatMode,
+		moveTree
+	])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
