@@ -43,9 +43,16 @@ h1 {
 }
 
 .app-shell--menu {
-	max-width: 1280px;
-	margin: 0 auto;
+	width: 100%;
+	max-width: none;
+	height: 100svh;
+	margin: 0;
 	padding: 2rem;
+	box-sizing: border-box;
+	overflow: hidden;
+	background:
+		linear-gradient(rgba(10, 12, 16, 0.55), rgba(10, 12, 16, 0.55)),
+		url('/wallpaper2.png') center / cover no-repeat;
 }
 
 .app-shell--board {
