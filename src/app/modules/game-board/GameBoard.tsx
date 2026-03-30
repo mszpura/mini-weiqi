@@ -124,8 +124,8 @@ export const GameBoard = ({
 	const canCurrentUserPlay = (game: Game) => {
 		if (!gameStartedRef.current) return false
 		if (gameResultRef.current) return false
-		if (!isViewingLatestMoveRef.current) return false
 		if (gameModeRef.current === 'shared') return true
+		if (!isViewingLatestMoveRef.current) return false
 		if (!blackPlayerRef.current || !whitePlayerRef.current) return false
 		const activeColor = playerColorRef.current
 		return Boolean(activeColor && game.currentPlayer() === activeColor)

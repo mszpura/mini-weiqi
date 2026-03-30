@@ -136,6 +136,27 @@ const getMovesFromNodeId = (moveTree: Record<string, MoveTreeNode>, nodeId: stri
 const getNodeDepth = (moveTree: Record<string, MoveTreeNode>, nodeId: string) =>
 	Math.max(0, getLineageNodeIds(moveTree, nodeId).length - 1)
 
+const getMainLineNodeAtDepth = (moveTree: Record<string, MoveTreeNode>, depth: number) => {
+	let cursor = ROOT_MOVE_ID
+	let remaining = Math.max(0, depth)
+	while (remaining > 0) {
+		const nextId = moveTree[cursor]?.childrenIds[0]
+		if (!nextId) break
+		cursor = nextId
+		remaining -= 1
+	}
+	return cursor
+}
+
+const getMainLineLeafFromNode = (moveTree: Record<string, MoveTreeNode>, startNodeId: string) => {
+	let cursor = startNodeId
+	while (true) {
+		const nextId = moveTree[cursor]?.childrenIds[0]
+		if (!nextId) return cursor
+		cursor = nextId
+	}
+}
+
 const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 	if (a.length !== b.length) return false
 	return a.every((move, index) => {
@@ -210,6 +231,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const fisherClockConfig = gameMode === 'normal' ? getFisherClockConfig(timeLimit) : null
 	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
 	const currentLineLength = currentLineMoves.length
+	const selectedNode = moveTree[currentMoveId]
 	const currentVisibleMoves = useMemo(
 		() => currentLineMoves.slice(0, Math.max(0, Math.min(currentLineLength, displayedMoveCount))),
 		[currentLineLength, currentLineMoves, displayedMoveCount]
@@ -795,34 +817,48 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
+		setCurrentMoveId(ROOT_MOVE_ID)
 		setDisplayedMoveCount(0)
-	}, [gameMode])
+		setMoves([])
+	}, [gameMode, setCurrentMoveId, setMoves])
 
 	const handleMoveBackward = useCallback(() => {
 		if (gameMode !== 'shared') return
-		setDisplayedMoveCount((current) => Math.max(0, current - 1))
-	}, [gameMode])
+		const parentId = moveTree[currentMoveId]?.parentId
+		if (!parentId) return
+		setCurrentMoveId(parentId)
+		setDisplayedMoveCount(getNodeDepth(moveTree, parentId))
+		setMoves(getMovesFromNodeId(moveTree, parentId))
+	}, [currentMoveId, gameMode, moveTree, setCurrentMoveId, setMoves])
 
 	const handleMoveForward = useCallback(() => {
 		if (gameMode !== 'shared') return
-		setDisplayedMoveCount((current) => Math.min(currentLineLength, current + 1))
-	}, [currentLineLength, gameMode])
+		const nextId = moveTree[currentMoveId]?.childrenIds[0]
+		if (!nextId) return
+		setCurrentMoveId(nextId)
+		setDisplayedMoveCount(getNodeDepth(moveTree, nextId))
+		setMoves(getMovesFromNodeId(moveTree, nextId))
+	}, [currentMoveId, gameMode, moveTree, setCurrentMoveId, setMoves])
 
 	const handleMoveToEnd = useCallback(() => {
 		if (gameMode !== 'shared') return
-		setDisplayedMoveCount(currentLineLength)
-	}, [currentLineLength, gameMode])
+		const targetId = getMainLineLeafFromNode(moveTree, currentMoveId)
+		setCurrentMoveId(targetId)
+		setDisplayedMoveCount(getNodeDepth(moveTree, targetId))
+		setMoves(getMovesFromNodeId(moveTree, targetId))
+	}, [currentMoveId, gameMode, moveTree, setCurrentMoveId, setMoves])
 
 	const handleMoveToCount = useCallback(
 		(count: number, moveId?: string) => {
 			if (gameMode !== 'shared') return
-			if (moveId && moveTree[moveId]) {
-				setCurrentMoveId(moveId)
-			}
-			const maxLength = moveId && moveTree[moveId] ? getNodeDepth(moveTree, moveId) : currentLineLength
-			setDisplayedMoveCount(Math.max(0, Math.min(maxLength, count)))
+			const targetId =
+				moveId && moveTree[moveId] ? moveId : getMainLineNodeAtDepth(moveTree, Math.max(0, Math.floor(count)))
+			const depth = getNodeDepth(moveTree, targetId)
+			setCurrentMoveId(targetId)
+			setDisplayedMoveCount(depth)
+			setMoves(getMovesFromNodeId(moveTree, targetId))
 		},
-		[currentLineLength, gameMode, moveTree, setCurrentMoveId]
+		[gameMode, moveTree, setCurrentMoveId, setMoves]
 	)
 
 	if (showGameBoard) {
@@ -851,9 +887,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 					currentMoveCount={displayedMoveCount}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
-					isViewingLatestMove={displayedMoveCount === currentLineLength}
-					canMoveBackward={displayedMoveCount > 0}
-					canMoveForward={displayedMoveCount < currentLineLength}
+					isViewingLatestMove={!selectedNode || selectedNode.childrenIds.length === 0}
+					canMoveBackward={currentMoveId !== ROOT_MOVE_ID}
+					canMoveForward={Boolean(selectedNode?.childrenIds[0])}
 					onMoveToStart={handleMoveToStart}
 					onMoveBackward={handleMoveBackward}
 					onMoveForward={handleMoveForward}
