@@ -7,7 +7,8 @@ import {
 	type GameMove,
 	type GameResult,
 	type GameTimeLimit,
-	type MoveTreeNode
+	type MoveTreeNode,
+	type OneColorStoneColor
 } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
@@ -28,6 +29,8 @@ type GameBoardProps = {
 	playerColor: 'black' | 'white' | null
 	gameMode: GameMode
 	onGameModeChange: (mode: GameMode) => void
+	oneColorStoneColor: OneColorStoneColor
+	onOneColorStoneColorChange: (color: OneColorStoneColor) => void
 	timeLimit: GameTimeLimit
 	onTimeLimitChange: (timeLimit: GameTimeLimit) => void
 	gameStarted: boolean
@@ -72,6 +75,8 @@ export const GameBoard = ({
 	playerColor,
 	gameMode,
 	onGameModeChange,
+	oneColorStoneColor,
+	onOneColorStoneColorChange,
 	timeLimit,
 	onTimeLimitChange,
 	gameStarted,
@@ -120,6 +125,7 @@ export const GameBoard = ({
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
 	const [isMoveTreePanelOpen, setIsMoveTreePanelOpen] = useState(false)
 	const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
+	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
 
 	const canCurrentUserPlay = (game: Game) => {
 		if (!gameStartedRef.current) return false
@@ -217,7 +223,7 @@ export const GameBoard = ({
 		}
 	}, [boardScale, boardSize, handicapStones, moves])
 
-	const canShowExitMode = gameStarted && (gameMode !== 'normal' || (moves.length === 0 && !gameResult))
+	const canShowExitMode = gameStarted && (gameMode === 'shared' || (moves.length === 0 && !gameResult))
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
 	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
@@ -226,20 +232,20 @@ export const GameBoard = ({
 	const currentTurn: 'black' | 'white' =
 		moves.length % 2 === 0 ? firstMoveColor : firstMoveColor === 'black' ? 'white' : 'black'
 	const canPassAs = (color: 'black' | 'white') =>
-		gameMode === 'normal' &&
+		isSeatMode &&
 		Boolean(blackPlayer && whitePlayer) &&
 		playerColor === color &&
 		!gameResult &&
 		!gameRef.current?.isOver() &&
 		currentTurn === color
-	const showPassForBlack = gameStarted && gameMode === 'normal' && playerColor === 'black'
-	const showPassForWhite = gameStarted && gameMode === 'normal' && playerColor === 'white'
+	const showPassForBlack = gameStarted && isSeatMode && playerColor === 'black'
+	const showPassForWhite = gameStarted && isSeatMode && playerColor === 'white'
 	const showResignForBlack =
-		gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'black' && !gameResult
+		gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'black' && !gameResult
 	const showResignForWhite =
-		gameStarted && gameMode === 'normal' && areBothSeatsTaken && playerColor === 'white' && !gameResult
+		gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
-	const showDownloadSgf = gameStarted && gameMode === 'normal' && Boolean(gameResult)
+	const showDownloadSgf = gameStarted && isSeatMode && Boolean(gameResult)
 	const showDownloadSgfInOptions = gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveNumber = moves.length
@@ -381,7 +387,7 @@ export const GameBoard = ({
 			<div className="game-board-center">
 				<div
 					ref={boardRef}
-					className="tenuki-board tenuki-svg-renderer"
+					className={`tenuki-board tenuki-svg-renderer ${gameMode === 'one-color' ? `one-color-mode one-color-mode--${oneColorStoneColor}` : ''}`}
 					data-include-coordinates="true"
 					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
@@ -420,6 +426,8 @@ export const GameBoard = ({
 							onTimeLimitChange={onTimeLimitChange}
 							handicapStones={handicapStones}
 							onHandicapChange={onHandicapChange}
+							oneColorStoneColor={oneColorStoneColor}
+							onOneColorStoneColorChange={onOneColorStoneColorChange}
 							onStartGame={onStartGame}
 						/>
 					) : null}

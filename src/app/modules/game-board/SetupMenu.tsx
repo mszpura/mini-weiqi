@@ -1,4 +1,9 @@
-import { getTimeLimitOptionsForBoardSize, type GameMode, type GameTimeLimit } from '../../models/game'
+import {
+	getTimeLimitOptionsForBoardSize,
+	type GameMode,
+	type GameTimeLimit,
+	type OneColorStoneColor
+} from '../../models/game'
 
 type SetupMenuProps = {
 	gameMode: GameMode
@@ -9,6 +14,8 @@ type SetupMenuProps = {
 	onTimeLimitChange: (timeLimit: GameTimeLimit) => void
 	handicapStones: number
 	onHandicapChange: (stones: number) => void
+	oneColorStoneColor: OneColorStoneColor
+	onOneColorStoneColorChange: (color: OneColorStoneColor) => void
 	onStartGame: () => void
 }
 
@@ -21,6 +28,8 @@ export const SetupMenu = ({
 	onTimeLimitChange,
 	handicapStones,
 	onHandicapChange,
+	oneColorStoneColor,
+	onOneColorStoneColorChange,
 	onStartGame
 }: SetupMenuProps) => {
 	const timeLimitOptions = getTimeLimitOptionsForBoardSize(boardSize)
@@ -36,10 +45,25 @@ export const SetupMenu = ({
 					value={gameMode}
 					onChange={(event) => onGameModeChange(event.target.value as GameMode)}
 				>
-					<option value="normal">Normal Game</option>
+					<option value="normal">Classic GO</option>
+					<option value="one-color">One Color GO</option>
 					<option value="shared">Shared Game</option>
 				</select>
 			</div>
+			{gameMode === 'one-color' ? (
+				<div className="game-options-panel-group">
+					<div className="game-board-size-label">Display stone color</div>
+					<select
+						className="game-options-select"
+						name="oneColorStoneColor"
+						value={oneColorStoneColor}
+						onChange={(event) => onOneColorStoneColorChange(event.target.value as OneColorStoneColor)}
+					>
+						<option value="black">Black</option>
+						<option value="white">White</option>
+					</select>
+				</div>
+			) : null}
 			<div className="game-options-panel-group">
 				<div className="game-board-size-label">Board Size</div>
 				<select
@@ -53,7 +77,7 @@ export const SetupMenu = ({
 					<option value={19}>19x19</option>
 				</select>
 			</div>
-			{gameMode === 'normal' ? (
+			{gameMode === 'normal' || gameMode === 'one-color' ? (
 				<div className="game-options-panel-group">
 					<div className="game-board-size-label">Time limit</div>
 					<select

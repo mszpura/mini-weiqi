@@ -12,7 +12,8 @@ import {
 	type GameMove,
 	type GameResult,
 	type GameTimeLimit,
-	type MoveTreeNode
+	type MoveTreeNode,
+	type OneColorStoneColor
 } from './models/game'
 import type { PlayerSlot } from './models/player'
 import { parseSgfContent, serializeSgfContent, serializeSgfTreeContent } from './models/sgf'
@@ -188,7 +189,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 			displayedMoveCount: ['displayed-move-count', channelKey],
 			timeLimit: ['time-limit', channelKey],
 			gameClock: ['game-clock', channelKey],
-			soundEnabled: ['sound-enabled', channelKey]
+			soundEnabled: ['sound-enabled', channelKey],
+			oneColorStoneColor: ['one-color-stone-color', channelKey]
 		}),
 		[channelKey]
 	)
@@ -207,6 +209,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [timeLimit, setTimeLimit] = useSyncState<GameTimeLimit>('no-limit', syncKeys.timeLimit)
 	const [gameClock, setGameClock] = useSyncState<GameClockState | null>(null, syncKeys.gameClock)
 	const [soundEnabled, setSoundEnabled] = useSyncState(true, syncKeys.soundEnabled)
+	const [oneColorStoneColor, setOneColorStoneColor] = useSyncState<OneColorStoneColor>('black', syncKeys.oneColorStoneColor)
 	const [clockTick, setClockTick] = useState(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -228,7 +231,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const areBothSeatsTaken = Boolean(blackPlayer && whitePlayer)
 	const isUnauthenticated = !session?.user?.id
 	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
-	const fisherClockConfig = gameMode === 'normal' ? getFisherClockConfig(timeLimit) : null
+	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
+	const fisherClockConfig = isSeatMode ? getFisherClockConfig(timeLimit) : null
 	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
 	const currentLineLength = currentLineMoves.length
 	const selectedNode = moveTree[currentMoveId]
@@ -292,7 +296,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		(y: number, x: number) => {
 			if (!gameStarted) return
 			if (gameResult) return
-			if (gameMode === 'normal' && !areBothSeatsTaken) return
+			if (isSeatMode && !areBothSeatsTaken) return
 			const audio = countdownAudioRef.current
 			if (audio) {
 				audio.pause()
@@ -310,9 +314,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 			areBothSeatsTaken,
 			fisherClockConfig,
 			gameClock,
-			gameMode,
 			gameResult,
 			gameStarted,
+			isSeatMode,
 			playStoneSound,
 			setGameClock
 		]
@@ -321,7 +325,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const handlePassTurn = useCallback(() => {
 		if (!gameStarted) return
 		if (gameResult) return
-		if (gameMode === 'normal' && !areBothSeatsTaken) return
+		if (isSeatMode && !areBothSeatsTaken) return
 		const audio = countdownAudioRef.current
 		if (audio) {
 			audio.pause()
@@ -338,9 +342,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 		areBothSeatsTaken,
 		fisherClockConfig,
 		gameClock,
-		gameMode,
 		gameResult,
 		gameStarted,
+		isSeatMode,
 		playStoneSound,
 		setGameClock
 	])
@@ -360,7 +364,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const handleResign = useCallback(() => {
 		if (!gameStarted) return
 		if (!playerColor || gameResult) return
-		if (gameMode === 'normal' && !areBothSeatsTaken) return
+		if (isSeatMode && !areBothSeatsTaken) return
 		const score = buildScoreFromMoves()
 		const winner = playerColor === 'black' ? 'white' : 'black'
 		setGameResult({
@@ -370,7 +374,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			reason: 'resign',
 			resignedBy: playerColor
 		})
-	}, [areBothSeatsTaken, buildScoreFromMoves, gameMode, gameResult, gameStarted, playerColor, setGameResult])
+	}, [areBothSeatsTaken, buildScoreFromMoves, gameResult, gameStarted, isSeatMode, playerColor, setGameResult])
 
 	const handleImportSgf = useCallback(() => {
 		if (!gameStarted) return
@@ -594,7 +598,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
-		if (gameMode !== 'normal') return
+		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (!gameClock) return
 
@@ -605,12 +609,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return () => {
 			window.clearInterval(intervalId)
 		}
-	}, [fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
+	}, [fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
-		if (gameMode !== 'normal') return
+		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (!gameClock) return
 
@@ -638,15 +642,15 @@ function AppContent({ onNavigate }: AppContentProps) {
 		clockTick,
 		fisherClockConfig,
 		gameClock,
-		gameMode,
 		gameResult,
 		gameStarted,
+		isSeatMode,
 		setGameClock,
 		setGameResult
 	])
 
 	const displayedClocks = useMemo(() => {
-		if (!gameStarted || gameMode !== 'normal' || !fisherClockConfig) return null
+		if (!gameStarted || !isSeatMode || !fisherClockConfig) return null
 		if (!gameClock) {
 			return {
 				blackTimeMs: fisherClockConfig.initialTimeMs,
@@ -655,19 +659,19 @@ function AppContent({ onNavigate }: AppContentProps) {
 		}
 		const nowMs = Date.now()
 		const settled =
-			gameStarted && !gameResult && gameMode === 'normal' && Boolean(fisherClockConfig)
+			gameStarted && !gameResult && isSeatMode && Boolean(fisherClockConfig)
 				? settleActiveClock(gameClock, nowMs)
 				: { blackTimeMs: gameClock.blackTimeMs, whiteTimeMs: gameClock.whiteTimeMs }
 		return {
 			blackTimeMs: settled.blackTimeMs,
 			whiteTimeMs: settled.whiteTimeMs
 		}
-	}, [clockTick, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted])
+	}, [clockTick, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
-		if (gameMode !== 'normal') return
+		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (!soundEnabled) return
 		if (!gameClock || !displayedClocks) return
@@ -691,21 +695,21 @@ function AppContent({ onNavigate }: AppContentProps) {
 		void audio.play().catch((error) => {
 			console.warn('Failed to play countdown audio.', error)
 		})
-	}, [displayedClocks, fisherClockConfig, gameClock, gameMode, gameResult, gameStarted, soundEnabled])
+	}, [displayedClocks, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode, soundEnabled])
 
 	useEffect(() => {
-		if (gameStarted && !gameResult && gameMode === 'normal' && fisherClockConfig && soundEnabled) return
+		if (gameStarted && !gameResult && isSeatMode && fisherClockConfig && soundEnabled) return
 		const audio = countdownAudioRef.current
 		if (!audio) return
 		audio.pause()
 		audio.currentTime = 0
 		countdownPlayedTurnRef.current = null
-	}, [fisherClockConfig, gameMode, gameResult, gameStarted, soundEnabled])
+	}, [fisherClockConfig, gameResult, gameStarted, isSeatMode, soundEnabled])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
-		if (gameMode !== 'normal') return
+		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (gameClock) return
 		if (!areBothSeatsTaken) return
@@ -721,18 +725,18 @@ function AppContent({ onNavigate }: AppContentProps) {
 		effectiveHandicapStones,
 		fisherClockConfig,
 		gameClock,
-		gameMode,
 		gameResult,
 		gameStarted,
+		isSeatMode,
 		setGameClock
 	])
 
 	useEffect(() => {
 		if (gameStarted) return
-		if (gameMode !== 'normal') return
+		if (!isSeatMode) return
 		if (isTimeLimitAllowedForBoardSize(timeLimit, boardSize)) return
 		setTimeLimit(getTimeLimitOptionsForBoardSize(boardSize)[0]?.value ?? 'no-limit')
-	}, [boardSize, gameMode, gameStarted, setTimeLimit, timeLimit])
+	}, [boardSize, gameStarted, isSeatMode, setTimeLimit, timeLimit])
 
 	const gameSnapshot = useMemo(() => {
 		const game = new Game({ boardSize, handicapStones: effectiveHandicapStones })
@@ -785,14 +789,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	useEffect(() => {
 		if (gameStarted) return
-		if (gameMode === 'normal') return
+		if (isSeatMode) return
 		if (timeLimit === 'no-limit') return
 		setTimeLimit('no-limit')
-	}, [gameMode, gameStarted, setTimeLimit, timeLimit])
+	}, [gameStarted, isSeatMode, setTimeLimit, timeLimit])
 
 	const handleDownloadSgf = useCallback(() => {
 		if (!gameStarted) return
-		if (gameMode === 'normal' && !effectiveGameResult) return
+		if (isSeatMode && !effectiveGameResult) return
 
 		try {
 			const sgf =
@@ -813,7 +817,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, currentLineMoves, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, moveTree])
+	}, [boardSize, currentLineMoves, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, isSeatMode, moveTree])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
@@ -877,6 +881,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 					playerColor={playerColor}
 					gameMode={gameMode}
 					onGameModeChange={setGameMode}
+					oneColorStoneColor={oneColorStoneColor}
+					onOneColorStoneColorChange={setOneColorStoneColor}
 					timeLimit={timeLimit}
 					onTimeLimitChange={handleTimeLimitChange}
 					gameStarted={gameStarted}

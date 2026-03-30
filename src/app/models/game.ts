@@ -1,4 +1,5 @@
-export type GameMode = 'normal' | 'shared'
+export type GameMode = 'normal' | 'one-color' | 'shared'
+export type OneColorStoneColor = 'black' | 'white'
 export type GameTimeLimit =
 	| 'no-limit'
 	| 'fisher-15s-1s'
