@@ -55,6 +55,7 @@ type GameBoardProps = {
 	onResign: () => void
 	onImportSgf: () => void
 	onDownloadSgf: () => void
+	onCopySgf: () => void
 	gameResult: GameResult | null
 	blackTimeMs: number | null
 	whiteTimeMs: number | null
@@ -102,6 +103,7 @@ export const GameBoard = ({
 	onResign,
 	onImportSgf,
 	onDownloadSgf,
+	onCopySgf,
 	gameResult,
 	blackTimeMs,
 	whiteTimeMs,
@@ -247,8 +249,12 @@ export const GameBoard = ({
 	const showResignForWhite =
 		gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
-	const showDownloadSgf = gameStarted && isSeatMode && Boolean(gameResult)
-	const showDownloadSgfInOptions = gameStarted && gameMode === 'shared'
+	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
+	const showSgfCopyButton = featureFlags.sgfExportMode === 'copyToClipboard'
+	const showDownloadSgf = showSgfDownloadButton && gameStarted && isSeatMode && Boolean(gameResult)
+	const showCopySgf = showSgfCopyButton && gameStarted && isSeatMode && Boolean(gameResult)
+	const showDownloadSgfInOptions = showSgfDownloadButton && gameStarted && gameMode === 'shared'
+	const showCopySgfInOptions = showSgfCopyButton && gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveNumber = moves.length
 	const shouldShowSetupOptions = !gameStarted
@@ -438,8 +444,10 @@ export const GameBoard = ({
 								winnerLabel={winnerLabel}
 								scoreLabel={scoreLabel}
 								reasonLabel={reasonLabel}
-								showDownloadSgf={showDownloadSgf}
+								showDownloadSgfButton={showDownloadSgf}
 								onDownloadSgf={onDownloadSgf}
+								showCopySgfButton={showCopySgf}
+								onCopySgf={onCopySgf}
 								showStartNewGame={isSeatMode}
 								onStartNewGame={onStartNewGame}
 							/>
@@ -507,8 +515,10 @@ export const GameBoard = ({
 				onToggleSound={onToggleSound}
 				showImportSgf={showImportSgf}
 				onImportSgf={onImportSgf}
-				showDownloadSgf={showDownloadSgfInOptions}
+				showDownloadSgfButton={showDownloadSgfInOptions}
 				onDownloadSgf={onDownloadSgf}
+				showCopySgfButton={showCopySgfInOptions}
+				onCopySgf={onCopySgf}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>

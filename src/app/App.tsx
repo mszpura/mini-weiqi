@@ -860,6 +860,35 @@ function AppContent({ onNavigate }: AppContentProps) {
 		moveTree
 	])
 
+	const handleCopySgf = useCallback(async () => {
+		if (!gameStarted) return
+		if (isSeatMode && !effectiveGameResult) return
+
+		try {
+			const sgf =
+				gameMode === 'shared'
+					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
+					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
+			if (!navigator.clipboard) {
+				throw new Error('Clipboard is not available in this browser.')
+			}
+			await navigator.clipboard.writeText(sgf)
+			window.alert('SGF copied to clipboard.')
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Failed to copy SGF to clipboard.'
+			window.alert(message)
+		}
+	}, [
+		boardSize,
+		currentLineMoves,
+		effectiveGameResult,
+		effectiveHandicapStones,
+		gameMode,
+		gameStarted,
+		isSeatMode,
+		moveTree
+	])
+
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
 		setCurrentMoveId(ROOT_MOVE_ID)
@@ -948,6 +977,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onResign={handleResign}
 					onImportSgf={handleImportSgf}
 					onDownloadSgf={handleDownloadSgf}
+					onCopySgf={handleCopySgf}
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}

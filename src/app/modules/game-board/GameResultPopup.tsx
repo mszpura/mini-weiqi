@@ -2,8 +2,10 @@ type GameResultPopupProps = {
 	winnerLabel: string
 	scoreLabel: string | null
 	reasonLabel: string | null
-	showDownloadSgf: boolean
+	showDownloadSgfButton: boolean
 	onDownloadSgf: () => void
+	showCopySgfButton: boolean
+	onCopySgf: () => void
 	showStartNewGame: boolean
 	onStartNewGame: () => void
 }
@@ -12,8 +14,10 @@ export const GameResultPopup = ({
 	winnerLabel,
 	scoreLabel,
 	reasonLabel,
-	showDownloadSgf,
+	showDownloadSgfButton,
 	onDownloadSgf,
+	showCopySgfButton,
+	onCopySgf,
 	showStartNewGame,
 	onStartNewGame
 }: GameResultPopupProps) => {
@@ -22,9 +26,14 @@ export const GameResultPopup = ({
 			<div className="game-result-title">{winnerLabel}</div>
 			<div className="game-result-score">{scoreLabel}</div>
 			<div className="game-result-reason">{reasonLabel}</div>
-			{showDownloadSgf ? (
+			{showDownloadSgfButton ? (
 				<button className="game-side-button game-side-button--download" type="button" onClick={onDownloadSgf}>
 					Download SGF
+				</button>
+			) : null}
+			{showCopySgfButton ? (
+				<button className="game-side-button game-side-button--download" type="button" onClick={onCopySgf}>
+					Copy SGF
 				</button>
 			) : null}
 			{showStartNewGame ? (
