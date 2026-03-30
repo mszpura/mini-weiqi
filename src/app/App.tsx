@@ -162,6 +162,29 @@ const getMainLineLeafFromNode = (moveTree: Record<string, MoveTreeNode>, startNo
 const normalizeGameMode = (mode: GameMode): GameMode =>
 	featureFlags.oneColorGo || mode !== 'one-color' ? mode : 'normal'
 
+type SaveFilePickerAcceptType = {
+	description?: string
+	accept: Record<string, string[]>
+}
+
+type SaveFilePickerOptions = {
+	suggestedName?: string
+	types?: SaveFilePickerAcceptType[]
+}
+
+type SaveFileWritable = {
+	write: (data: BlobPart) => Promise<void>
+	close: () => Promise<void>
+}
+
+type SaveFileHandle = {
+	createWritable: () => Promise<SaveFileWritable>
+}
+
+type WindowWithSaveFilePicker = Window & {
+	showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<SaveFileHandle>
+}
+
 const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 	if (a.length !== b.length) return false
 	return a.every((move, index) => {
@@ -834,9 +857,29 @@ function AppContent({ onNavigate }: AppContentProps) {
 					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
 			const filename = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
-			const isEmbeddedApp = typeof discordSdk?.channelId === 'string' && /^\d{17,20}$/.test(discordSdk.channelId)
+			const isMockSdk = '_updateCommandMocks' in discordSdk
+			const showSaveFilePicker = (window as WindowWithSaveFilePicker).showSaveFilePicker
 
-			if (isEmbeddedApp) {
+			if (typeof showSaveFilePicker === 'function') {
+				const handle = await showSaveFilePicker({
+					suggestedName: filename,
+					types: [
+						{
+							description: 'Smart Game Format',
+							accept: {
+								'application/x-go-sgf': ['.sgf'],
+								'text/plain': ['.sgf']
+							}
+						}
+					]
+				})
+				const writable = await handle.createWritable()
+				await writable.write(sgf)
+				await writable.close()
+				return
+			}
+
+			if (!isMockSdk) {
 				if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
 					await navigator.clipboard.writeText(sgf)
 					window.alert(
@@ -864,7 +907,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, currentLineMoves, discordSdk.commands, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, isSeatMode, moveTree])
+	}, [boardSize, currentLineMoves, discordSdk, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, isSeatMode, moveTree])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
