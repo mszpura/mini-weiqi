@@ -21,7 +21,7 @@ export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
 				<aside className="game-info-panel" id="game-info-panel">
 					<div className="game-options-panel-title">Info</div>
 					<div className="game-options-panel-group game-info-panel-group">
-						<div className="game-board-size-label">Normal mode</div>
+						<div className="game-board-size-label">Classic GO</div>
 						<p className="game-info-text">
 							At least two players are required, and they must take seats as Black and White before playing. Each player
 							controls one color and plays only on their own turn. You can pass when it is your turn, resign if you want
@@ -53,9 +53,9 @@ export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
 					<div className="game-options-panel-group game-info-panel-group">
 						<div className="game-board-size-label">Time limit</div>
 						<p className="game-info-text">
-							Time limits are used in Normal mode only. With Fisher time, each player starts with the selected main
-							time, and after every move or pass that player receives the increment bonus. If your clock reaches zero,
-							you lose on time.
+							Time limits are used in Classic GO or One color GO. With Fisher time, each player starts with the selected
+							main time, and after every move or pass that player receives the increment bonus. If your clock reaches
+							zero, you lose on time.
 						</p>
 					</div>
 					<div className="game-info-divider" />

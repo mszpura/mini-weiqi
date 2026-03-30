@@ -414,6 +414,27 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setWhitePlayer
 	])
 
+	const handleStartNewGame = useCallback(() => {
+		setMoveTree(createEmptyMoveTree())
+		setCurrentMoveId(ROOT_MOVE_ID)
+		setMoves([])
+		setDisplayedMoveCount(0)
+		setGameResult(null)
+		setBlackPlayer(null)
+		setWhitePlayer(null)
+		setGameStarted(false)
+		setGameClock(null)
+	}, [
+		setBlackPlayer,
+		setCurrentMoveId,
+		setGameClock,
+		setGameResult,
+		setGameStarted,
+		setMoveTree,
+		setMoves,
+		setWhitePlayer
+	])
+
 	const handleHandicapChange = useCallback(
 		(nextHandicapStones: number) => {
 			if (nextHandicapStones === handicapStones) return
@@ -895,6 +916,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onTimeLimitChange={handleTimeLimitChange}
 					gameStarted={gameStarted}
 					onStartGame={handleStartGame}
+					onStartNewGame={handleStartNewGame}
 					moves={shownMoves}
 					moveTree={moveTree}
 					currentMoveId={currentMoveId}

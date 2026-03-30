@@ -35,6 +35,7 @@ type GameBoardProps = {
 	onTimeLimitChange: (timeLimit: GameTimeLimit) => void
 	gameStarted: boolean
 	onStartGame: () => void
+	onStartNewGame: () => void
 	moves: GameMove[]
 	moveTree: Record<string, MoveTreeNode>
 	currentMoveId: string
@@ -81,6 +82,7 @@ export const GameBoard = ({
 	onTimeLimitChange,
 	gameStarted,
 	onStartGame,
+	onStartNewGame,
 	moves,
 	moveTree,
 	currentMoveId,
@@ -249,7 +251,7 @@ export const GameBoard = ({
 	const showDownloadSgfInOptions = gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveNumber = moves.length
-	const shouldShowSetupOptions = !gameStarted || Boolean(gameResult)
+	const shouldShowSetupOptions = !gameStarted
 	const winnerLabel =
 		gameResult?.winner === 'draw' ? 'Draw' : `${gameResult?.winner === 'black' ? 'Black' : 'White'} wins`
 	const scoreLabel = gameResult ? `Black ${gameResult.blackScore} - ${gameResult.whiteScore} White` : null
@@ -432,15 +434,17 @@ export const GameBoard = ({
 						/>
 					) : null}
 					{gameResult ? (
-						<GameResultPopup
-							winnerLabel={winnerLabel}
-							scoreLabel={scoreLabel}
-							reasonLabel={reasonLabel}
-							showDownloadSgf={showDownloadSgf}
-							onDownloadSgf={onDownloadSgf}
-						/>
-					) : null}
-				</div>
+							<GameResultPopup
+								winnerLabel={winnerLabel}
+								scoreLabel={scoreLabel}
+								reasonLabel={reasonLabel}
+								showDownloadSgf={showDownloadSgf}
+								onDownloadSgf={onDownloadSgf}
+								showStartNewGame={isSeatMode}
+								onStartNewGame={onStartNewGame}
+							/>
+						) : null}
+					</div>
 			) : null}
 			<div className="game-side-slot">
 				{showClocks ? (
