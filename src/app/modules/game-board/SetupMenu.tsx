@@ -4,6 +4,7 @@ import {
 	type GameTimeLimit,
 	type OneColorStoneColor
 } from '../../models/game'
+import { featureFlags } from '../../config/featureFlags'
 
 type SetupMenuProps = {
 	gameMode: GameMode
@@ -46,11 +47,11 @@ export const SetupMenu = ({
 					onChange={(event) => onGameModeChange(event.target.value as GameMode)}
 				>
 					<option value="normal">Classic GO</option>
-					<option value="one-color">One Color GO</option>
+					{featureFlags.oneColorGo ? <option value="one-color">One Color GO</option> : null}
 					<option value="shared">Shared Game</option>
 				</select>
 			</div>
-			{gameMode === 'one-color' ? (
+			{featureFlags.oneColorGo && gameMode === 'one-color' ? (
 				<div className="game-options-panel-group">
 					<div className="game-board-size-label">Display stone color</div>
 					<select
@@ -77,7 +78,7 @@ export const SetupMenu = ({
 					<option value={19}>19x19</option>
 				</select>
 			</div>
-			{gameMode === 'normal' || gameMode === 'one-color' ? (
+			{gameMode === 'normal' || (featureFlags.oneColorGo && gameMode === 'one-color') ? (
 				<div className="game-options-panel-group">
 					<div className="game-board-size-label">Time limit</div>
 					<select

@@ -1,3 +1,5 @@
+import { featureFlags } from '../../config/featureFlags'
+
 type InfoMenuProps = {
 	isOpen: boolean
 	onToggle: () => void
@@ -35,14 +37,18 @@ export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
 							from the Options menu.
 						</p>
 					</div>
-					<div className="game-info-divider" />
-					<div className="game-options-panel-group game-info-panel-group">
-						<div className="game-board-size-label">One Color GO</div>
-						<p className="game-info-text">
-							Play with normal Black/White turn order and full Go rules, but render every stone in a single selected
-							color. This mode is intentionally visual-only, so players must remember who played each move.
-						</p>
-					</div>
+					{featureFlags.oneColorGo ? (
+						<>
+							<div className="game-info-divider" />
+							<div className="game-options-panel-group game-info-panel-group">
+								<div className="game-board-size-label">One Color GO</div>
+								<p className="game-info-text">
+									Play with normal Black/White turn order and full Go rules, but render every stone in a single selected
+									color. This mode is intentionally visual-only, so players must remember who played each move.
+								</p>
+							</div>
+						</>
+					) : null}
 					<div className="game-info-divider" />
 					<div className="game-options-panel-group game-info-panel-group">
 						<div className="game-board-size-label">Time limit</div>

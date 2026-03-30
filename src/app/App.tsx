@@ -18,6 +18,7 @@ import {
 import type { PlayerSlot } from './models/player'
 import { parseSgfContent, serializeSgfContent, serializeSgfTreeContent } from './models/sgf'
 import './App.css'
+import { featureFlags } from './config/featureFlags'
 import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
 import { PrivacyPolicyPage } from './modules/legal/PrivacyPolicyPage'
@@ -158,6 +159,9 @@ const getMainLineLeafFromNode = (moveTree: Record<string, MoveTreeNode>, startNo
 	}
 }
 
+const normalizeGameMode = (mode: GameMode): GameMode =>
+	featureFlags.oneColorGo || mode !== 'one-color' ? mode : 'normal'
+
 const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 	if (a.length !== b.length) return false
 	return a.every((move, index) => {
@@ -197,7 +201,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [showGameBoard, setShowGameBoard] = useSyncState(false, syncKeys.gameBoard)
 	const [boardSize, setBoardSize] = useSyncState(19, syncKeys.boardSize)
 	const [handicapStones, setHandicapStones] = useSyncState(0, syncKeys.handicapStones)
-	const [gameMode, setGameMode] = useSyncState<GameMode>('normal', syncKeys.gameMode)
+	const [storedGameMode, setStoredGameMode] = useSyncState<GameMode>('normal', syncKeys.gameMode)
 	const [gameStarted, setGameStarted] = useSyncState(false, syncKeys.gameStarted)
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.blackPlayer)
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
@@ -231,6 +235,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const areBothSeatsTaken = Boolean(blackPlayer && whitePlayer)
 	const isUnauthenticated = !session?.user?.id
 	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
+	const gameMode = normalizeGameMode(storedGameMode)
 	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
 	const fisherClockConfig = isSeatMode ? getFisherClockConfig(timeLimit) : null
 	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
@@ -240,6 +245,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 		() => currentLineMoves.slice(0, Math.max(0, Math.min(currentLineLength, displayedMoveCount))),
 		[currentLineLength, currentLineMoves, displayedMoveCount]
 	)
+
+	useEffect(() => {
+		if (featureFlags.oneColorGo) return
+		if (storedGameMode !== 'one-color') return
+		setStoredGameMode('normal')
+	}, [setStoredGameMode, storedGameMode])
 
 	const handleJoinBlack = () => {
 		if (!gameStarted) return
@@ -877,7 +888,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onJoinWhite={handleJoinWhite}
 					playerColor={playerColor}
 					gameMode={gameMode}
-					onGameModeChange={setGameMode}
+					onGameModeChange={(mode) => setStoredGameMode(normalizeGameMode(mode))}
 					oneColorStoneColor={oneColorStoneColor}
 					onOneColorStoneColorChange={setOneColorStoneColor}
 					timeLimit={timeLimit}
