@@ -1026,56 +1026,6 @@ $board-darker-color: hsl(41, 36%, 40%);
 		stroke: black;
 	}
 
-	&.tenuki-board.one-color-mode--black {
-		.intersection.black .stone,
-		.intersection.white .stone {
-			fill: black;
-			stroke: black;
-		}
-
-		.intersection.occupied.white .stone,
-		.intersection.hovered.white .stone,
-		.intersection.dead.white .stone {
-			fill: #16110d;
-			stroke: black;
-			stroke-width: 0.7;
-			paint-order: stroke fill;
-			filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 1px rgba(255, 255, 255, 0.2))
-				saturate(1.15) contrast(1.18);
-		}
-
-		.intersection.black .marker,
-		.intersection.white .marker {
-			fill: white;
-		}
-	}
-
-	&.tenuki-board.one-color-mode--white {
-		.intersection.black .stone,
-		.intersection.white .stone {
-			fill: #f6f0e4;
-			stroke: rgba(178, 157, 122, 0.72);
-			stroke-width: 0.7;
-			paint-order: stroke fill;
-		}
-
-		.intersection.occupied.black .stone,
-		.intersection.hovered.black .stone,
-		.intersection.dead.black .stone {
-			fill: #f6f0e4;
-			stroke: rgba(178, 157, 122, 0.72);
-			stroke-width: 0.7;
-			paint-order: stroke fill;
-			filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28)) drop-shadow(0 0 2px rgba(180, 210, 255, 0.28))
-				brightness(1.03) contrast(1.01);
-		}
-
-		.intersection.black .marker,
-		.intersection.white .marker {
-			fill: black;
-		}
-	}
-
 	&.tenuki-board-nonflat .intersection.hovered.black .stone,
 	&.tenuki-board-nonflat .intersection.hovered.white .stone {
 		filter: none !important;
@@ -1105,6 +1055,52 @@ $board-darker-color: hsl(41, 36%, 40%);
 	&.tenuki-board-nonflat .intersection.dead.white .stone,
 	&.tenuki-board-nonflat .intersection.hovered.white .stone {
 		stroke: #dedede;
+	}
+
+	&.tenuki-board.one-color-mode--black {
+		.intersection.black .stone,
+		.intersection.white .stone,
+		.intersection.occupied.black .stone,
+		.intersection.occupied.white .stone,
+		.intersection.hovered.black .stone,
+		.intersection.hovered.white .stone,
+		.intersection.dead.black .stone,
+		.intersection.dead.white .stone {
+			fill: #16110d !important;
+			stroke: black !important;
+			stroke-width: 0.7;
+			paint-order: stroke fill;
+			filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 1px rgba(255, 255, 255, 0.2)) saturate(1.15)
+				contrast(1.18) !important;
+		}
+
+		.intersection.black .marker,
+		.intersection.white .marker {
+			fill: white;
+		}
+	}
+
+	&.tenuki-board.one-color-mode--white {
+		.intersection.black .stone,
+		.intersection.white .stone,
+		.intersection.occupied.black .stone,
+		.intersection.occupied.white .stone,
+		.intersection.hovered.black .stone,
+		.intersection.hovered.white .stone,
+		.intersection.dead.black .stone,
+		.intersection.dead.white .stone {
+			fill: #f6f0e4 !important;
+			stroke: rgba(178, 157, 122, 0.72) !important;
+			stroke-width: 0.7;
+			paint-order: stroke fill;
+			filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28)) drop-shadow(0 0 2px rgba(180, 210, 255, 0.28))
+				brightness(1.03) contrast(1.01) !important;
+		}
+
+		.intersection.black .marker,
+		.intersection.white .marker {
+			fill: black;
+		}
 	}
 
 	&.tenuki-board-nonflat.tenuki-fuzzy-placement .intersection.occupied,
