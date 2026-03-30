@@ -860,6 +860,36 @@ function AppContent({ onNavigate }: AppContentProps) {
 		moveTree
 	])
 
+	const sgfLinkHref = useMemo(() => {
+		if (!gameStarted) return null
+		if (isSeatMode && !effectiveGameResult) return null
+
+		try {
+			const sgf =
+				gameMode === 'shared'
+					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
+					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
+			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
+			return window.URL.createObjectURL(file)
+		} catch {
+			return null
+		}
+	}, [
+		boardSize,
+		currentLineMoves,
+		effectiveGameResult,
+		effectiveHandicapStones,
+		gameMode,
+		gameStarted,
+		isSeatMode,
+		moveTree
+	])
+
+	useEffect(() => {
+		if (!sgfLinkHref) return
+		return () => window.URL.revokeObjectURL(sgfLinkHref)
+	}, [sgfLinkHref])
+
 	const handleCopySgf = useCallback(async () => {
 		if (!gameStarted) return
 		if (isSeatMode && !effectiveGameResult) return
@@ -978,6 +1008,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onImportSgf={handleImportSgf}
 					onDownloadSgf={handleDownloadSgf}
 					onCopySgf={handleCopySgf}
+					sgfLinkHref={sgfLinkHref}
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}

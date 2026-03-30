@@ -56,6 +56,7 @@ type GameBoardProps = {
 	onImportSgf: () => void
 	onDownloadSgf: () => void
 	onCopySgf: () => void
+	sgfLinkHref: string | null
 	gameResult: GameResult | null
 	blackTimeMs: number | null
 	whiteTimeMs: number | null
@@ -104,6 +105,7 @@ export const GameBoard = ({
 	onImportSgf,
 	onDownloadSgf,
 	onCopySgf,
+	sgfLinkHref,
 	gameResult,
 	blackTimeMs,
 	whiteTimeMs,
@@ -251,10 +253,13 @@ export const GameBoard = ({
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
 	const showSgfCopyButton = featureFlags.sgfExportMode === 'copyToClipboard'
+	const showSgfLinkButton = featureFlags.sgfExportMode === 'link'
 	const showDownloadSgf = showSgfDownloadButton && gameStarted && isSeatMode && Boolean(gameResult)
 	const showCopySgf = showSgfCopyButton && gameStarted && isSeatMode && Boolean(gameResult)
+	const showLinkSgf = showSgfLinkButton && gameStarted && isSeatMode && Boolean(gameResult)
 	const showDownloadSgfInOptions = showSgfDownloadButton && gameStarted && gameMode === 'shared'
 	const showCopySgfInOptions = showSgfCopyButton && gameStarted && gameMode === 'shared'
+	const showLinkSgfInOptions = showSgfLinkButton && gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveNumber = moves.length
 	const shouldShowSetupOptions = !gameStarted
@@ -448,6 +453,8 @@ export const GameBoard = ({
 								onDownloadSgf={onDownloadSgf}
 								showCopySgfButton={showCopySgf}
 								onCopySgf={onCopySgf}
+								showSgfLinkButton={showLinkSgf}
+								sgfLinkHref={sgfLinkHref}
 								showStartNewGame={isSeatMode}
 								onStartNewGame={onStartNewGame}
 							/>
@@ -519,6 +526,8 @@ export const GameBoard = ({
 				onDownloadSgf={onDownloadSgf}
 				showCopySgfButton={showCopySgfInOptions}
 				onCopySgf={onCopySgf}
+				showSgfLinkButton={showLinkSgfInOptions}
+				sgfLinkHref={sgfLinkHref}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>
