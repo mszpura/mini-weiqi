@@ -551,12 +551,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	useEffect(() => {
 		if (gameMode === 'shared') return
-		if (currentMoveId === ROOT_MOVE_ID) return
-		const rootNode = moveTree[ROOT_MOVE_ID]
-		if (!rootNode) return
-		const mainLineChild = rootNode.childrenIds[0]
-		if (!mainLineChild) return
-		setCurrentMoveId(mainLineChild)
+		const latestMoveId = getMainLineLeafFromNode(moveTree, ROOT_MOVE_ID)
+		if (currentMoveId === latestMoveId) return
+		setCurrentMoveId(latestMoveId)
 	}, [currentMoveId, gameMode, moveTree, setCurrentMoveId])
 
 	useEffect(() => {
