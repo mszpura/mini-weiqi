@@ -37,6 +37,18 @@ export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
 							from the Options menu.
 						</p>
 					</div>
+					{featureFlags.sgfExportMode === 'link' ? (
+						<>
+							<div className="game-info-divider" />
+							<div className="game-options-panel-group game-info-panel-group">
+								<div className="game-board-size-label">SGF Link</div>
+								<p className="game-info-text">
+									Discord currently blocks direct file download inside embedded apps. Use the SGF Link button and
+									choose &quot;Open in new window/tab&quot; to export SGF.
+								</p>
+							</div>
+						</>
+					) : null}
 					{featureFlags.oneColorGo ? (
 						<>
 							<div className="game-info-divider" />
