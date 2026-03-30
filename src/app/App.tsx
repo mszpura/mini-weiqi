@@ -823,7 +823,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setTimeLimit('no-limit')
 	}, [gameStarted, isSeatMode, setTimeLimit, timeLimit])
 
-	const handleDownloadSgf = useCallback(() => {
+	const handleDownloadSgf = useCallback(async () => {
 		if (!gameStarted) return
 		if (isSeatMode && !effectiveGameResult) return
 
@@ -832,12 +832,30 @@ function AppContent({ onNavigate }: AppContentProps) {
 				gameMode === 'shared'
 					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
 					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
+			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+			const filename = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
+			const isEmbeddedApp = new URLSearchParams(window.location.search).get('frame_id') != null
+
+			if (isEmbeddedApp) {
+				if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+					await navigator.clipboard.writeText(sgf)
+					window.alert(
+						'Discord embedded apps block direct file downloads. SGF content was copied to your clipboard. Paste it into a local file ending with .sgf.'
+					)
+					return
+				}
+
+				const dataUrl = `data:application/x-go-sgf;charset=utf-8,${encodeURIComponent(sgf)}`
+				await discordSdk.commands.openExternalLink({ url: dataUrl })
+				window.alert(`Opened SGF in your browser. Save the page content as ${filename}.`)
+				return
+			}
+
 			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
 			const url = window.URL.createObjectURL(file)
-			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
 			const link = document.createElement('a')
 			link.href = url
-			link.download = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
+			link.download = filename
 			document.body.append(link)
 			link.click()
 			link.remove()
@@ -846,7 +864,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
 			window.alert(message)
 		}
-	}, [boardSize, currentLineMoves, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, isSeatMode, moveTree])
+	}, [boardSize, currentLineMoves, discordSdk.commands, effectiveGameResult, effectiveHandicapStones, gameMode, gameStarted, isSeatMode, moveTree])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
