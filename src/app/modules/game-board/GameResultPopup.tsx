@@ -6,6 +6,7 @@ type GameResultPopupProps = {
 	showAiSenseiButton: boolean
 	sgfLinkHref: string | null
 	aiSenseiUploadHref: string | null
+	onOpenAiSensei: () => void
 	sgfDownloadFileName: string
 	showStartNewGame: boolean
 	onStartNewGame: () => void
@@ -19,6 +20,7 @@ export const GameResultPopup = ({
 	showAiSenseiButton,
 	sgfLinkHref,
 	aiSenseiUploadHref,
+	onOpenAiSensei,
 	sgfDownloadFileName,
 	showStartNewGame,
 	onStartNewGame
@@ -40,14 +42,9 @@ export const GameResultPopup = ({
 				</a>
 			) : null}
 			{showAiSenseiButton && aiSenseiUploadHref ? (
-				<a
-					className="game-side-button game-side-button--download"
-					href={aiSenseiUploadHref}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<button className="game-side-button game-side-button--download" type="button" onClick={onOpenAiSensei}>
 					Open in AI Sensei
-				</a>
+				</button>
 			) : null}
 			{showStartNewGame ? (
 				<button className="game-side-button game-side-button--start" type="button" onClick={onStartNewGame}>

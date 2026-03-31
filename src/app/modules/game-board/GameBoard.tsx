@@ -56,6 +56,7 @@ type GameBoardProps = {
 	onImportSgf: () => void
 	sgfLinkHref: string | null
 	aiSenseiUploadHref: string | null
+	onOpenAiSensei: () => void
 	sgfDownloadFileName: string
 	gameResult: GameResult | null
 	blackTimeMs: number | null
@@ -105,6 +106,7 @@ export const GameBoard = ({
 	onImportSgf,
 	sgfLinkHref,
 	aiSenseiUploadHref,
+	onOpenAiSensei,
 	sgfDownloadFileName,
 	gameResult,
 	blackTimeMs,
@@ -450,6 +452,7 @@ export const GameBoard = ({
 								showAiSenseiButton={showAiSenseiSgf}
 								sgfLinkHref={sgfLinkHref}
 								aiSenseiUploadHref={aiSenseiUploadHref}
+								onOpenAiSensei={onOpenAiSensei}
 								sgfDownloadFileName={sgfDownloadFileName}
 								showStartNewGame={isSeatMode}
 								onStartNewGame={onStartNewGame}
@@ -522,6 +525,7 @@ export const GameBoard = ({
 				showAiSenseiButton={showAiSenseiSgfInOptions}
 				sgfLinkHref={sgfLinkHref}
 				aiSenseiUploadHref={aiSenseiUploadHref}
+				onOpenAiSensei={onOpenAiSensei}
 				sgfDownloadFileName={sgfDownloadFileName}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}

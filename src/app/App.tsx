@@ -886,6 +886,19 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return `https://ai-sensei.com/upload?${params.toString()}`
 	}, [getCurrentSgfContent])
 
+	const handleOpenAiSensei = useCallback(async () => {
+		if (!aiSenseiUploadHref) return
+
+		try {
+			await discordSdk.commands.openExternalLink({
+				url: aiSenseiUploadHref
+			})
+		} catch (error) {
+			console.error('Failed to open AI Sensei via Discord SDK.', error)
+			window.open(aiSenseiUploadHref, '_blank', 'noopener,noreferrer')
+		}
+	}, [aiSenseiUploadHref, discordSdk])
+
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
 		setCurrentMoveId(ROOT_MOVE_ID)
@@ -975,6 +988,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onImportSgf={handleImportSgf}
 					sgfLinkHref={sgfLinkHref}
 					aiSenseiUploadHref={aiSenseiUploadHref}
+					onOpenAiSensei={handleOpenAiSensei}
 					sgfDownloadFileName={sgfDownloadFileName}
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}

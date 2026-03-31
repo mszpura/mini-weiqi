@@ -23,6 +23,7 @@ type RightOptionsMenuProps = {
 	showAiSenseiButton: boolean
 	sgfLinkHref: string | null
 	aiSenseiUploadHref: string | null
+	onOpenAiSensei: () => void
 	sgfDownloadFileName: string
 	canShowExitMode: boolean
 	onExitMode: () => void
@@ -50,6 +51,7 @@ export const RightOptionsMenu = ({
 	showAiSenseiButton,
 	sgfLinkHref,
 	aiSenseiUploadHref,
+	onOpenAiSensei,
 	sgfDownloadFileName,
 	canShowExitMode,
 	onExitMode
@@ -131,14 +133,9 @@ export const RightOptionsMenu = ({
 									</a>
 								) : null}
 								{showAiSenseiButton && aiSenseiUploadHref ? (
-									<a
-										className="game-side-button game-side-button--download"
-										href={aiSenseiUploadHref}
-										target="_blank"
-										rel="noopener noreferrer"
-									>
+									<button className="game-side-button game-side-button--download" type="button" onClick={onOpenAiSensei}>
 										Open in AI Sensei
-									</a>
+									</button>
 								) : null}
 								{canShowExitMode ? (
 									<button className="game-return-button" type="button" onClick={onExitMode}>
