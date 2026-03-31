@@ -54,9 +54,8 @@ type GameBoardProps = {
 	onPassTurn: () => void
 	onResign: () => void
 	onImportSgf: () => void
-	onDownloadSgf: () => void
-	onCopySgf: () => void
 	sgfLinkHref: string | null
+	aiSenseiUploadHref: string | null
 	sgfDownloadFileName: string
 	gameResult: GameResult | null
 	blackTimeMs: number | null
@@ -104,9 +103,8 @@ export const GameBoard = ({
 	onPassTurn,
 	onResign,
 	onImportSgf,
-	onDownloadSgf,
-	onCopySgf,
 	sgfLinkHref,
+	aiSenseiUploadHref,
 	sgfDownloadFileName,
 	gameResult,
 	blackTimeMs,
@@ -254,14 +252,11 @@ export const GameBoard = ({
 		gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
-	const showSgfCopyButton = featureFlags.sgfExportMode === 'copyToClipboard'
-	const showSgfLinkButton = featureFlags.sgfExportMode === 'link'
+	const showSgfAiSenseiButton = featureFlags.sgfExportMode === 'aiSensei'
 	const showDownloadSgf = showSgfDownloadButton && gameStarted && isSeatMode && Boolean(gameResult)
-	const showCopySgf = showSgfCopyButton && gameStarted && isSeatMode && Boolean(gameResult)
-	const showLinkSgf = showSgfLinkButton && gameStarted && isSeatMode && Boolean(gameResult)
+	const showAiSenseiSgf = showSgfAiSenseiButton && gameStarted && isSeatMode && Boolean(gameResult)
 	const showDownloadSgfInOptions = showSgfDownloadButton && gameStarted && gameMode === 'shared'
-	const showCopySgfInOptions = showSgfCopyButton && gameStarted && gameMode === 'shared'
-	const showLinkSgfInOptions = showSgfLinkButton && gameStarted && gameMode === 'shared'
+	const showAiSenseiSgfInOptions = showSgfAiSenseiButton && gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveNumber = moves.length
 	const shouldShowSetupOptions = !gameStarted
@@ -452,11 +447,9 @@ export const GameBoard = ({
 								scoreLabel={scoreLabel}
 								reasonLabel={reasonLabel}
 								showDownloadSgfButton={showDownloadSgf}
-								onDownloadSgf={onDownloadSgf}
-								showCopySgfButton={showCopySgf}
-								onCopySgf={onCopySgf}
-								showSgfLinkButton={showLinkSgf}
+								showAiSenseiButton={showAiSenseiSgf}
 								sgfLinkHref={sgfLinkHref}
+								aiSenseiUploadHref={aiSenseiUploadHref}
 								sgfDownloadFileName={sgfDownloadFileName}
 								showStartNewGame={isSeatMode}
 								onStartNewGame={onStartNewGame}
@@ -526,11 +519,9 @@ export const GameBoard = ({
 				showImportSgf={showImportSgf}
 				onImportSgf={onImportSgf}
 				showDownloadSgfButton={showDownloadSgfInOptions}
-				onDownloadSgf={onDownloadSgf}
-				showCopySgfButton={showCopySgfInOptions}
-				onCopySgf={onCopySgf}
-				showSgfLinkButton={showLinkSgfInOptions}
+				showAiSenseiButton={showAiSenseiSgfInOptions}
 				sgfLinkHref={sgfLinkHref}
+				aiSenseiUploadHref={aiSenseiUploadHref}
 				sgfDownloadFileName={sgfDownloadFileName}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}

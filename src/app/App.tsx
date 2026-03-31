@@ -826,40 +826,6 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setTimeLimit('no-limit')
 	}, [gameStarted, isSeatMode, setTimeLimit, timeLimit])
 
-	const handleDownloadSgf = useCallback(() => {
-		if (!gameStarted) return
-		if (isSeatMode && !effectiveGameResult) return
-
-		try {
-			const sgf =
-				gameMode === 'shared'
-					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
-					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
-			const file = new Blob([sgf], { type: 'application/x-go-sgf;charset=utf-8' })
-			const url = window.URL.createObjectURL(file)
-			const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-			const link = document.createElement('a')
-			link.href = url
-			link.download = `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
-			document.body.append(link)
-			link.click()
-			link.remove()
-			window.URL.revokeObjectURL(url)
-		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Failed to generate SGF file.'
-			window.alert(message)
-		}
-	}, [
-		boardSize,
-		currentLineMoves,
-		effectiveGameResult,
-		effectiveHandicapStones,
-		gameMode,
-		gameStarted,
-		isSeatMode,
-		moveTree
-	])
-
 	const sgfLinkHref = useMemo(() => {
 		if (!gameStarted) return null
 		if (isSeatMode && !effectiveGameResult) return null
@@ -895,24 +861,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return `mini-weiqi-${boardSize}x${boardSize}-${timestamp}.sgf`
 	}, [boardSize])
 
-	const handleCopySgf = useCallback(async () => {
+	const getCurrentSgfContent = useCallback(() => {
 		if (!gameStarted) return
 		if (isSeatMode && !effectiveGameResult) return
 
-		try {
-			const sgf =
-				gameMode === 'shared'
-					? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
-					: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
-			if (!navigator.clipboard) {
-				throw new Error('Clipboard is not available in this browser.')
-			}
-			await navigator.clipboard.writeText(sgf)
-			window.alert('SGF copied to clipboard.')
-		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Failed to copy SGF to clipboard.'
-			window.alert(message)
-		}
+		return gameMode === 'shared'
+			? serializeSgfTreeContent(boardSize, moveTree, ROOT_MOVE_ID, effectiveHandicapStones)
+			: serializeSgfContent(boardSize, currentLineMoves, effectiveHandicapStones)
 	}, [
 		boardSize,
 		currentLineMoves,
@@ -923,6 +878,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		isSeatMode,
 		moveTree
 	])
+
+	const aiSenseiUploadHref = useMemo(() => {
+		const sgf = getCurrentSgfContent()
+		if (!sgf) return null
+		const params = new URLSearchParams({ sgf })
+		return `https://ai-sensei.com/upload?${params.toString()}`
+	}, [getCurrentSgfContent])
 
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
@@ -1011,9 +973,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}
 					onImportSgf={handleImportSgf}
-					onDownloadSgf={handleDownloadSgf}
-					onCopySgf={handleCopySgf}
 					sgfLinkHref={sgfLinkHref}
+					aiSenseiUploadHref={aiSenseiUploadHref}
 					sgfDownloadFileName={sgfDownloadFileName}
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}

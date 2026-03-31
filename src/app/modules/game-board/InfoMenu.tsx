@@ -37,14 +37,13 @@ export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
 							from the Options menu.
 						</p>
 					</div>
-					{featureFlags.sgfExportMode === 'link' ? (
+					{featureFlags.sgfExportMode === 'aiSensei' ? (
 						<>
 							<div className="game-info-divider" />
 							<div className="game-options-panel-group game-info-panel-group">
-								<div className="game-board-size-label">SGF Link</div>
+								<div className="game-board-size-label">AI Sensei Export</div>
 								<p className="game-info-text">
-									Discord currently blocks direct file download inside embedded apps. Use the SGF Link button and
-									choose &quot;Open in new window/tab&quot; to export SGF.
+									Use the Open in AI Sensei action to upload your current SGF to AI Sensei in a new tab for review.
 								</p>
 							</div>
 						</>

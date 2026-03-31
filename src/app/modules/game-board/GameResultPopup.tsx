@@ -3,11 +3,9 @@ type GameResultPopupProps = {
 	scoreLabel: string | null
 	reasonLabel: string | null
 	showDownloadSgfButton: boolean
-	onDownloadSgf: () => void
-	showCopySgfButton: boolean
-	onCopySgf: () => void
-	showSgfLinkButton: boolean
+	showAiSenseiButton: boolean
 	sgfLinkHref: string | null
+	aiSenseiUploadHref: string | null
 	sgfDownloadFileName: string
 	showStartNewGame: boolean
 	onStartNewGame: () => void
@@ -18,11 +16,9 @@ export const GameResultPopup = ({
 	scoreLabel,
 	reasonLabel,
 	showDownloadSgfButton,
-	onDownloadSgf,
-	showCopySgfButton,
-	onCopySgf,
-	showSgfLinkButton,
+	showAiSenseiButton,
 	sgfLinkHref,
+	aiSenseiUploadHref,
 	sgfDownloadFileName,
 	showStartNewGame,
 	onStartNewGame
@@ -32,17 +28,7 @@ export const GameResultPopup = ({
 			<div className="game-result-title">{winnerLabel}</div>
 			<div className="game-result-score">{scoreLabel}</div>
 			<div className="game-result-reason">{reasonLabel}</div>
-			{showDownloadSgfButton ? (
-				<button className="game-side-button game-side-button--download" type="button" onClick={onDownloadSgf}>
-					Download SGF
-				</button>
-			) : null}
-			{showCopySgfButton ? (
-				<button className="game-side-button game-side-button--download" type="button" onClick={onCopySgf}>
-					Copy SGF
-				</button>
-			) : null}
-			{showSgfLinkButton && sgfLinkHref ? (
+			{showDownloadSgfButton && sgfLinkHref ? (
 				<a
 					className="game-side-button game-side-button--download"
 					href={sgfLinkHref}
@@ -50,7 +36,17 @@ export const GameResultPopup = ({
 					target="_blank"
 					rel="noopener noreferrer"
 				>
-					SGF Link
+					Download SGF
+				</a>
+			) : null}
+			{showAiSenseiButton && aiSenseiUploadHref ? (
+				<a
+					className="game-side-button game-side-button--download"
+					href={aiSenseiUploadHref}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Open in AI Sensei
 				</a>
 			) : null}
 			{showStartNewGame ? (

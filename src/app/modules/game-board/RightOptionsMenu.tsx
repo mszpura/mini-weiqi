@@ -20,11 +20,9 @@ type RightOptionsMenuProps = {
 	showImportSgf: boolean
 	onImportSgf: () => void
 	showDownloadSgfButton: boolean
-	onDownloadSgf: () => void
-	showCopySgfButton: boolean
-	onCopySgf: () => void
-	showSgfLinkButton: boolean
+	showAiSenseiButton: boolean
 	sgfLinkHref: string | null
+	aiSenseiUploadHref: string | null
 	sgfDownloadFileName: string
 	canShowExitMode: boolean
 	onExitMode: () => void
@@ -49,11 +47,9 @@ export const RightOptionsMenu = ({
 	showImportSgf,
 	onImportSgf,
 	showDownloadSgfButton,
-	onDownloadSgf,
-	showCopySgfButton,
-	onCopySgf,
-	showSgfLinkButton,
+	showAiSenseiButton,
 	sgfLinkHref,
+	aiSenseiUploadHref,
 	sgfDownloadFileName,
 	canShowExitMode,
 	onExitMode
@@ -114,7 +110,7 @@ export const RightOptionsMenu = ({
 							{soundEnabled ? 'Disable sound' : 'Enable sound'}
 						</button>
 					</div>
-					{showImportSgf || showDownloadSgfButton || showCopySgfButton || showSgfLinkButton || canShowExitMode ? (
+					{showImportSgf || showDownloadSgfButton || showAiSenseiButton || canShowExitMode ? (
 						<>
 							<div className="game-options-divider" />
 							<div className="game-board-controls">
@@ -123,17 +119,7 @@ export const RightOptionsMenu = ({
 										Import SGF
 									</button>
 								) : null}
-								{showDownloadSgfButton ? (
-									<button className="game-side-button game-side-button--download" type="button" onClick={onDownloadSgf}>
-										Download SGF
-									</button>
-								) : null}
-								{showCopySgfButton ? (
-									<button className="game-side-button game-side-button--download" type="button" onClick={onCopySgf}>
-										Copy SGF
-									</button>
-								) : null}
-								{showSgfLinkButton && sgfLinkHref ? (
+								{showDownloadSgfButton && sgfLinkHref ? (
 									<a
 										className="game-side-button game-side-button--download"
 										href={sgfLinkHref}
@@ -141,7 +127,17 @@ export const RightOptionsMenu = ({
 										target="_blank"
 										rel="noopener noreferrer"
 									>
-										SGF Link
+										Download SGF
+									</a>
+								) : null}
+								{showAiSenseiButton && aiSenseiUploadHref ? (
+									<a
+										className="game-side-button game-side-button--download"
+										href={aiSenseiUploadHref}
+										target="_blank"
+										rel="noopener noreferrer"
+									>
+										Open in AI Sensei
 									</a>
 								) : null}
 								{canShowExitMode ? (
