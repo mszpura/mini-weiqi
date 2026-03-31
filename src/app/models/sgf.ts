@@ -533,6 +533,9 @@ const getHandicapPlacements = (boardSize: number, handicapStones: number) => {
 	return byBoardSize[handicapStones] ?? null
 }
 
+const SGF_RULESET = 'Japanese'
+const SGF_KOMI = '6.5'
+
 export const serializeSgfContent = (boardSize: number, moves: GameMove[], handicapStones = 0) => {
 	const safeBoardSize = Number.isInteger(boardSize) && boardSize >= 2 && boardSize <= 19 ? boardSize : 19
 	const safeHandicapStones =
@@ -571,7 +574,7 @@ export const serializeSgfContent = (boardSize: number, moves: GameMove[], handic
 		})
 		.join('')
 
-	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${haProperty}${abProperty}${sgfMoves})`
+	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]RU[${SGF_RULESET}]KM[${SGF_KOMI}]${haProperty}${abProperty}${sgfMoves})`
 }
 
 const getMoveColorForDepth = (depth: number, handicapStones: number): 'B' | 'W' => {
@@ -662,5 +665,5 @@ export const serializeSgfTreeContent = (
 		.map((variationId) => `(${serializeMoveTreeLine(moveTree, variationId, 1, safeBoardSize, safeHandicapStones)})`)
 		.join('')
 
-	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]${haProperty}${abProperty}${mainLine}${variations})`
+	return `(;GM[1]FF[4]CA[UTF-8]SZ[${safeBoardSize}]RU[${SGF_RULESET}]KM[${SGF_KOMI}]${haProperty}${abProperty}${mainLine}${variations})`
 }
