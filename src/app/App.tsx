@@ -51,7 +51,7 @@ export default function App() {
 	}
 
 	return (
-		<DiscordContextProvider authenticate scope={['identify', 'guilds']}>
+		<DiscordContextProvider authenticate scope={['identify', 'guilds', 'rpc.activities.write']}>
 			<SyncContextProvider>
 				<AppContent onNavigate={navigateTo} />
 			</SyncContextProvider>
@@ -162,6 +162,17 @@ const getMainLineLeafFromNode = (moveTree: Record<string, MoveTreeNode>, startNo
 const normalizeGameMode = (mode: GameMode): GameMode =>
 	featureFlags.oneColorGo || mode !== 'one-color' ? mode : 'normal'
 
+const getGameModeLabel = (mode: GameMode): string => {
+	switch (mode) {
+		case 'normal':
+			return 'Normal'
+		case 'one-color':
+			return 'One Color'
+		case 'shared':
+			return 'Shared'
+	}
+}
+
 const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 	if (a.length !== b.length) return false
 	return a.every((move, index) => {
@@ -184,6 +195,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			handicapStones: ['handicap-stones', channelKey],
 			gameMode: ['game-mode', channelKey],
 			gameStarted: ['game-started', channelKey],
+			gameStartedAtMs: ['game-started-at-ms', channelKey],
 			blackPlayer: ['player-black', channelKey],
 			whitePlayer: ['player-white', channelKey],
 			moves: ['game-moves', channelKey],
@@ -203,6 +215,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [handicapStones, setHandicapStones] = useSyncState(0, syncKeys.handicapStones)
 	const [storedGameMode, setStoredGameMode] = useSyncState<GameMode>('normal', syncKeys.gameMode)
 	const [gameStarted, setGameStarted] = useSyncState(false, syncKeys.gameStarted)
+	const [gameStartedAtMs, setGameStartedAtMs] = useSyncState<number | null>(null, syncKeys.gameStartedAtMs)
 	const [blackPlayer, setBlackPlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.blackPlayer)
 	const [whitePlayer, setWhitePlayer] = useSyncState<PlayerSlot | null>(null, syncKeys.whitePlayer)
 	const [moves, setMoves] = useSyncState<GameMove[]>([], syncKeys.moves)
@@ -239,7 +252,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const isUnauthenticated = !session?.user?.id
 	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
 	const gameMode = normalizeGameMode(storedGameMode)
+	const gameModeLabel = getGameModeLabel(gameMode)
 	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
+	const playerIds = new Set([blackPlayer?.id, whitePlayer?.id, currentPlayer?.id].filter((id): id is string => Boolean(id)))
+	const playerCount = playerIds.size
+	const maxPartySize = isSeatMode ? 2 : Math.max(playerCount, 8)
 	const fisherClockConfig = isSeatMode ? getFisherClockConfig(timeLimit) : null
 	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
 	const currentLineLength = currentLineMoves.length
@@ -397,6 +414,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	}, [gameMode, gameStarted])
 
 	const handleStartGame = useCallback(() => {
+		const now = Date.now()
 		setMoveTree(createEmptyMoveTree())
 		setCurrentMoveId(ROOT_MOVE_ID)
 		setMoves([])
@@ -405,6 +423,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setBlackPlayer(null)
 		setWhitePlayer(null)
 		setGameClock(null)
+		setGameStartedAtMs(now)
 		setGameStarted(true)
 	}, [
 		setBlackPlayer,
@@ -412,6 +431,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameClock,
 		setGameResult,
 		setGameStarted,
+		setGameStartedAtMs,
 		setMoveTree,
 		setMoves,
 		setWhitePlayer
@@ -425,6 +445,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameResult(null)
 		setBlackPlayer(null)
 		setWhitePlayer(null)
+		setGameStartedAtMs(null)
 		setGameStarted(false)
 		setGameClock(null)
 	}, [
@@ -433,6 +454,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameClock,
 		setGameResult,
 		setGameStarted,
+		setGameStartedAtMs,
 		setMoveTree,
 		setMoves,
 		setWhitePlayer
@@ -448,6 +470,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameResult(null)
 			setBlackPlayer(null)
 			setWhitePlayer(null)
+			setGameStartedAtMs(null)
 			setGameStarted(false)
 			setGameClock(null)
 			setHandicapStones(normalizeHandicapStones(nextHandicapStones))
@@ -459,6 +482,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameClock,
 			setGameResult,
 			setGameStarted,
+			setGameStartedAtMs,
 			setHandicapStones,
 			setMoveTree,
 			setMoves,
@@ -476,6 +500,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameResult(null)
 			setBlackPlayer(null)
 			setWhitePlayer(null)
+			setGameStartedAtMs(null)
 			setGameStarted(false)
 			setGameClock(null)
 			setBoardSize(nextBoardSize)
@@ -491,6 +516,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameClock,
 			setGameResult,
 			setGameStarted,
+			setGameStartedAtMs,
 			setMoveTree,
 			setMoves,
 			setTimeLimit,
@@ -542,6 +568,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameResult(null)
 		setBlackPlayer(null)
 		setWhitePlayer(null)
+		setGameStartedAtMs(null)
 		setGameStarted(false)
 		setGameClock(null)
 	}, [
@@ -550,6 +577,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameClock,
 		setGameResult,
 		setGameStarted,
+		setGameStartedAtMs,
 		setMoveTree,
 		setMoves,
 		setWhitePlayer
@@ -565,6 +593,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameResult(null)
 			setBlackPlayer(null)
 			setWhitePlayer(null)
+			setGameStartedAtMs(null)
 			setGameStarted(false)
 			setGameClock(null)
 			setTimeLimit(nextTimeLimit)
@@ -576,6 +605,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameClock,
 			setGameResult,
 			setGameStarted,
+			setGameStartedAtMs,
 			setMoveTree,
 			setMoves,
 			setTimeLimit,
@@ -585,11 +615,50 @@ function AppContent({ onNavigate }: AppContentProps) {
 	)
 
 	useEffect(() => {
+		if (!gameStarted || gameStartedAtMs) return
+		setGameStartedAtMs(Date.now())
+	}, [gameStarted, gameStartedAtMs, setGameStartedAtMs])
+
+	useEffect(() => {
 		if (gameMode === 'shared') return
 		const latestMoveId = getMainLineLeafFromNode(moveTree, ROOT_MOVE_ID)
 		if (currentMoveId === latestMoveId) return
 		setCurrentMoveId(latestMoveId)
 	}, [currentMoveId, gameMode, moveTree, setCurrentMoveId])
+
+	useEffect(() => {
+		if (session == null) return
+
+		const updatePresence = async () => {
+			const details = showGameBoard
+				? gameStarted
+					? `Mode: ${gameModeLabel}`
+					: `Mode selected: ${gameModeLabel}`
+				: 'In main menu'
+			const state = showGameBoard ? `Players: ${playerCount}` : 'Preparing a match'
+			const largeImageUrl = `${window.location.origin}/logo-discord2.png`
+
+			try {
+				await discordSdk.commands.setActivity({
+					activity: {
+						type: 0,
+						details,
+						state,
+						timestamps: gameStartedAtMs ? { start: Math.floor(gameStartedAtMs / 1000) } : undefined,
+						party: showGameBoard ? { size: [Math.max(playerCount, 1), maxPartySize] } : undefined,
+						assets: {
+							large_image: largeImageUrl,
+							large_text: 'Mini Weiqi'
+						}
+					}
+				})
+			} catch (error) {
+				console.warn('Failed to set Discord Rich Presence.', error)
+			}
+		}
+
+		void updatePresence()
+	}, [discordSdk, gameModeLabel, gameStarted, gameStartedAtMs, maxPartySize, playerCount, session, showGameBoard])
 
 	useEffect(() => {
 		const safeCount = Math.max(0, Math.min(currentLineLength, displayedMoveCount))
