@@ -995,7 +995,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setIsSharingResult(true)
 			const imageBlob = await renderBoardImageBlob({
 				boardElement,
-				captionLines: [winnerLine, scoreLine, playersLine]
+				captionLines: [winnerLine, scoreLine, playersLine],
+				captionPlacement: 'right'
 			})
 			const imageFile = new File([imageBlob], 'mini-weiqi-result.png', { type: 'image/png' })
 			const body = new FormData()

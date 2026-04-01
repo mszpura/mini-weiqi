@@ -7,9 +7,14 @@ type DownloadBoardImageParams = {
 type RenderBoardImageParams = {
 	boardElement: HTMLDivElement
 	captionLines?: string[]
+	captionPlacement?: 'bottom' | 'right'
 }
 
-export const renderBoardImageBlob = async ({ boardElement, captionLines = [] }: RenderBoardImageParams) => {
+export const renderBoardImageBlob = async ({
+	boardElement,
+	captionLines = [],
+	captionPlacement = 'bottom'
+}: RenderBoardImageParams) => {
 	const boardSvg = boardElement.querySelector('svg')
 	if (!(boardSvg instanceof SVGSVGElement)) {
 		throw new Error('Board SVG is not available.')
@@ -91,9 +96,11 @@ export const renderBoardImageBlob = async ({ boardElement, captionLines = [] }: 
 		const width = boardSvg.viewBox.baseVal.width || boardSvg.clientWidth
 		const height = boardSvg.viewBox.baseVal.height || boardSvg.clientHeight
 		const safeCaptionLines = captionLines.map((line) => line.trim()).filter(Boolean)
-		const captionHeight = safeCaptionLines.length > 0 ? 16 + safeCaptionLines.length * 20 : 0
+		const hasCaption = safeCaptionLines.length > 0
+		const captionHeight = hasCaption && captionPlacement === 'bottom' ? 16 + safeCaptionLines.length * 20 : 0
+		const captionPanelWidth = hasCaption && captionPlacement === 'right' ? Math.max(280, Math.floor(width * 0.42)) : 0
 		const canvas = document.createElement('canvas')
-		canvas.width = Math.max(1, Math.floor(width))
+		canvas.width = Math.max(1, Math.floor(width + captionPanelWidth))
 		canvas.height = Math.max(1, Math.floor(height + captionHeight))
 		const context = canvas.getContext('2d')
 		if (!context) {
@@ -102,17 +109,23 @@ export const renderBoardImageBlob = async ({ boardElement, captionLines = [] }: 
 		const boardStyles = window.getComputedStyle(boardElement)
 		context.fillStyle = boardStyles.backgroundColor || '#d2a96f'
 		context.fillRect(0, 0, canvas.width, Math.floor(height))
-		context.drawImage(image, 0, 0, canvas.width, canvas.height)
+		context.drawImage(image, 0, 0, Math.floor(width), Math.floor(height))
 
-		if (safeCaptionLines.length > 0) {
+		if (hasCaption) {
 			context.fillStyle = '#1f1812'
-			context.fillRect(0, Math.floor(height), canvas.width, captionHeight)
+			if (captionPlacement === 'right') {
+				context.fillRect(Math.floor(width), 0, captionPanelWidth, canvas.height)
+			} else {
+				context.fillRect(0, Math.floor(height), canvas.width, captionHeight)
+			}
 			context.fillStyle = '#f8f1e5'
 			context.textAlign = 'left'
 			context.textBaseline = 'top'
-			context.font = '600 16px sans-serif'
+			context.font = '600 18px sans-serif'
+			const textStartX = captionPlacement === 'right' ? Math.floor(width) + 18 : 16
+			const textStartY = captionPlacement === 'right' ? 18 : Math.floor(height) + 10
 			safeCaptionLines.forEach((line, index) => {
-				context.fillText(line, 16, Math.floor(height) + 10 + index * 20)
+				context.fillText(line, textStartX, textStartY + index * 28)
 			})
 		}
 
