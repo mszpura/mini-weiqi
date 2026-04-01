@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDiscordSdk } from '../../../hooks/useDiscordSdk'
 import { featureFlags } from '../../config/featureFlags'
 
@@ -49,6 +49,16 @@ export const Menu = ({ onStart, onOpenPrivacyPolicy, onOpenTermsOfService }: Men
 		}
 	}, [discordSdk, status])
 
+	const handleOpenBuyMeACoffee = useCallback(async () => {
+		const url = 'https://buymeacoffee.com/szpur'
+		try {
+			await discordSdk.commands.openExternalLink({ url })
+		} catch (error) {
+			console.error('Failed to open Buy Me a Coffee via Discord SDK.', error)
+			window.open(url, '_blank', 'noopener,noreferrer')
+		}
+	}, [discordSdk])
+
 	return (
 		<div>
 			<img className="game-title" src="/logo.png" alt="Mini Weiqi" />
@@ -64,9 +74,9 @@ export const Menu = ({ onStart, onOpenPrivacyPolicy, onOpenTermsOfService }: Men
 				)}
 				<div className="discord-username">{username}</div>
 			</div>
-			<a href="https://buymeacoffee.com/szpur" target="_blank" rel="noreferrer">
+			<button type="button" className="menu-legal-link" onClick={() => void handleOpenBuyMeACoffee()}>
 				Buy me a coffee
-			</a>
+			</button>
 			<div className="menu-legal-links">
 				<button type="button" className="menu-legal-link" onClick={onOpenPrivacyPolicy}>
 					Privacy Policy
