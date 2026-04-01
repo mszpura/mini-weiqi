@@ -4,5 +4,6 @@ export const productionFeatureFlags: FeatureFlags = {
 	channelName: false,
 	moveTree: true,
 	oneColorGo: true,
-	sgfExportMode: 'aiSensei'
+	sgfExportMode: 'aiSensei',
+	boardImageExport: false
 }

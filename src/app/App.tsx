@@ -254,7 +254,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const gameMode = normalizeGameMode(storedGameMode)
 	const gameModeLabel = getGameModeLabel(gameMode)
 	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
-	const playerIds = new Set([blackPlayer?.id, whitePlayer?.id, currentPlayer?.id].filter((id): id is string => Boolean(id)))
+	const playerIds = new Set(
+		[blackPlayer?.id, whitePlayer?.id, currentPlayer?.id].filter((id): id is string => Boolean(id))
+	)
 	const playerCount = playerIds.size
 	const maxPartySize = isSeatMode ? 2 : Math.max(playerCount, 8)
 	const fisherClockConfig = isSeatMode ? getFisherClockConfig(timeLimit) : null

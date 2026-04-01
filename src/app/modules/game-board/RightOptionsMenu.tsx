@@ -19,6 +19,8 @@ type RightOptionsMenuProps = {
 	onToggleSound: () => void
 	showImportSgf: boolean
 	onImportSgf: () => void
+	showDownloadBoardImageButton: boolean
+	onDownloadBoardImage: () => void
 	showDownloadSgfButton: boolean
 	showAiSenseiButton: boolean
 	sgfLinkHref: string | null
@@ -47,6 +49,8 @@ export const RightOptionsMenu = ({
 	onToggleSound,
 	showImportSgf,
 	onImportSgf,
+	showDownloadBoardImageButton,
+	onDownloadBoardImage,
 	showDownloadSgfButton,
 	showAiSenseiButton,
 	sgfLinkHref,
@@ -112,7 +116,11 @@ export const RightOptionsMenu = ({
 							{soundEnabled ? 'Disable sound' : 'Enable sound'}
 						</button>
 					</div>
-					{showImportSgf || showDownloadSgfButton || showAiSenseiButton || canShowExitMode ? (
+					{showImportSgf ||
+					showDownloadBoardImageButton ||
+					showDownloadSgfButton ||
+					showAiSenseiButton ||
+					canShowExitMode ? (
 						<>
 							<div className="game-options-divider" />
 							<div className="game-board-controls">
@@ -132,8 +140,21 @@ export const RightOptionsMenu = ({
 										Download SGF
 									</a>
 								) : null}
+								{showDownloadBoardImageButton ? (
+									<button
+										className="game-side-button game-side-button--download"
+										type="button"
+										onClick={onDownloadBoardImage}
+									>
+										Download board image
+									</button>
+								) : null}
 								{showAiSenseiButton && aiSenseiUploadHref ? (
-									<button className="game-side-button game-side-button--download" type="button" onClick={onOpenAiSensei}>
+									<button
+										className="game-side-button game-side-button--download"
+										type="button"
+										onClick={onOpenAiSensei}
+									>
 										Open in AI Sensei
 									</button>
 								) : null}

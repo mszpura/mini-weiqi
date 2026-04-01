@@ -12,6 +12,7 @@ import {
 } from '../../models/game'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
+import { downloadBoardImage } from './logic/downloadBoardImage'
 import { GameResultPopup } from './GameResultPopup'
 import { InfoMenu } from './InfoMenu'
 import { RightOptionsMenu } from './RightOptionsMenu'
@@ -248,11 +249,10 @@ export const GameBoard = ({
 		currentTurn === color
 	const showPassForBlack = gameStarted && isSeatMode && playerColor === 'black'
 	const showPassForWhite = gameStarted && isSeatMode && playerColor === 'white'
-	const showResignForBlack =
-		gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'black' && !gameResult
-	const showResignForWhite =
-		gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
+	const showResignForBlack = gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'black' && !gameResult
+	const showResignForWhite = gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
+	const showDownloadBoardImageInOptions = featureFlags.boardImageExport && gameStarted
 	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
 	const showSgfAiSenseiButton = featureFlags.sgfExportMode === 'aiSensei'
 	const showDownloadSgf = showSgfDownloadButton && gameStarted && isSeatMode && Boolean(gameResult)
@@ -310,6 +310,11 @@ export const GameBoard = ({
 	}
 	const handleToggleInfoPanel = () => {
 		setIsInfoPanelOpen((previous) => !previous)
+	}
+	const handleDownloadBoardImage = () => {
+		const boardElement = boardRef.current
+		if (!boardElement) return
+		downloadBoardImage({ boardElement, boardSize, moveNumber })
 	}
 
 	useEffect(() => {
@@ -444,21 +449,21 @@ export const GameBoard = ({
 						/>
 					) : null}
 					{gameResult ? (
-							<GameResultPopup
-								winnerLabel={winnerLabel}
-								scoreLabel={scoreLabel}
-								reasonLabel={reasonLabel}
-								showDownloadSgfButton={showDownloadSgf}
-								showAiSenseiButton={showAiSenseiSgf}
-								sgfLinkHref={sgfLinkHref}
-								aiSenseiUploadHref={aiSenseiUploadHref}
-								onOpenAiSensei={onOpenAiSensei}
-								sgfDownloadFileName={sgfDownloadFileName}
-								showStartNewGame={isSeatMode}
-								onStartNewGame={onStartNewGame}
-							/>
-						) : null}
-					</div>
+						<GameResultPopup
+							winnerLabel={winnerLabel}
+							scoreLabel={scoreLabel}
+							reasonLabel={reasonLabel}
+							showDownloadSgfButton={showDownloadSgf}
+							showAiSenseiButton={showAiSenseiSgf}
+							sgfLinkHref={sgfLinkHref}
+							aiSenseiUploadHref={aiSenseiUploadHref}
+							onOpenAiSensei={onOpenAiSensei}
+							sgfDownloadFileName={sgfDownloadFileName}
+							showStartNewGame={isSeatMode}
+							onStartNewGame={onStartNewGame}
+						/>
+					) : null}
+				</div>
 			) : null}
 			<div className="game-side-slot">
 				{showClocks ? (
@@ -521,6 +526,8 @@ export const GameBoard = ({
 				onToggleSound={onToggleSound}
 				showImportSgf={showImportSgf}
 				onImportSgf={onImportSgf}
+				showDownloadBoardImageButton={showDownloadBoardImageInOptions}
+				onDownloadBoardImage={handleDownloadBoardImage}
 				showDownloadSgfButton={showDownloadSgfInOptions}
 				showAiSenseiButton={showAiSenseiSgfInOptions}
 				sgfLinkHref={sgfLinkHref}

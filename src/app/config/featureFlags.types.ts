@@ -3,4 +3,5 @@ export type FeatureFlags = {
 	moveTree: boolean
 	oneColorGo: boolean
 	sgfExportMode: 'download' | 'aiSensei'
+	boardImageExport: boolean
 }

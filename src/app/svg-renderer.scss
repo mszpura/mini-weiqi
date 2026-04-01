@@ -1093,8 +1093,8 @@ $board-darker-color: hsl(41, 36%, 40%);
 			stroke: rgba(178, 157, 122, 0.72) !important;
 			stroke-width: 0.7;
 			paint-order: stroke fill;
-			filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28)) drop-shadow(0 0 2px rgba(180, 210, 255, 0.28))
-				brightness(1.03) contrast(1.01) !important;
+			filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28)) drop-shadow(0 0 2px rgba(180, 210, 255, 0.28)) brightness(1.03)
+				contrast(1.01) !important;
 		}
 
 		.intersection.black .marker,
