@@ -4,12 +4,21 @@ type DownloadBoardImageParams = {
 	moveNumber: number
 }
 
-export const downloadBoardImage = ({ boardElement, boardSize, moveNumber }: DownloadBoardImageParams) => {
+type RenderBoardImageParams = {
+	boardElement: HTMLDivElement
+	captionLines?: string[]
+}
+
+export const renderBoardImageBlob = async ({ boardElement, captionLines = [] }: RenderBoardImageParams) => {
 	const boardSvg = boardElement.querySelector('svg')
-	if (!(boardSvg instanceof SVGSVGElement)) return
+	if (!(boardSvg instanceof SVGSVGElement)) {
+		throw new Error('Board SVG is not available.')
+	}
 
 	const styledSvg = boardSvg.cloneNode(true)
-	if (!(styledSvg instanceof SVGSVGElement)) return
+	if (!(styledSvg instanceof SVGSVGElement)) {
+		throw new Error('Failed to clone board SVG.')
+	}
 	const sourceNodes = boardSvg.querySelectorAll('*')
 	const targetNodes = styledSvg.querySelectorAll('*')
 	const styleProperties = [
@@ -71,32 +80,63 @@ export const downloadBoardImage = ({ boardElement, boardSize, moveNumber }: Down
 	const serializedSvg = new XMLSerializer().serializeToString(styledSvg)
 	const svgBlob = new Blob([serializedSvg], { type: 'image/svg+xml;charset=utf-8' })
 	const objectUrl = URL.createObjectURL(svgBlob)
-	const image = new Image()
-	image.onload = () => {
+	const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+		const nextImage = new Image()
+		nextImage.onload = () => resolve(nextImage)
+		nextImage.onerror = () => reject(new Error('Failed to generate board image.'))
+		nextImage.src = objectUrl
+	})
+
+	try {
 		const width = boardSvg.viewBox.baseVal.width || boardSvg.clientWidth
 		const height = boardSvg.viewBox.baseVal.height || boardSvg.clientHeight
+		const safeCaptionLines = captionLines.map((line) => line.trim()).filter(Boolean)
+		const captionHeight = safeCaptionLines.length > 0 ? 16 + safeCaptionLines.length * 20 : 0
 		const canvas = document.createElement('canvas')
 		canvas.width = Math.max(1, Math.floor(width))
-		canvas.height = Math.max(1, Math.floor(height))
+		canvas.height = Math.max(1, Math.floor(height + captionHeight))
 		const context = canvas.getContext('2d')
 		if (!context) {
-			URL.revokeObjectURL(objectUrl)
-			return
+			throw new Error('Failed to create image context.')
 		}
 		const boardStyles = window.getComputedStyle(boardElement)
 		context.fillStyle = boardStyles.backgroundColor || '#d2a96f'
-		context.fillRect(0, 0, canvas.width, canvas.height)
+		context.fillRect(0, 0, canvas.width, Math.floor(height))
 		context.drawImage(image, 0, 0, canvas.width, canvas.height)
-		const pngDataUrl = canvas.toDataURL('image/png')
-		const downloadLink = document.createElement('a')
-		downloadLink.href = pngDataUrl
-		downloadLink.download = `mini-weiqi-board-${boardSize}x${boardSize}-move-${moveNumber}.png`
-		downloadLink.click()
+
+		if (safeCaptionLines.length > 0) {
+			context.fillStyle = '#1f1812'
+			context.fillRect(0, Math.floor(height), canvas.width, captionHeight)
+			context.fillStyle = '#f8f1e5'
+			context.textAlign = 'left'
+			context.textBaseline = 'top'
+			context.font = '600 16px sans-serif'
+			safeCaptionLines.forEach((line, index) => {
+				context.fillText(line, 16, Math.floor(height) + 10 + index * 20)
+			})
+		}
+
+		const pngBlob = await new Promise<Blob>((resolve, reject) => {
+			canvas.toBlob((blob) => {
+				if (!blob) {
+					reject(new Error('Failed to encode board image.'))
+					return
+				}
+				resolve(blob)
+			}, 'image/png')
+		})
+		return pngBlob
+	} finally {
 		URL.revokeObjectURL(objectUrl)
 	}
-	image.onerror = () => {
-		URL.revokeObjectURL(objectUrl)
-		window.alert('Failed to generate board image.')
-	}
-	image.src = objectUrl
+}
+
+export const downloadBoardImage = async ({ boardElement, boardSize, moveNumber }: DownloadBoardImageParams) => {
+	const pngBlob = await renderBoardImageBlob({ boardElement })
+	const downloadLink = document.createElement('a')
+	const fileUrl = URL.createObjectURL(pngBlob)
+	downloadLink.href = fileUrl
+	downloadLink.download = `mini-weiqi-board-${boardSize}x${boardSize}-move-${moveNumber}.png`
+	downloadLink.click()
+	URL.revokeObjectURL(fileUrl)
 }

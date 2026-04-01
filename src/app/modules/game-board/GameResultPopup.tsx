@@ -2,6 +2,9 @@ type GameResultPopupProps = {
 	winnerLabel: string
 	scoreLabel: string | null
 	reasonLabel: string | null
+	showShareResultButton: boolean
+	isSharingResult: boolean
+	onShareResult: () => void
 	showDownloadSgfButton: boolean
 	showAiSenseiButton: boolean
 	sgfLinkHref: string | null
@@ -16,6 +19,9 @@ export const GameResultPopup = ({
 	winnerLabel,
 	scoreLabel,
 	reasonLabel,
+	showShareResultButton,
+	isSharingResult,
+	onShareResult,
 	showDownloadSgfButton,
 	showAiSenseiButton,
 	sgfLinkHref,
@@ -30,6 +36,16 @@ export const GameResultPopup = ({
 			<div className="game-result-title">{winnerLabel}</div>
 			<div className="game-result-score">{scoreLabel}</div>
 			<div className="game-result-reason">{reasonLabel}</div>
+			{showShareResultButton ? (
+				<button
+					className="game-side-button game-side-button--download"
+					type="button"
+					onClick={onShareResult}
+					disabled={isSharingResult}
+				>
+					{isSharingResult ? 'Sharing...' : 'Share result'}
+				</button>
+			) : null}
 			{showDownloadSgfButton && sgfLinkHref ? (
 				<a
 					className="game-side-button game-side-button--download"

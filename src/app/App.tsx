@@ -23,6 +23,7 @@ import { Menu } from './modules/menu/Menu'
 import { GameBoard } from './modules/game-board/GameBoard'
 import { PrivacyPolicyPage } from './modules/legal/PrivacyPolicyPage'
 import { TermsOfServicePage } from './modules/legal/TermsOfServicePage'
+import { renderBoardImageBlob } from './modules/game-board/logic/downloadBoardImage'
 
 export default function App() {
 	const [pathname, setPathname] = useState(window.location.pathname)
@@ -231,6 +232,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		syncKeys.oneColorStoneColor
 	)
 	const [clockTick, setClockTick] = useState(0)
+	const [isSharingResult, setIsSharingResult] = useState(false)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
 	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -970,6 +972,63 @@ function AppContent({ onNavigate }: AppContentProps) {
 		}
 	}, [aiSenseiUploadHref, discordSdk])
 
+	const handleShareResult = useCallback(async () => {
+		if (!effectiveGameResult) return
+		if (!discordSdk.instanceId) {
+			window.alert('Share result is only available inside Discord.')
+			return
+		}
+		const boardElement = document.querySelector('.tenuki-board.tenuki-svg-renderer')
+		if (!(boardElement instanceof HTMLDivElement)) {
+			window.alert('Board is not ready for sharing.')
+			return
+		}
+
+		const winnerLine =
+			effectiveGameResult.winner === 'draw'
+				? 'Result: Draw'
+				: `Result: ${effectiveGameResult.winner === 'black' ? 'Black' : 'White'} wins`
+		const scoreLine = `Score: Black ${effectiveGameResult.blackScore} - ${effectiveGameResult.whiteScore} White`
+		const playersLine = `Players: B ${blackPlayer?.username ?? 'Black'} vs W ${whitePlayer?.username ?? 'White'}`
+
+		try {
+			setIsSharingResult(true)
+			const imageBlob = await renderBoardImageBlob({
+				boardElement,
+				captionLines: [winnerLine, scoreLine, playersLine]
+			})
+			const imageFile = new File([imageBlob], 'mini-weiqi-result.png', { type: 'image/png' })
+			const body = new FormData()
+			body.append('file', imageFile)
+
+			const attachmentResponse = await fetch(
+				`https://discord.com/api/applications/${import.meta.env.VITE_DISCORD_CLIENT_ID}/attachment`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${session?.access_token ?? ''}`
+					},
+					body
+				}
+			)
+
+			if (!attachmentResponse.ok) {
+				throw new Error('Failed to upload image attachment.')
+			}
+			const attachmentJson: { attachment?: { url?: string } } = await attachmentResponse.json()
+			const mediaUrl = attachmentJson.attachment?.url
+			if (!mediaUrl) {
+				throw new Error('Discord attachment URL was missing.')
+			}
+			await discordSdk.commands.openShareMomentDialog({ mediaUrl })
+		} catch (error) {
+			console.error('Failed to share game result.', error)
+			window.alert('Failed to share result. Please try again.')
+		} finally {
+			setIsSharingResult(false)
+		}
+	}, [blackPlayer?.username, discordSdk, effectiveGameResult, session?.access_token, whitePlayer?.username])
+
 	const handleMoveToStart = useCallback(() => {
 		if (gameMode !== 'shared') return
 		setCurrentMoveId(ROOT_MOVE_ID)
@@ -1060,6 +1119,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 					sgfLinkHref={sgfLinkHref}
 					aiSenseiUploadHref={aiSenseiUploadHref}
 					onOpenAiSensei={handleOpenAiSensei}
+					canShareResult={Boolean(effectiveGameResult && discordSdk.instanceId && session?.access_token)}
+					isSharingResult={isSharingResult}
+					onShareResult={handleShareResult}
 					sgfDownloadFileName={sgfDownloadFileName}
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}

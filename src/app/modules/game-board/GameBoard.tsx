@@ -58,6 +58,9 @@ type GameBoardProps = {
 	sgfLinkHref: string | null
 	aiSenseiUploadHref: string | null
 	onOpenAiSensei: () => void
+	canShareResult: boolean
+	isSharingResult: boolean
+	onShareResult: () => void
 	sgfDownloadFileName: string
 	gameResult: GameResult | null
 	blackTimeMs: number | null
@@ -108,6 +111,9 @@ export const GameBoard = ({
 	sgfLinkHref,
 	aiSenseiUploadHref,
 	onOpenAiSensei,
+	canShareResult,
+	isSharingResult,
+	onShareResult,
 	sgfDownloadFileName,
 	gameResult,
 	blackTimeMs,
@@ -453,6 +459,9 @@ export const GameBoard = ({
 							winnerLabel={winnerLabel}
 							scoreLabel={scoreLabel}
 							reasonLabel={reasonLabel}
+							showShareResultButton={canShareResult}
+							isSharingResult={isSharingResult}
+							onShareResult={onShareResult}
 							showDownloadSgfButton={showDownloadSgf}
 							showAiSenseiButton={showAiSenseiSgf}
 							sgfLinkHref={sgfLinkHref}
