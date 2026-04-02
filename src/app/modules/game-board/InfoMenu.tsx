@@ -3,20 +3,29 @@ import { featureFlags } from '../../config/featureFlags'
 type InfoMenuProps = {
 	isOpen: boolean
 	onToggle: () => void
+	canShowBackToSetup: boolean
+	onBackToSetup: () => void
 }
 
-export const InfoMenu = ({ isOpen, onToggle }: InfoMenuProps) => {
+export const InfoMenu = ({ isOpen, onToggle, canShowBackToSetup, onBackToSetup }: InfoMenuProps) => {
 	return (
 		<>
-			<button
-				className="game-info-toggle"
-				type="button"
-				onClick={onToggle}
-				aria-expanded={isOpen}
-				aria-controls="game-info-panel"
-			>
-				Info
-			</button>
+			<div className="game-left-toggles">
+				<button
+					className="game-info-toggle"
+					type="button"
+					onClick={onToggle}
+					aria-expanded={isOpen}
+					aria-controls="game-info-panel"
+				>
+					Info
+				</button>
+				{canShowBackToSetup ? (
+					<button className="game-info-toggle game-info-toggle--secondary" type="button" onClick={onBackToSetup}>
+						Back to Setup
+					</button>
+				) : null}
+			</div>
 			{isOpen ? (
 				<aside className="game-info-panel" id="game-info-panel">
 					<div className="game-options-panel-title">Info</div>

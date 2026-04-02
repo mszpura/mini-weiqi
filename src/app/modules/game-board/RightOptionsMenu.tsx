@@ -160,7 +160,7 @@ export const RightOptionsMenu = ({
 								) : null}
 								{canShowExitMode ? (
 									<button className="game-return-button" type="button" onClick={onExitMode}>
-										Exit mode
+										Back to Setup
 									</button>
 								) : null}
 							</div>

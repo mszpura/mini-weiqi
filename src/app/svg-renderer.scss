@@ -112,11 +112,16 @@ $board-darker-color: hsl(41, 36%, 40%);
 	gap: 8px;
 }
 
-.game-info-toggle {
+.game-left-toggles {
 	position: fixed;
 	left: 16px;
 	bottom: 16px;
 	z-index: 30;
+	display: flex;
+	gap: 8px;
+}
+
+.game-info-toggle {
 	min-width: 120px;
 	padding: 10px 16px;
 	border-radius: 999px;
@@ -130,6 +135,10 @@ $board-darker-color: hsl(41, 36%, 40%);
 	box-shadow:
 		0 12px 22px rgba(0, 0, 0, 0.28),
 		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.game-info-toggle--secondary {
+	min-width: 156px;
 }
 
 .game-options-panel {
@@ -294,13 +303,46 @@ $board-darker-color: hsl(41, 36%, 40%);
 	align-items: start;
 	row-gap: 6px;
 	width: 100%;
-	min-height: 28px;
+	min-height: 72px;
 }
 
 .game-board-bottom .game-board-nav-bottom {
 	grid-column: 1;
 	grid-row: 1;
 	width: 100%;
+}
+
+.disconnect-countdown {
+	grid-column: 1;
+	grid-row: 1;
+	width: min(320px, 92vw);
+	padding: 7px 10px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 93, 93, 0.85);
+	background: linear-gradient(180deg, rgba(84, 16, 16, 0.94) 0%, rgba(50, 10, 10, 0.88) 100%);
+	box-shadow:
+		0 10px 18px rgba(0, 0, 0, 0.28),
+		inset 0 1px 0 rgba(255, 255, 255, 0.12);
+	display: grid;
+	row-gap: 2px;
+	justify-items: center;
+	margin-bottom: 4px;
+}
+
+.disconnect-countdown__title {
+	color: rgba(255, 229, 229, 0.95);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.disconnect-countdown__value {
+	color: #fff3f3;
+	font-size: 14px;
+	font-weight: 800;
+	letter-spacing: 0.04em;
+	font-variant-numeric: tabular-nums;
 }
 
 .game-board-move-label {
@@ -1197,7 +1239,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 		bottom: 12px;
 	}
 
-	.game-info-toggle {
+	.game-left-toggles {
 		left: 12px;
 		bottom: 12px;
 	}

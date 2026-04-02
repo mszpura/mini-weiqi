@@ -92,9 +92,17 @@ export type GameResult = {
 	winner: GameWinner
 	blackScore: number
 	whiteScore: number
-	reason: 'resign' | 'finished' | 'time'
+	reason: 'resign' | 'finished' | 'time' | 'disconnect'
 	resignedBy?: 'black' | 'white'
 	timedOutBy?: 'black' | 'white'
+	disconnectedBy?: 'black' | 'white'
+}
+
+export type DisconnectTimeoutState = {
+	color: 'black' | 'white'
+	playerId: string
+	startedAtMs: number
+	expiresAtMs: number
 }
 
 export type GameClockState = {

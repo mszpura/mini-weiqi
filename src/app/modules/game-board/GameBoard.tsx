@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
 import { featureFlags } from '../../config/featureFlags'
 import {
+	type DisconnectTimeoutState,
 	isPassMove,
 	type GameMode,
 	type GameMove,
@@ -27,6 +28,7 @@ type GameBoardProps = {
 	whitePlayer: PlayerSlot | null
 	onJoinBlack: () => void
 	onJoinWhite: () => void
+	onLeaveSeat: () => void
 	playerColor: 'black' | 'white' | null
 	gameMode: GameMode
 	onGameModeChange: (mode: GameMode) => void
@@ -65,6 +67,8 @@ type GameBoardProps = {
 	gameResult: GameResult | null
 	blackTimeMs: number | null
 	whiteTimeMs: number | null
+	disconnectTimeout: DisconnectTimeoutState | null
+	disconnectSecondsLeft: number | null
 	onExitMode: () => void
 	soundEnabled: boolean
 	onToggleSound: () => void
@@ -80,6 +84,7 @@ export const GameBoard = ({
 	whitePlayer,
 	onJoinBlack,
 	onJoinWhite,
+	onLeaveSeat,
 	playerColor,
 	gameMode,
 	onGameModeChange,
@@ -118,6 +123,8 @@ export const GameBoard = ({
 	gameResult,
 	blackTimeMs,
 	whiteTimeMs,
+	disconnectTimeout,
+	disconnectSecondsLeft,
 	onExitMode,
 	soundEnabled,
 	onToggleSound,
@@ -257,6 +264,10 @@ export const GameBoard = ({
 	const showPassForWhite = gameStarted && isSeatMode && playerColor === 'white'
 	const showResignForBlack = gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'black' && !gameResult
 	const showResignForWhite = gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
+	const canLeaveSeat =
+		gameStarted && isSeatMode && !areBothSeatsTaken && playerColor !== null && moves.length === 0 && !gameResult
+	const showLeaveSeatForBlack = canLeaveSeat && playerColor === 'black'
+	const showLeaveSeatForWhite = canLeaveSeat && playerColor === 'white'
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showDownloadBoardImageInOptions = featureFlags.boardImageExport && gameStarted
 	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
@@ -276,9 +287,17 @@ export const GameBoard = ({
 			? `${gameResult.resignedBy === 'black' ? 'Black' : 'White'} resigned`
 			: gameResult?.reason === 'time'
 				? `${gameResult.timedOutBy === 'black' ? 'Black' : 'White'} lost on time`
-				: gameResult
-					? 'Game ended by two passes'
-					: null
+				: gameResult?.reason === 'disconnect'
+					? `${gameResult.disconnectedBy === 'black' ? 'Black' : 'White'} disconnected`
+					: gameResult
+						? 'Game ended by two passes'
+						: null
+	const showDisconnectCountdown = Boolean(disconnectTimeout && disconnectSecondsLeft !== null && !gameResult)
+	const disconnectLabel = disconnectTimeout
+		? `${disconnectTimeout.color === 'black' ? 'Black' : 'White'} disconnected`
+		: null
+	const disconnectTimeLabel =
+		disconnectSecondsLeft !== null ? `Auto-loss in ${Math.max(0, disconnectSecondsLeft)}s` : null
 	const formatClock = (timeMs: number | null) => {
 		if (timeMs === null) return null
 		const clampedMs = Math.max(0, Math.floor(timeMs))
@@ -400,6 +419,11 @@ export const GameBoard = ({
 							Resign
 						</button>
 					) : null}
+					{showLeaveSeatForBlack ? (
+						<button className="game-side-button game-side-button--leave" type="button" onClick={onLeaveSeat}>
+							Leave seat
+						</button>
+					) : null}
 					{canShowJoinBlack ? (
 						<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
 							Join as Black
@@ -415,6 +439,12 @@ export const GameBoard = ({
 					style={{ '--board-scale': boardScale } as CSSProperties}
 				/>
 				<div className="game-board-bottom">
+					{showDisconnectCountdown ? (
+						<div className="disconnect-countdown" role="status" aria-live="polite">
+							<div className="disconnect-countdown__title">{disconnectLabel}</div>
+							<div className="disconnect-countdown__value">{disconnectTimeLabel}</div>
+						</div>
+					) : null}
 					{showNavigation ? (
 						<div className="game-board-nav-bottom">
 							<div className="game-board-size-label">Navigation</div>
@@ -510,6 +540,11 @@ export const GameBoard = ({
 							Resign
 						</button>
 					) : null}
+					{showLeaveSeatForWhite ? (
+						<button className="game-side-button game-side-button--leave" type="button" onClick={onLeaveSeat}>
+							Leave seat
+						</button>
+					) : null}
 					{canShowJoinWhite ? (
 						<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
 							Join as White
@@ -546,7 +581,12 @@ export const GameBoard = ({
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>
-			<InfoMenu isOpen={isInfoPanelOpen} onToggle={handleToggleInfoPanel} />
+			<InfoMenu
+				isOpen={isInfoPanelOpen}
+				onToggle={handleToggleInfoPanel}
+				canShowBackToSetup={canShowExitMode}
+				onBackToSetup={onExitMode}
+			/>
 		</div>
 	)
 }

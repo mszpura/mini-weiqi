@@ -3,6 +3,7 @@ import { SyncContextProvider, useSyncState } from '@robojs/sync'
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Game } from 'tenuki'
 import {
+	type DisconnectTimeoutState,
 	getFisherClockConfig,
 	getTimeLimitOptionsForBoardSize,
 	isPassMove,
@@ -187,6 +188,8 @@ const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 }
 
 function AppContent({ onNavigate }: AppContentProps) {
+	const DISCONNECT_TIMEOUT_MS = 30_000
+	const isEmbeddedContext = new URLSearchParams(window.location.search).get('frame_id') != null
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const syncKeys = useMemo(
@@ -206,6 +209,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			displayedMoveCount: ['displayed-move-count', channelKey],
 			timeLimit: ['time-limit', channelKey],
 			gameClock: ['game-clock', channelKey],
+			disconnectTimeout: ['disconnect-timeout', channelKey],
 			soundEnabled: ['sound-enabled', channelKey],
 			oneColorStoneColor: ['one-color-stone-color', channelKey]
 		}),
@@ -226,13 +230,19 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const [displayedMoveCount, setDisplayedMoveCount] = useSyncState(0, syncKeys.displayedMoveCount)
 	const [timeLimit, setTimeLimit] = useSyncState<GameTimeLimit>('no-limit', syncKeys.timeLimit)
 	const [gameClock, setGameClock] = useSyncState<GameClockState | null>(null, syncKeys.gameClock)
+	const [disconnectTimeout, setDisconnectTimeout] = useSyncState<DisconnectTimeoutState | null>(
+		null,
+		syncKeys.disconnectTimeout
+	)
 	const [soundEnabled, setSoundEnabled] = useSyncState(true, syncKeys.soundEnabled)
 	const [oneColorStoneColor, setOneColorStoneColor] = useSyncState<OneColorStoneColor>(
 		'black',
 		syncKeys.oneColorStoneColor
 	)
 	const [clockTick, setClockTick] = useState(0)
+	const [disconnectTick, setDisconnectTick] = useState(0)
 	const [isSharingResult, setIsSharingResult] = useState(false)
+	const [connectedParticipantIds, setConnectedParticipantIds] = useState<Set<string> | null>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
 	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
@@ -276,6 +286,50 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setStoredGameMode('normal')
 	}, [setStoredGameMode, storedGameMode])
 
+	useEffect(() => {
+		if (!isEmbeddedContext || !session) return
+		let isDisposed = false
+		const handleParticipantsUpdate = (event: { participants: { id: string }[] }) => {
+			if (isDisposed) return
+			const nextIds = new Set(event.participants.map((participant) => participant.id))
+			setConnectedParticipantIds(nextIds)
+		}
+
+		const syncConnectedParticipants = async () => {
+			try {
+				const initialParticipants = await discordSdk.commands.getInstanceConnectedParticipants()
+				if (isDisposed) return
+				setConnectedParticipantIds(new Set(initialParticipants.participants.map((participant) => participant.id)))
+			} catch (error) {
+				console.warn('Failed to get connected participants.', error)
+				if (!isDisposed) {
+					setConnectedParticipantIds(null)
+				}
+			}
+
+			try {
+				await discordSdk.subscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handleParticipantsUpdate, {
+					instance_id: discordSdk.instanceId
+				})
+			} catch (error) {
+				console.warn('Failed to subscribe to participant updates.', error)
+			}
+		}
+
+		void syncConnectedParticipants()
+
+		return () => {
+			isDisposed = true
+			void discordSdk
+				.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handleParticipantsUpdate, {
+					instance_id: discordSdk.instanceId
+				})
+				.catch((error) => {
+					console.warn('Failed to unsubscribe from participant updates.', error)
+				})
+		}
+	}, [discordSdk, isEmbeddedContext, session])
+
 	const handleJoinBlack = () => {
 		if (!gameStarted) return
 		if (isUnauthenticated) return
@@ -289,6 +343,30 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (!currentPlayer || whitePlayer || isSeated) return
 		setWhitePlayer(currentPlayer)
 	}
+
+	const handleLeaveSeat = useCallback(() => {
+		if (!gameStarted) return
+		if (!isSeatMode) return
+		if (gameResult) return
+		if (moves.length > 0) return
+		if (!currentPlayer) return
+		if (blackPlayer?.id === currentPlayer.id && !whitePlayer) {
+			setBlackPlayer(null)
+		}
+		if (whitePlayer?.id === currentPlayer.id && !blackPlayer) {
+			setWhitePlayer(null)
+		}
+	}, [
+		blackPlayer,
+		currentPlayer,
+		gameResult,
+		gameStarted,
+		isSeatMode,
+		moves.length,
+		setBlackPlayer,
+		setWhitePlayer,
+		whitePlayer
+	])
 
 	const playStoneSound = useCallback(() => {
 		if (!soundEnabled) return
@@ -427,11 +505,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setBlackPlayer(null)
 		setWhitePlayer(null)
 		setGameClock(null)
+		setDisconnectTimeout(null)
 		setGameStartedAtMs(now)
 		setGameStarted(true)
 	}, [
 		setBlackPlayer,
 		setCurrentMoveId,
+		setDisconnectTimeout,
 		setGameClock,
 		setGameResult,
 		setGameStarted,
@@ -452,9 +532,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameStartedAtMs(null)
 		setGameStarted(false)
 		setGameClock(null)
+		setDisconnectTimeout(null)
 	}, [
 		setBlackPlayer,
 		setCurrentMoveId,
+		setDisconnectTimeout,
 		setGameClock,
 		setGameResult,
 		setGameStarted,
@@ -477,12 +559,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameStartedAtMs(null)
 			setGameStarted(false)
 			setGameClock(null)
+			setDisconnectTimeout(null)
 			setHandicapStones(normalizeHandicapStones(nextHandicapStones))
 		},
 		[
 			handicapStones,
 			setBlackPlayer,
 			setCurrentMoveId,
+			setDisconnectTimeout,
 			setGameClock,
 			setGameResult,
 			setGameStarted,
@@ -507,6 +591,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameStartedAtMs(null)
 			setGameStarted(false)
 			setGameClock(null)
+			setDisconnectTimeout(null)
 			setBoardSize(nextBoardSize)
 			if (!isTimeLimitAllowedForBoardSize(timeLimit, nextBoardSize)) {
 				setTimeLimit(getTimeLimitOptionsForBoardSize(nextBoardSize)[0]?.value ?? 'no-limit')
@@ -517,6 +602,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setBlackPlayer,
 			setBoardSize,
 			setCurrentMoveId,
+			setDisconnectTimeout,
 			setGameClock,
 			setGameResult,
 			setGameStarted,
@@ -557,11 +643,21 @@ function AppContent({ onNavigate }: AppContentProps) {
 				setMoves(parsed.game.moves)
 				setDisplayedMoveCount(parsed.game.moves.length)
 				setGameResult(null)
+				setDisconnectTimeout(null)
 			} catch {
 				window.alert('Failed to read SGF file.')
 			}
 		},
-		[boardSize, setBoardSize, setCurrentMoveId, setGameResult, setHandicapStones, setMoveTree, setMoves]
+		[
+			boardSize,
+			setBoardSize,
+			setCurrentMoveId,
+			setDisconnectTimeout,
+			setGameResult,
+			setHandicapStones,
+			setMoveTree,
+			setMoves
+		]
 	)
 
 	const handleExitMode = useCallback(() => {
@@ -575,9 +671,11 @@ function AppContent({ onNavigate }: AppContentProps) {
 		setGameStartedAtMs(null)
 		setGameStarted(false)
 		setGameClock(null)
+		setDisconnectTimeout(null)
 	}, [
 		setBlackPlayer,
 		setCurrentMoveId,
+		setDisconnectTimeout,
 		setGameClock,
 		setGameResult,
 		setGameStarted,
@@ -600,12 +698,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 			setGameStartedAtMs(null)
 			setGameStarted(false)
 			setGameClock(null)
+			setDisconnectTimeout(null)
 			setTimeLimit(nextTimeLimit)
 		},
 		[
 			setBlackPlayer,
 			setCurrentMoveId,
 			setDisplayedMoveCount,
+			setDisconnectTimeout,
 			setGameClock,
 			setGameResult,
 			setGameStarted,
@@ -622,6 +722,90 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (!gameStarted || gameStartedAtMs) return
 		setGameStartedAtMs(Date.now())
 	}, [gameStarted, gameStartedAtMs, setGameStartedAtMs])
+
+	useEffect(() => {
+		if (!disconnectTimeout) return
+		const intervalId = window.setInterval(() => {
+			setDisconnectTick((value) => value + 1)
+		}, 250)
+		return () => {
+			window.clearInterval(intervalId)
+		}
+	}, [disconnectTimeout])
+
+	useEffect(() => {
+		if (!isEmbeddedContext) {
+			if (disconnectTimeout) {
+				setDisconnectTimeout(null)
+			}
+			return
+		}
+		if (!gameStarted || gameResult || !isSeatMode || !areBothSeatsTaken || !connectedParticipantIds) {
+			if (disconnectTimeout) {
+				setDisconnectTimeout(null)
+			}
+			return
+		}
+
+		const blackDisconnected = Boolean(blackPlayer && !connectedParticipantIds.has(blackPlayer.id))
+		const whiteDisconnected = Boolean(whitePlayer && !connectedParticipantIds.has(whitePlayer.id))
+		const disconnectedPlayer = blackDisconnected
+			? { color: 'black' as const, player: blackPlayer }
+			: whiteDisconnected
+				? { color: 'white' as const, player: whitePlayer }
+				: null
+
+		if (!disconnectedPlayer) {
+			if (disconnectTimeout) {
+				setDisconnectTimeout(null)
+			}
+			return
+		}
+
+		if (
+			disconnectTimeout &&
+			disconnectTimeout.color === disconnectedPlayer.color &&
+			disconnectTimeout.playerId === disconnectedPlayer.player.id
+		) {
+			return
+		}
+
+		const nowMs = Date.now()
+		setDisconnectTimeout({
+			color: disconnectedPlayer.color,
+			playerId: disconnectedPlayer.player.id,
+			startedAtMs: nowMs,
+			expiresAtMs: nowMs + DISCONNECT_TIMEOUT_MS
+		})
+	}, [
+		areBothSeatsTaken,
+		blackPlayer,
+		connectedParticipantIds,
+		disconnectTimeout,
+		gameResult,
+		gameStarted,
+		isEmbeddedContext,
+		isSeatMode,
+		setDisconnectTimeout,
+		whitePlayer
+	])
+
+	useEffect(() => {
+		if (!disconnectTimeout || gameResult) return
+		const nowMs = Date.now()
+		if (nowMs < disconnectTimeout.expiresAtMs) return
+		const score = buildScoreFromMoves()
+		const disconnectedBy = disconnectTimeout.color
+		const winner = getOppositeColor(disconnectedBy)
+		setDisconnectTimeout(null)
+		setGameResult({
+			winner,
+			blackScore: score.black,
+			whiteScore: score.white,
+			reason: 'disconnect',
+			disconnectedBy
+		})
+	}, [buildScoreFromMoves, disconnectTick, disconnectTimeout, gameResult, setDisconnectTimeout, setGameResult])
 
 	useEffect(() => {
 		if (gameMode === 'shared') return
@@ -703,6 +887,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
+		if (disconnectTimeout) return
 		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (!gameClock) return
@@ -714,11 +899,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return () => {
 			window.clearInterval(intervalId)
 		}
-	}, [fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
+	}, [disconnectTimeout, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
+		if (disconnectTimeout) return
 		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (!gameClock) return
@@ -749,6 +935,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		gameClock,
 		gameResult,
 		gameStarted,
+		disconnectTimeout,
 		isSeatMode,
 		setGameClock,
 		setGameResult
@@ -762,6 +949,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 				whiteTimeMs: fisherClockConfig.initialTimeMs
 			}
 		}
+		if (disconnectTimeout) {
+			return {
+				blackTimeMs: gameClock.blackTimeMs,
+				whiteTimeMs: gameClock.whiteTimeMs
+			}
+		}
 		const nowMs = Date.now()
 		const settled =
 			gameStarted && !gameResult && isSeatMode && Boolean(fisherClockConfig)
@@ -771,12 +964,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 			blackTimeMs: settled.blackTimeMs,
 			whiteTimeMs: settled.whiteTimeMs
 		}
-	}, [clockTick, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
+	}, [clockTick, disconnectTimeout, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
-		if (!isSeatMode) return
+		if (!isSeatMode || disconnectTimeout) return
 		if (!fisherClockConfig) return
 		if (!soundEnabled) return
 		if (!gameClock || !displayedClocks) return
@@ -800,20 +993,30 @@ function AppContent({ onNavigate }: AppContentProps) {
 		void audio.play().catch((error) => {
 			console.warn('Failed to play countdown audio.', error)
 		})
-	}, [displayedClocks, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode, soundEnabled])
+	}, [
+		disconnectTimeout,
+		displayedClocks,
+		fisherClockConfig,
+		gameClock,
+		gameResult,
+		gameStarted,
+		isSeatMode,
+		soundEnabled
+	])
 
 	useEffect(() => {
-		if (gameStarted && !gameResult && isSeatMode && fisherClockConfig && soundEnabled) return
+		if (gameStarted && !gameResult && isSeatMode && fisherClockConfig && soundEnabled && !disconnectTimeout) return
 		const audio = countdownAudioRef.current
 		if (!audio) return
 		audio.pause()
 		audio.currentTime = 0
 		countdownPlayedTurnRef.current = null
-	}, [fisherClockConfig, gameResult, gameStarted, isSeatMode, soundEnabled])
+	}, [disconnectTimeout, fisherClockConfig, gameResult, gameStarted, isSeatMode, soundEnabled])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
+		if (disconnectTimeout) return
 		if (!isSeatMode) return
 		if (!fisherClockConfig) return
 		if (gameClock) return
@@ -832,9 +1035,16 @@ function AppContent({ onNavigate }: AppContentProps) {
 		gameClock,
 		gameResult,
 		gameStarted,
+		disconnectTimeout,
 		isSeatMode,
 		setGameClock
 	])
+
+	const disconnectSecondsLeft = useMemo(() => {
+		if (!disconnectTimeout || gameResult) return null
+		const remainingMs = Math.max(0, disconnectTimeout.expiresAtMs - Date.now())
+		return Math.ceil(remainingMs / 1000)
+	}, [disconnectTick, disconnectTimeout, gameResult])
 
 	useEffect(() => {
 		if (gameStarted) return
@@ -1089,6 +1299,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					whitePlayer={whitePlayer}
 					onJoinBlack={handleJoinBlack}
 					onJoinWhite={handleJoinWhite}
+					onLeaveSeat={handleLeaveSeat}
 					playerColor={playerColor}
 					gameMode={gameMode}
 					onGameModeChange={(mode) => setStoredGameMode(normalizeGameMode(mode))}
@@ -1127,6 +1338,8 @@ function AppContent({ onNavigate }: AppContentProps) {
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}
+					disconnectTimeout={disconnectTimeout}
+					disconnectSecondsLeft={disconnectSecondsLeft}
 					onExitMode={handleExitMode}
 					hideJoinButtons={isUnauthenticated}
 					soundEnabled={soundEnabled}
