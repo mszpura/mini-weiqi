@@ -1199,13 +1199,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 				? 'Result: Draw'
 				: `Result: ${effectiveGameResult.winner === 'black' ? 'Black' : 'White'} wins`
 		const scoreLine = `Score: Black ${effectiveGameResult.blackScore} - ${effectiveGameResult.whiteScore} White`
-		const playersLine = `Players: B ${blackPlayer?.username ?? 'Black'} vs W ${whitePlayer?.username ?? 'White'}`
+		const blackPlayerLine = `Player Black: ${blackPlayer?.username ?? 'Black'}`
+		const whitePlayerLine = `Player White: ${whitePlayer?.username ?? 'White'}`
 
 		try {
 			setIsSharingResult(true)
 			const imageBlob = await renderBoardImageBlob({
 				boardElement,
-				captionLines: [winnerLine, scoreLine, playersLine],
+				captionLines: [winnerLine, scoreLine, blackPlayerLine, whitePlayerLine],
 				captionPlacement: 'right'
 			})
 			const imageFile = new File([imageBlob], 'mini-weiqi-result.png', { type: 'image/png' })
