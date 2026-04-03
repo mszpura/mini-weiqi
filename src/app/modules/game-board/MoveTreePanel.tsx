@@ -10,11 +10,11 @@ type MoveTreePanelProps = {
 
 const ROOT_MOVE_ID = 'root'
 
-const getNodeDepth = (moveTree: Record<string, MoveTreeNode>, nodeId: string) => {
+const getNodeDepth = (moveTree: Record<string, MoveTreeNode>, nodeId: string): number => {
 	let depth = 0
 	let cursor: string | null = nodeId
 	while (cursor) {
-		const node = moveTree[cursor]
+		const node: MoveTreeNode | undefined = moveTree[cursor]
 		if (!node || !node.parentId) break
 		depth += 1
 		cursor = node.parentId
