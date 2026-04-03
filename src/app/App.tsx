@@ -190,6 +190,7 @@ const areMovesEqual = (a: GameMove[], b: GameMove[]) => {
 function AppContent({ onNavigate }: AppContentProps) {
 	const DISCONNECT_TIMEOUT_MS = 30_000
 	const isEmbeddedContext = new URLSearchParams(window.location.search).get('frame_id') != null
+	const allowDualSeatInDev = import.meta.env.DEV
 	const { discordSdk, session } = useDiscordSdk()
 	const channelKey = discordSdk?.channelId ?? 'local'
 	const syncKeys = useMemo(
@@ -258,9 +259,10 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 		: null
 
-	const playerColor =
-		currentPlayer?.id === blackPlayer?.id ? 'black' : currentPlayer?.id === whitePlayer?.id ? 'white' : null
-	const isSeated = currentPlayer?.id === blackPlayer?.id || currentPlayer?.id === whitePlayer?.id
+	const canControlBlack = currentPlayer?.id === blackPlayer?.id
+	const canControlWhite = currentPlayer?.id === whitePlayer?.id
+	const playerColor = canControlBlack ? 'black' : canControlWhite ? 'white' : null
+	const isSeated = canControlBlack || canControlWhite
 	const areBothSeatsTaken = Boolean(blackPlayer && whitePlayer)
 	const isUnauthenticated = !session?.user?.id
 	const effectiveHandicapStones = normalizeHandicapStones(handicapStones)
@@ -309,9 +311,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 
 			try {
-				await discordSdk.subscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handleParticipantsUpdate, {
-					instance_id: discordSdk.instanceId
-				})
+				await discordSdk.subscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handleParticipantsUpdate)
 			} catch (error) {
 				console.warn('Failed to subscribe to participant updates.', error)
 			}
@@ -321,27 +321,25 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 		return () => {
 			isDisposed = true
-			void discordSdk
-				.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handleParticipantsUpdate, {
-					instance_id: discordSdk.instanceId
-				})
-				.catch((error) => {
-					console.warn('Failed to unsubscribe from participant updates.', error)
-				})
+			void discordSdk.unsubscribe('ACTIVITY_INSTANCE_PARTICIPANTS_UPDATE', handleParticipantsUpdate).catch((error) => {
+				console.warn('Failed to unsubscribe from participant updates.', error)
+			})
 		}
 	}, [discordSdk, isEmbeddedContext, session])
 
 	const handleJoinBlack = () => {
 		if (!gameStarted) return
 		if (isUnauthenticated) return
-		if (!currentPlayer || blackPlayer || isSeated) return
+		if (!currentPlayer || blackPlayer) return
+		if (!allowDualSeatInDev && isSeated) return
 		setBlackPlayer(currentPlayer)
 	}
 
 	const handleJoinWhite = () => {
 		if (!gameStarted) return
 		if (isUnauthenticated) return
-		if (!currentPlayer || whitePlayer || isSeated) return
+		if (!currentPlayer || whitePlayer) return
+		if (!allowDualSeatInDev && isSeated) return
 		setWhitePlayer(currentPlayer)
 	}
 
@@ -830,6 +828,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (
 			disconnectTimeout &&
 			disconnectTimeout.color === disconnectedPlayer.color &&
+			disconnectedPlayer.player &&
 			disconnectTimeout.playerId === disconnectedPlayer.player.id
 		) {
 			return
@@ -838,7 +837,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		const nowMs = Date.now()
 		setDisconnectTimeout({
 			color: disconnectedPlayer.color,
-			playerId: disconnectedPlayer.player.id,
+			playerId: disconnectedPlayer.player?.id,
 			startedAtMs: nowMs,
 			expiresAtMs: nowMs + DISCONNECT_TIMEOUT_MS
 		})
@@ -1367,6 +1366,9 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onJoinWhite={handleJoinWhite}
 					onLeaveSeat={handleLeaveSeat}
 					playerColor={playerColor}
+					canControlBlack={canControlBlack}
+					canControlWhite={canControlWhite}
+					allowDualSeatInDev={allowDualSeatInDev}
 					gameMode={gameMode}
 					onGameModeChange={(mode) => setStoredGameMode(normalizeGameMode(mode))}
 					oneColorStoneColor={oneColorStoneColor}

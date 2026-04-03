@@ -30,6 +30,9 @@ type GameBoardProps = {
 	onJoinWhite: () => void
 	onLeaveSeat: () => void
 	playerColor: 'black' | 'white' | null
+	canControlBlack: boolean
+	canControlWhite: boolean
+	allowDualSeatInDev: boolean
 	gameMode: GameMode
 	onGameModeChange: (mode: GameMode) => void
 	oneColorStoneColor: OneColorStoneColor
@@ -86,6 +89,9 @@ export const GameBoard = ({
 	onJoinWhite,
 	onLeaveSeat,
 	playerColor,
+	canControlBlack,
+	canControlWhite,
+	allowDualSeatInDev,
 	gameMode,
 	onGameModeChange,
 	oneColorStoneColor,
@@ -143,6 +149,9 @@ export const GameBoard = ({
 	const blackPlayerRef = useRef<PlayerSlot | null>(blackPlayer)
 	const whitePlayerRef = useRef<PlayerSlot | null>(whitePlayer)
 	const onPlayMoveRef = useRef(onPlayMove)
+	const canControlBlackRef = useRef(canControlBlack)
+	const canControlWhiteRef = useRef(canControlWhite)
+	const allowDualSeatInDevRef = useRef(allowDualSeatInDev)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
 	const [isMoveTreePanelOpen, setIsMoveTreePanelOpen] = useState(false)
@@ -155,6 +164,9 @@ export const GameBoard = ({
 		if (gameModeRef.current === 'shared') return true
 		if (!isViewingLatestMoveRef.current) return false
 		if (!blackPlayerRef.current || !whitePlayerRef.current) return false
+		if (allowDualSeatInDevRef.current) {
+			return game.currentPlayer() === 'black' ? canControlBlackRef.current : canControlWhiteRef.current
+		}
 		const activeColor = playerColorRef.current
 		return Boolean(activeColor && game.currentPlayer() === activeColor)
 	}
@@ -190,6 +202,18 @@ export const GameBoard = ({
 	useEffect(() => {
 		onPlayMoveRef.current = onPlayMove
 	}, [onPlayMove])
+
+	useEffect(() => {
+		canControlBlackRef.current = canControlBlack
+	}, [canControlBlack])
+
+	useEffect(() => {
+		canControlWhiteRef.current = canControlWhite
+	}, [canControlWhite])
+
+	useEffect(() => {
+		allowDualSeatInDevRef.current = allowDualSeatInDev
+	}, [allowDualSeatInDev])
 
 	useEffect(() => {
 		const boardElement = boardRef.current
@@ -247,8 +271,10 @@ export const GameBoard = ({
 
 	const canShowExitMode = gameStarted && (gameMode === 'shared' || (moves.length === 0 && !gameResult))
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
-	const canShowJoinBlack = gameStarted && !blackPlayer && !shouldHideJoinButtons && playerColor !== 'white'
-	const canShowJoinWhite = gameStarted && !whitePlayer && !shouldHideJoinButtons && playerColor !== 'black'
+	const canShowJoinBlack =
+		gameStarted && !blackPlayer && !shouldHideJoinButtons && (allowDualSeatInDev ? true : playerColor !== 'white')
+	const canShowJoinWhite =
+		gameStarted && !whitePlayer && !shouldHideJoinButtons && (allowDualSeatInDev ? true : playerColor !== 'black')
 	const areBothSeatsTaken = Boolean(blackPlayer && whitePlayer)
 	const firstMoveColor: 'black' | 'white' = handicapStones > 0 ? 'white' : 'black'
 	const currentTurn: 'black' | 'white' =
@@ -256,14 +282,14 @@ export const GameBoard = ({
 	const canPassAs = (color: 'black' | 'white') =>
 		isSeatMode &&
 		Boolean(blackPlayer && whitePlayer) &&
-		playerColor === color &&
+		(color === 'black' ? canControlBlack : canControlWhite) &&
 		!gameResult &&
 		!gameRef.current?.isOver() &&
 		currentTurn === color
-	const showPassForBlack = gameStarted && isSeatMode && playerColor === 'black'
-	const showPassForWhite = gameStarted && isSeatMode && playerColor === 'white'
-	const showResignForBlack = gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'black' && !gameResult
-	const showResignForWhite = gameStarted && isSeatMode && areBothSeatsTaken && playerColor === 'white' && !gameResult
+	const showPassForBlack = gameStarted && isSeatMode && canControlBlack
+	const showPassForWhite = gameStarted && isSeatMode && canControlWhite
+	const showResignForBlack = gameStarted && isSeatMode && areBothSeatsTaken && canControlBlack && !gameResult
+	const showResignForWhite = gameStarted && isSeatMode && areBothSeatsTaken && canControlWhite && !gameResult
 	const canLeaveSeat =
 		gameStarted && isSeatMode && !areBothSeatsTaken && playerColor !== null && moves.length === 0 && !gameResult
 	const showLeaveSeatForBlack = canLeaveSeat && playerColor === 'black'

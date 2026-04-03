@@ -606,7 +606,7 @@ const serializeMoveTreeLine = (
 	let output = ''
 
 	while (currentId) {
-		const node = moveTree[currentId]
+		const node: MoveTreeNode = moveTree[currentId]
 		if (!node || !node.move) {
 			throw new Error('Cannot export SGF: move tree is invalid.')
 		}
