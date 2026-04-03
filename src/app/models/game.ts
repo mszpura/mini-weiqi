@@ -2,12 +2,13 @@ export type GameMode = 'normal' | 'one-color' | 'shared'
 export type OneColorStoneColor = 'black' | 'white'
 export type GameTimeLimit =
 	| 'no-limit'
-	| 'fisher-15s-1s'
-	| 'fisher-1m-5s'
-	| 'fisher-2m-5s'
-	| 'fisher-5m-10s'
-	| 'fisher-15m-10s'
-	| 'fisher-45m-15s'
+	| 'fisher-1m-10s'
+	| 'fisher-5m-12s'
+	| 'fisher-10m-15s'
+	| 'byo-yomi-30s-3x10s'
+	| 'byo-yomi-5m-3x30s'
+	| 'byo-yomi-20m-3x30s'
+	| 'byo-yomi-40m-3x30s'
 
 type SupportedBoardSize = 9 | 13 | 19
 
@@ -21,32 +22,35 @@ export type FisherClockConfig = {
 	incrementMs: number
 }
 
-const TIME_LIMIT_OPTIONS_BY_BOARD_SIZE: Record<SupportedBoardSize, readonly TimeLimitOption[]> = {
-	9: [
-		{ value: 'no-limit', label: 'No limit' },
-		{ value: 'fisher-15s-1s', label: 'Fisher 15s + 1s' },
-		{ value: 'fisher-1m-5s', label: 'Fisher 1m + 5s' }
-	],
-	13: [
-		{ value: 'no-limit', label: 'No limit' },
-		{ value: 'fisher-2m-5s', label: 'Fisher 2min + 5s' },
-		{ value: 'fisher-5m-10s', label: 'Fisher 5min + 10s' }
-	],
-	19: [
-		{ value: 'no-limit', label: 'No limit' },
-		{ value: 'fisher-5m-10s', label: 'Fisher 5min + 10s' },
-		{ value: 'fisher-15m-10s', label: 'Fisher 15min + 10s' },
-		{ value: 'fisher-45m-15s', label: 'Fisher 45min + 15s' }
-	]
+export type ByoYomiClockConfig = {
+	initialTimeMs: number
+	periods: number
+	periodMs: number
 }
 
-const FISHER_CLOCK_CONFIGS: Partial<Record<GameTimeLimit, FisherClockConfig>> = {
-	'fisher-15s-1s': { initialTimeMs: 15 * 1000, incrementMs: 1 * 1000 },
-	'fisher-1m-5s': { initialTimeMs: 1 * 60 * 1000, incrementMs: 5 * 1000 },
-	'fisher-2m-5s': { initialTimeMs: 2 * 60 * 1000, incrementMs: 5 * 1000 },
-	'fisher-5m-10s': { initialTimeMs: 5 * 60 * 1000, incrementMs: 10 * 1000 },
-	'fisher-15m-10s': { initialTimeMs: 15 * 60 * 1000, incrementMs: 10 * 1000 },
-	'fisher-45m-15s': { initialTimeMs: 45 * 60 * 1000, incrementMs: 15 * 1000 }
+export type TimeControlConfig =
+	| ({ system: 'fisher' } & FisherClockConfig)
+	| ({ system: 'byo-yomi' } & ByoYomiClockConfig)
+
+const TIME_LIMIT_OPTIONS: readonly TimeLimitOption[] = [
+	{ value: 'no-limit', label: 'No limit' },
+	{ value: 'fisher-1m-10s', label: 'Fisher 1m + 10s' },
+	{ value: 'fisher-5m-12s', label: 'Fisher 5m + 12s' },
+	{ value: 'fisher-10m-15s', label: 'Fisher 10m + 15s' },
+	{ value: 'byo-yomi-30s-3x10s', label: 'Byo yomi 30s + 3x10s' },
+	{ value: 'byo-yomi-5m-3x30s', label: 'Byo yomi 5m + 3x30s' },
+	{ value: 'byo-yomi-20m-3x30s', label: 'Byo yomi 20m + 3x30s' },
+	{ value: 'byo-yomi-40m-3x30s', label: 'Byo yomi 40m + 3x30s' }
+]
+
+const TIME_LIMIT_CONFIGS: Partial<Record<GameTimeLimit, TimeControlConfig>> = {
+	'fisher-1m-10s': { system: 'fisher', initialTimeMs: 1 * 60 * 1000, incrementMs: 10 * 1000 },
+	'fisher-5m-12s': { system: 'fisher', initialTimeMs: 5 * 60 * 1000, incrementMs: 12 * 1000 },
+	'fisher-10m-15s': { system: 'fisher', initialTimeMs: 10 * 60 * 1000, incrementMs: 15 * 1000 },
+	'byo-yomi-30s-3x10s': { system: 'byo-yomi', initialTimeMs: 30 * 1000, periods: 3, periodMs: 10 * 1000 },
+	'byo-yomi-5m-3x30s': { system: 'byo-yomi', initialTimeMs: 5 * 60 * 1000, periods: 3, periodMs: 30 * 1000 },
+	'byo-yomi-20m-3x30s': { system: 'byo-yomi', initialTimeMs: 20 * 60 * 1000, periods: 3, periodMs: 30 * 1000 },
+	'byo-yomi-40m-3x30s': { system: 'byo-yomi', initialTimeMs: 40 * 60 * 1000, periods: 3, periodMs: 30 * 1000 }
 }
 
 const normalizeBoardSize = (boardSize: number): SupportedBoardSize => {
@@ -57,13 +61,13 @@ const normalizeBoardSize = (boardSize: number): SupportedBoardSize => {
 }
 
 export const getTimeLimitOptionsForBoardSize = (boardSize: number): readonly TimeLimitOption[] =>
-	TIME_LIMIT_OPTIONS_BY_BOARD_SIZE[normalizeBoardSize(boardSize)]
+	normalizeBoardSize(boardSize) ? TIME_LIMIT_OPTIONS : TIME_LIMIT_OPTIONS
 
 export const isTimeLimitAllowedForBoardSize = (timeLimit: GameTimeLimit, boardSize: number): boolean =>
 	getTimeLimitOptionsForBoardSize(boardSize).some((option) => option.value === timeLimit)
 
-export const getFisherClockConfig = (timeLimit: GameTimeLimit): FisherClockConfig | null =>
-	FISHER_CLOCK_CONFIGS[timeLimit] ?? null
+export const getTimeControlConfig = (timeLimit: GameTimeLimit): TimeControlConfig | null =>
+	TIME_LIMIT_CONFIGS[timeLimit] ?? null
 
 type PlayMove = {
 	type: 'play'
@@ -108,6 +112,10 @@ export type DisconnectTimeoutState = {
 export type GameClockState = {
 	blackTimeMs: number
 	whiteTimeMs: number
+	blackByoYomiPeriodsLeft: number | null
+	whiteByoYomiPeriodsLeft: number | null
+	blackInByoYomi: boolean
+	whiteInByoYomi: boolean
 	activeColor: 'black' | 'white'
 	turnStartedAtMs: number
 }

@@ -74,8 +74,9 @@ export const InfoMenu = ({ isOpen, onToggle, canShowBackToSetup, onBackToSetup }
 						<div className="game-board-size-label">Time limit</div>
 						<p className="game-info-text">
 							Time limits are used in Classic GO or One color GO. With Fisher time, each player starts with the selected
-							main time, and after every move or pass that player receives the increment bonus. If your clock reaches
-							zero, you lose on time.
+							main time, and after every move or pass that player receives the increment bonus. With Byo yomi, after
+							your main time runs out, each move must be played within the period time; if you exceed it, you lose one
+							period. When no periods are left and time reaches zero, you lose on time.
 						</p>
 					</div>
 					<div className="game-info-divider" />

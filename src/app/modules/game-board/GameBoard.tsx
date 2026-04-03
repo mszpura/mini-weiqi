@@ -70,6 +70,10 @@ type GameBoardProps = {
 	gameResult: GameResult | null
 	blackTimeMs: number | null
 	whiteTimeMs: number | null
+	blackByoYomiPeriodsLeft: number | null
+	whiteByoYomiPeriodsLeft: number | null
+	isBlackInLastByoYomi: boolean
+	isWhiteInLastByoYomi: boolean
 	disconnectTimeout: DisconnectTimeoutState | null
 	disconnectSecondsLeft: number | null
 	onExitMode: () => void
@@ -129,6 +133,10 @@ export const GameBoard = ({
 	gameResult,
 	blackTimeMs,
 	whiteTimeMs,
+	blackByoYomiPeriodsLeft,
+	whiteByoYomiPeriodsLeft,
+	isBlackInLastByoYomi,
+	isWhiteInLastByoYomi,
 	disconnectTimeout,
 	disconnectSecondsLeft,
 	onExitMode,
@@ -332,6 +340,8 @@ export const GameBoard = ({
 		const seconds = totalSeconds % 60
 		return `${minutes}:${String(seconds).padStart(2, '0')}`
 	}
+	const formatByoYomiPeriods = (periodsLeft: number | null) =>
+		periodsLeft === null ? null : `${Math.max(0, periodsLeft)}`
 	const showClocks = blackTimeMs !== null && whiteTimeMs !== null
 	const canIncreaseBoardScale = boardScale < MAX_BOARD_SCALE - 0.001
 	const canDecreaseBoardScale = boardScale > MIN_BOARD_SCALE + 0.001
@@ -413,7 +423,12 @@ export const GameBoard = ({
 				{showClocks ? (
 					<div className="player-clock player-clock--black" aria-live="polite">
 						<div className="player-clock-label">Time</div>
-						<div className="player-clock-value">{formatClock(blackTimeMs)}</div>
+						<div className={`player-clock-value ${isBlackInLastByoYomi ? 'player-clock-value--danger' : ''}`}>
+							{formatClock(blackTimeMs)}
+						</div>
+						{blackByoYomiPeriodsLeft !== null ? (
+							<div className="player-clock-periods">BYO: {formatByoYomiPeriods(blackByoYomiPeriodsLeft)}</div>
+						) : null}
 					</div>
 				) : null}
 				<div className="player-card player-card--black">
@@ -534,7 +549,12 @@ export const GameBoard = ({
 				{showClocks ? (
 					<div className="player-clock player-clock--white" aria-live="polite">
 						<div className="player-clock-label">Time</div>
-						<div className="player-clock-value">{formatClock(whiteTimeMs)}</div>
+						<div className={`player-clock-value ${isWhiteInLastByoYomi ? 'player-clock-value--danger' : ''}`}>
+							{formatClock(whiteTimeMs)}
+						</div>
+						{whiteByoYomiPeriodsLeft !== null ? (
+							<div className="player-clock-periods">BYO: {formatByoYomiPeriods(whiteByoYomiPeriodsLeft)}</div>
+						) : null}
 					</div>
 				) : null}
 				<div className="player-card player-card--white">

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } f
 import { Game } from 'tenuki'
 import {
 	type DisconnectTimeoutState,
-	getFisherClockConfig,
+	getTimeControlConfig,
 	getTimeLimitOptionsForBoardSize,
 	isPassMove,
 	isTimeLimitAllowedForBoardSize,
@@ -16,7 +16,7 @@ import {
 	type MoveTreeNode,
 	type OneColorStoneColor
 } from './models/game'
-import { applyFisherMove, settleActiveClock } from './models/clock'
+import { applyMoveWithTimeControl, settleActiveClock } from './models/clock'
 import {
 	createEmptyMoveTree,
 	createMoveNodeId,
@@ -172,6 +172,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
 	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
 	const countdownPlayedTurnRef = useRef<string | null>(null)
+	const previousCountdownRemainingSecondsRef = useRef<number | null>(null)
 	const lastEmptyParticipantsResetRef = useRef(false)
 	const user = session?.user
 
@@ -198,7 +199,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	)
 	const playerCount = playerIds.size
 	const maxPartySize = isSeatMode ? 2 : Math.max(playerCount, 8)
-	const fisherClockConfig = isSeatMode ? getFisherClockConfig(timeLimit) : null
+	const timeControlConfig = isSeatMode ? getTimeControlConfig(timeLimit) : null
 	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
 	const currentLineLength = currentLineMoves.length
 	const selectedNode = moveTree[currentMoveId]
@@ -340,15 +341,15 @@ function AppContent({ onNavigate }: AppContentProps) {
 			}
 			playStoneSound()
 			const nowMs = Date.now()
-			if (fisherClockConfig && gameClock) {
-				setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
+			if (timeControlConfig && gameClock) {
+				setGameClock(applyMoveWithTimeControl(gameClock, nowMs, timeControlConfig))
 			}
 			appendMoveToTree({ type: 'play', y, x })
 		},
 		[
 			appendMoveToTree,
 			areBothSeatsTaken,
-			fisherClockConfig,
+			timeControlConfig,
 			gameClock,
 			gameResult,
 			gameStarted,
@@ -369,14 +370,14 @@ function AppContent({ onNavigate }: AppContentProps) {
 		}
 		playStoneSound()
 		const nowMs = Date.now()
-		if (fisherClockConfig && gameClock) {
-			setGameClock(applyFisherMove(gameClock, nowMs, fisherClockConfig.incrementMs))
+		if (timeControlConfig && gameClock) {
+			setGameClock(applyMoveWithTimeControl(gameClock, nowMs, timeControlConfig))
 		}
 		appendMoveToTree({ type: 'pass' })
 	}, [
 		appendMoveToTree,
 		areBothSeatsTaken,
-		fisherClockConfig,
+		timeControlConfig,
 		gameClock,
 		gameResult,
 		gameStarted,
@@ -877,7 +878,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (gameResult) return
 		if (disconnectTimeout) return
 		if (!isSeatMode) return
-		if (!fisherClockConfig) return
+		if (!timeControlConfig) return
 		if (!gameClock) return
 
 		const intervalId = window.setInterval(() => {
@@ -887,18 +888,18 @@ function AppContent({ onNavigate }: AppContentProps) {
 		return () => {
 			window.clearInterval(intervalId)
 		}
-	}, [disconnectTimeout, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
+	}, [disconnectTimeout, timeControlConfig, gameClock, gameResult, gameStarted, isSeatMode])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (disconnectTimeout) return
 		if (!isSeatMode) return
-		if (!fisherClockConfig) return
+		if (!timeControlConfig) return
 		if (!gameClock) return
 
 		const nowMs = Date.now()
-		const settled = settleActiveClock(gameClock, nowMs)
+		const settled = settleActiveClock(gameClock, nowMs, timeControlConfig)
 		const activeRemaining = gameClock.activeColor === 'black' ? settled.blackTimeMs : settled.whiteTimeMs
 		if (activeRemaining > 0) return
 		const timedOutBy = gameClock.activeColor
@@ -919,7 +920,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	}, [
 		buildScoreFromMoves,
 		clockTick,
-		fisherClockConfig,
+		timeControlConfig,
 		gameClock,
 		gameResult,
 		gameStarted,
@@ -930,35 +931,58 @@ function AppContent({ onNavigate }: AppContentProps) {
 	])
 
 	const displayedClocks = useMemo(() => {
-		if (!gameStarted || !isSeatMode || !fisherClockConfig) return null
+		if (!gameStarted || !isSeatMode || !timeControlConfig) return null
 		if (!gameClock) {
+			const byoYomiPeriods =
+				timeControlConfig.system === 'byo-yomi'
+					? { black: timeControlConfig.periods, white: timeControlConfig.periods }
+					: null
 			return {
-				blackTimeMs: fisherClockConfig.initialTimeMs,
-				whiteTimeMs: fisherClockConfig.initialTimeMs
+				blackTimeMs: timeControlConfig.initialTimeMs,
+				whiteTimeMs: timeControlConfig.initialTimeMs,
+				blackByoYomiPeriodsLeft: byoYomiPeriods?.black ?? null,
+				whiteByoYomiPeriodsLeft: byoYomiPeriods?.white ?? null,
+				blackInByoYomi: false,
+				whiteInByoYomi: false
 			}
 		}
 		if (disconnectTimeout) {
 			return {
 				blackTimeMs: gameClock.blackTimeMs,
-				whiteTimeMs: gameClock.whiteTimeMs
+				whiteTimeMs: gameClock.whiteTimeMs,
+				blackByoYomiPeriodsLeft: gameClock.blackByoYomiPeriodsLeft,
+				whiteByoYomiPeriodsLeft: gameClock.whiteByoYomiPeriodsLeft,
+				blackInByoYomi: gameClock.blackInByoYomi,
+				whiteInByoYomi: gameClock.whiteInByoYomi
 			}
 		}
 		const nowMs = Date.now()
 		const settled =
-			gameStarted && !gameResult && isSeatMode && Boolean(fisherClockConfig)
-				? settleActiveClock(gameClock, nowMs)
-				: { blackTimeMs: gameClock.blackTimeMs, whiteTimeMs: gameClock.whiteTimeMs }
+			gameStarted && !gameResult && isSeatMode && Boolean(timeControlConfig)
+				? settleActiveClock(gameClock, nowMs, timeControlConfig)
+				: {
+						blackTimeMs: gameClock.blackTimeMs,
+						whiteTimeMs: gameClock.whiteTimeMs,
+						blackByoYomiPeriodsLeft: gameClock.blackByoYomiPeriodsLeft,
+						whiteByoYomiPeriodsLeft: gameClock.whiteByoYomiPeriodsLeft,
+						blackInByoYomi: gameClock.blackInByoYomi,
+						whiteInByoYomi: gameClock.whiteInByoYomi
+					}
 		return {
 			blackTimeMs: settled.blackTimeMs,
-			whiteTimeMs: settled.whiteTimeMs
+			whiteTimeMs: settled.whiteTimeMs,
+			blackByoYomiPeriodsLeft: settled.blackByoYomiPeriodsLeft,
+			whiteByoYomiPeriodsLeft: settled.whiteByoYomiPeriodsLeft,
+			blackInByoYomi: settled.blackInByoYomi,
+			whiteInByoYomi: settled.whiteInByoYomi
 		}
-	}, [clockTick, disconnectTimeout, fisherClockConfig, gameClock, gameResult, gameStarted, isSeatMode])
+	}, [clockTick, disconnectTimeout, timeControlConfig, gameClock, gameResult, gameStarted, isSeatMode])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (!isSeatMode || disconnectTimeout) return
-		if (!fisherClockConfig) return
+		if (!timeControlConfig) return
 		if (!soundEnabled) return
 		if (!gameClock || !displayedClocks) return
 
@@ -967,24 +991,34 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 		const activeRemainingMs =
 			gameClock.activeColor === 'black' ? displayedClocks.blackTimeMs : displayedClocks.whiteTimeMs
-		if (activeRemainingMs <= 0 || activeRemainingMs > 11_000) {
+		if (activeRemainingMs <= 0 || activeRemainingMs > 10_000) {
 			audio.pause()
 			audio.currentTime = 0
+			previousCountdownRemainingSecondsRef.current = null
 			return
 		}
 
-		const turnKey = `${gameClock.activeColor}:${gameClock.turnStartedAtMs}`
-		if (countdownPlayedTurnRef.current === turnKey) return
+		const activeRemainingSeconds = Math.ceil(activeRemainingMs / 1000)
+		const activePeriodsLeft =
+			gameClock.activeColor === 'black'
+				? displayedClocks.blackByoYomiPeriodsLeft
+				: displayedClocks.whiteByoYomiPeriodsLeft
+		const turnKey = `${gameClock.activeColor}:${gameClock.turnStartedAtMs}:${activePeriodsLeft ?? 'none'}`
+		const previousRemainingSeconds = previousCountdownRemainingSecondsRef.current
+		const shouldRestartForByoYomiPeriod =
+			previousRemainingSeconds !== null && previousRemainingSeconds <= 1 && activeRemainingSeconds === 10
+		if (countdownPlayedTurnRef.current === turnKey && !shouldRestartForByoYomiPeriod) return
 		countdownPlayedTurnRef.current = turnKey
+		previousCountdownRemainingSecondsRef.current = activeRemainingSeconds
 
-		audio.currentTime = 0
+		audio.currentTime = 1
 		void audio.play().catch((error) => {
 			console.warn('Failed to play countdown audio.', error)
 		})
 	}, [
 		disconnectTimeout,
 		displayedClocks,
-		fisherClockConfig,
+		timeControlConfig,
 		gameClock,
 		gameResult,
 		gameStarted,
@@ -993,33 +1027,39 @@ function AppContent({ onNavigate }: AppContentProps) {
 	])
 
 	useEffect(() => {
-		if (gameStarted && !gameResult && isSeatMode && fisherClockConfig && soundEnabled && !disconnectTimeout) return
+		if (gameStarted && !gameResult && isSeatMode && timeControlConfig && soundEnabled && !disconnectTimeout) return
 		const audio = countdownAudioRef.current
 		if (!audio) return
 		audio.pause()
 		audio.currentTime = 0
 		countdownPlayedTurnRef.current = null
-	}, [disconnectTimeout, fisherClockConfig, gameResult, gameStarted, isSeatMode, soundEnabled])
+		previousCountdownRemainingSecondsRef.current = null
+	}, [disconnectTimeout, timeControlConfig, gameResult, gameStarted, isSeatMode, soundEnabled])
 
 	useEffect(() => {
 		if (!gameStarted) return
 		if (gameResult) return
 		if (disconnectTimeout) return
 		if (!isSeatMode) return
-		if (!fisherClockConfig) return
+		if (!timeControlConfig) return
 		if (gameClock) return
 		if (!areBothSeatsTaken) return
 
+		const byoYomiPeriods = timeControlConfig.system === 'byo-yomi' ? timeControlConfig.periods : null
 		setGameClock({
-			blackTimeMs: fisherClockConfig.initialTimeMs,
-			whiteTimeMs: fisherClockConfig.initialTimeMs,
+			blackTimeMs: timeControlConfig.initialTimeMs,
+			whiteTimeMs: timeControlConfig.initialTimeMs,
+			blackByoYomiPeriodsLeft: byoYomiPeriods,
+			whiteByoYomiPeriodsLeft: byoYomiPeriods,
+			blackInByoYomi: false,
+			whiteInByoYomi: false,
 			activeColor: getFirstMoveColor(effectiveHandicapStones),
 			turnStartedAtMs: Date.now()
 		})
 	}, [
 		areBothSeatsTaken,
 		effectiveHandicapStones,
-		fisherClockConfig,
+		timeControlConfig,
 		gameClock,
 		gameResult,
 		gameStarted,
@@ -1330,6 +1370,10 @@ function AppContent({ onNavigate }: AppContentProps) {
 					gameResult={effectiveGameResult}
 					blackTimeMs={displayedClocks?.blackTimeMs ?? null}
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}
+					blackByoYomiPeriodsLeft={displayedClocks?.blackByoYomiPeriodsLeft ?? null}
+					whiteByoYomiPeriodsLeft={displayedClocks?.whiteByoYomiPeriodsLeft ?? null}
+					isBlackInLastByoYomi={Boolean(displayedClocks?.blackInByoYomi && displayedClocks?.blackByoYomiPeriodsLeft === 1)}
+					isWhiteInLastByoYomi={Boolean(displayedClocks?.whiteInByoYomi && displayedClocks?.whiteByoYomiPeriodsLeft === 1)}
 					disconnectTimeout={disconnectTimeout}
 					disconnectSecondsLeft={disconnectSecondsLeft}
 					onExitMode={handleExitMode}

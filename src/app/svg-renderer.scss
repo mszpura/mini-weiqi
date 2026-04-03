@@ -77,6 +77,24 @@ $board-darker-color: hsl(41, 36%, 40%);
 	.player-clock--white & {
 		color: rgba(43, 33, 22, 0.94);
 	}
+
+	&--danger,
+	.player-clock--white &--danger {
+		color: #d14b45;
+	}
+}
+
+.player-clock-periods {
+	color: rgba(248, 241, 229, 0.9);
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+
+	.player-clock--white & {
+		color: rgba(43, 33, 22, 0.82);
+	}
 }
 
 .game-board-center {
