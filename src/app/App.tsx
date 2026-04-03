@@ -247,6 +247,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const countdownAudioRef = useRef<HTMLAudioElement | null>(null)
 	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
 	const countdownPlayedTurnRef = useRef<string | null>(null)
+	const lastEmptyParticipantsResetRef = useRef(false)
 	const user = session?.user
 
 	const currentPlayer = user
@@ -718,6 +719,34 @@ function AppContent({ onNavigate }: AppContentProps) {
 		]
 	)
 
+	const resetActivityToMainMenu = useCallback(() => {
+		setMoveTree(createEmptyMoveTree())
+		setCurrentMoveId(ROOT_MOVE_ID)
+		setMoves([])
+		setDisplayedMoveCount(0)
+		setGameResult(null)
+		setBlackPlayer(null)
+		setWhitePlayer(null)
+		setGameStartedAtMs(null)
+		setGameStarted(false)
+		setGameClock(null)
+		setDisconnectTimeout(null)
+		setShowGameBoard(false)
+	}, [
+		setBlackPlayer,
+		setCurrentMoveId,
+		setDisconnectTimeout,
+		setDisplayedMoveCount,
+		setGameClock,
+		setGameResult,
+		setGameStarted,
+		setGameStartedAtMs,
+		setMoveTree,
+		setMoves,
+		setShowGameBoard,
+		setWhitePlayer
+	])
+
 	useEffect(() => {
 		if (!gameStarted || gameStartedAtMs) return
 		setGameStartedAtMs(Date.now())
@@ -732,6 +761,42 @@ function AppContent({ onNavigate }: AppContentProps) {
 			window.clearInterval(intervalId)
 		}
 	}, [disconnectTimeout])
+
+	useEffect(() => {
+		if (!isEmbeddedContext) return
+		if (!connectedParticipantIds) return
+		if (!isSeatMode) return
+		if (areBothSeatsTaken) return
+
+		if (blackPlayer && !connectedParticipantIds.has(blackPlayer.id)) {
+			setBlackPlayer(null)
+		}
+		if (whitePlayer && !connectedParticipantIds.has(whitePlayer.id)) {
+			setWhitePlayer(null)
+		}
+	}, [
+		areBothSeatsTaken,
+		blackPlayer,
+		connectedParticipantIds,
+		isEmbeddedContext,
+		isSeatMode,
+		setBlackPlayer,
+		setWhitePlayer,
+		whitePlayer
+	])
+
+	useEffect(() => {
+		if (!isEmbeddedContext) return
+		if (!connectedParticipantIds) return
+
+		if (connectedParticipantIds.size > 0) {
+			lastEmptyParticipantsResetRef.current = false
+			return
+		}
+		if (lastEmptyParticipantsResetRef.current) return
+		lastEmptyParticipantsResetRef.current = true
+		resetActivityToMainMenu()
+	}, [connectedParticipantIds, isEmbeddedContext, resetActivityToMainMenu])
 
 	useEffect(() => {
 		if (!isEmbeddedContext) {
