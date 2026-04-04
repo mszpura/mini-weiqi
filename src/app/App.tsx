@@ -180,7 +180,6 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const countdownPlayedTurnRef = useRef<string | null>(null)
 	const previousCountdownRemainingSecondsRef = useRef<number | null>(null)
 	const previousActivePlayersCountRef = useRef<number | null>(null)
-	const initialShowGameBoardRef = useRef(showGameBoard)
 	const user = session?.user
 
 	const currentPlayer = user
@@ -750,7 +749,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		previousActivePlayersCountRef.current = activePlayersCount
 
 		if (previousActivePlayersCount === null) {
-			if (initialShowGameBoardRef.current && gameStarted && activePlayersCount <= 1) {
+			if (showGameBoard && gameStarted && activePlayersCount <= 1) {
 				resetActivityToMainMenu()
 			}
 			return
