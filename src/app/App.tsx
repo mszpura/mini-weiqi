@@ -179,7 +179,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const stoneAudioRef = useRef<HTMLAudioElement | null>(null)
 	const countdownPlayedTurnRef = useRef<string | null>(null)
 	const previousCountdownRemainingSecondsRef = useRef<number | null>(null)
-	const lastEmptyParticipantsResetRef = useRef(false)
+	const previousActivePlayersCountRef = useRef<number | null>(null)
 	const user = session?.user
 
 	const currentPlayer = user
@@ -740,7 +740,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (!isEmbeddedContext) return
 		if (!connectedParticipantIds) return
 		if (!showGameBoard) {
-			lastEmptyParticipantsResetRef.current = false
+			previousActivePlayersCountRef.current = null
 			return
 		}
 
@@ -748,13 +748,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 			(id): id is string => Boolean(id) && connectedParticipantIds.has(id)
 		).length
 		const activePlayersCount = isSeatMode ? connectedSeatedPlayersCount : connectedParticipantIds.size
+		const previousActivePlayersCount = previousActivePlayersCountRef.current
+		previousActivePlayersCountRef.current = activePlayersCount
 
-		if (activePlayersCount > 0) {
-			lastEmptyParticipantsResetRef.current = false
+		if (previousActivePlayersCount === null) {
 			return
 		}
-		if (lastEmptyParticipantsResetRef.current) return
-		lastEmptyParticipantsResetRef.current = true
+		if (previousActivePlayersCount <= 0 || activePlayersCount > 0) return
 		resetActivityToMainMenu()
 	}, [
 		blackPlayer?.id,
