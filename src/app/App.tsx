@@ -84,6 +84,12 @@ const normalizeHandicapStones = (value: number) => {
 
 const getFirstMoveColor = (handicapStones: number): 'black' | 'white' => (handicapStones > 0 ? 'white' : 'black')
 const getOppositeColor = (color: 'black' | 'white'): 'black' | 'white' => (color === 'black' ? 'white' : 'black')
+const toImportedPlayerLabel = (name?: string, rank?: string): string | null => {
+	const safeName = name?.trim()
+	const safeRank = rank?.trim()
+	if (!safeName) return null
+	return safeRank ? `${safeName} (${safeRank})` : safeName
+}
 
 const normalizeGameMode = (mode: GameMode): GameMode =>
 	featureFlags.oneColorGo || mode !== 'one-color' ? mode : 'normal'
@@ -561,6 +567,26 @@ function AppContent({ onNavigate }: AppContentProps) {
 				if (importedBoardSize !== boardSize) {
 					setBoardSize(importedBoardSize)
 				}
+				const importedBlackLabel = toImportedPlayerLabel(parsed.game.blackPlayerName, parsed.game.blackPlayerRank)
+				const importedWhiteLabel = toImportedPlayerLabel(parsed.game.whitePlayerName, parsed.game.whitePlayerRank)
+				setBlackPlayer(
+					importedBlackLabel
+						? {
+								id: `sgf-black-${Date.now()}`,
+								username: importedBlackLabel,
+								avatar: null
+							}
+						: null
+				)
+				setWhitePlayer(
+					importedWhiteLabel
+						? {
+								id: `sgf-white-${Date.now()}`,
+								username: importedWhiteLabel,
+								avatar: null
+							}
+						: null
+				)
 				setHandicapStones(normalizeHandicapStones(parsed.game.handicapStones ?? 0))
 				setMoveTree(parsed.game.moveTree)
 				setCurrentMoveId(parsed.game.currentMoveId)
@@ -574,13 +600,15 @@ function AppContent({ onNavigate }: AppContentProps) {
 		},
 		[
 			boardSize,
+			setBlackPlayer,
 			setBoardSize,
 			setCurrentMoveId,
 			setDisconnectTimeout,
 			setGameResult,
 			setHandicapStones,
 			setMoveTree,
-			setMoves
+			setMoves,
+			setWhitePlayer
 		]
 	)
 
@@ -1372,8 +1400,12 @@ function AppContent({ onNavigate }: AppContentProps) {
 					whiteTimeMs={displayedClocks?.whiteTimeMs ?? null}
 					blackByoYomiPeriodsLeft={displayedClocks?.blackByoYomiPeriodsLeft ?? null}
 					whiteByoYomiPeriodsLeft={displayedClocks?.whiteByoYomiPeriodsLeft ?? null}
-					isBlackInLastByoYomi={Boolean(displayedClocks?.blackInByoYomi && displayedClocks?.blackByoYomiPeriodsLeft === 1)}
-					isWhiteInLastByoYomi={Boolean(displayedClocks?.whiteInByoYomi && displayedClocks?.whiteByoYomiPeriodsLeft === 1)}
+					isBlackInLastByoYomi={Boolean(
+						displayedClocks?.blackInByoYomi && displayedClocks?.blackByoYomiPeriodsLeft === 1
+					)}
+					isWhiteInLastByoYomi={Boolean(
+						displayedClocks?.whiteInByoYomi && displayedClocks?.whiteByoYomiPeriodsLeft === 1
+					)}
 					disconnectTimeout={disconnectTimeout}
 					disconnectSecondsLeft={disconnectSecondsLeft}
 					onExitMode={handleExitMode}

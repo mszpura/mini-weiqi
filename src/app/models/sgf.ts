@@ -3,6 +3,10 @@ import { isPassMove, type GameMove, type MoveTreeNode } from './game'
 type ParsedSgfGame = {
 	boardSize?: number
 	handicapStones?: number
+	blackPlayerName?: string
+	whitePlayerName?: string
+	blackPlayerRank?: string
+	whitePlayerRank?: string
 	moves: GameMove[]
 	moveTree: Record<string, MoveTreeNode>
 	currentMoveId: string
@@ -213,6 +217,10 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 	}
 
 	const boardSize = parsedBoardSize ?? fallbackBoardSize
+	const blackPlayerName = rootProps.get('PB')?.[0]?.trim() || undefined
+	const whitePlayerName = rootProps.get('PW')?.[0]?.trim() || undefined
+	const blackPlayerRank = rootProps.get('BR')?.[0]?.trim() || undefined
+	const whitePlayerRank = rootProps.get('WR')?.[0]?.trim() || undefined
 	const moveTree: Record<string, MoveTreeNode> = {
 		[ROOT_MOVE_ID]: { id: ROOT_MOVE_ID, parentId: null, move: null, childrenIds: [] }
 	}
@@ -328,6 +336,10 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 		game: {
 			boardSize: parsedBoardSize,
 			handicapStones: parsedHandicapStones,
+			blackPlayerName,
+			whitePlayerName,
+			blackPlayerRank,
+			whitePlayerRank,
 			moves,
 			moveTree,
 			currentMoveId
