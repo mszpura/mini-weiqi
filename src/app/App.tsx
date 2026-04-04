@@ -744,10 +744,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 			return
 		}
 
-		const connectedSeatedPlayersCount = [blackPlayer?.id, whitePlayer?.id].filter(
-			(id): id is string => Boolean(id) && connectedParticipantIds.has(id)
-		).length
-		const activePlayersCount = isSeatMode ? connectedSeatedPlayersCount : connectedParticipantIds.size
+		const activePlayersCount = connectedParticipantIds.size
 		const previousActivePlayersCount = previousActivePlayersCountRef.current
 		previousActivePlayersCountRef.current = activePlayersCount
 
@@ -757,13 +754,10 @@ function AppContent({ onNavigate }: AppContentProps) {
 		if (previousActivePlayersCount <= 0 || activePlayersCount > 0) return
 		resetActivityToMainMenu()
 	}, [
-		blackPlayer?.id,
 		connectedParticipantIds,
 		isEmbeddedContext,
-		isSeatMode,
 		resetActivityToMainMenu,
 		showGameBoard,
-		whitePlayer?.id
 	])
 
 	useEffect(() => {
