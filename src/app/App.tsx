@@ -739,15 +739,32 @@ function AppContent({ onNavigate }: AppContentProps) {
 	useEffect(() => {
 		if (!isEmbeddedContext) return
 		if (!connectedParticipantIds) return
+		if (!showGameBoard) {
+			lastEmptyParticipantsResetRef.current = false
+			return
+		}
 
-		if (connectedParticipantIds.size > 0) {
+		const connectedSeatedPlayersCount = [blackPlayer?.id, whitePlayer?.id].filter(
+			(id): id is string => Boolean(id) && connectedParticipantIds.has(id)
+		).length
+		const activePlayersCount = isSeatMode ? connectedSeatedPlayersCount : connectedParticipantIds.size
+
+		if (activePlayersCount > 0) {
 			lastEmptyParticipantsResetRef.current = false
 			return
 		}
 		if (lastEmptyParticipantsResetRef.current) return
 		lastEmptyParticipantsResetRef.current = true
 		resetActivityToMainMenu()
-	}, [connectedParticipantIds, isEmbeddedContext, resetActivityToMainMenu])
+	}, [
+		blackPlayer?.id,
+		connectedParticipantIds,
+		isEmbeddedContext,
+		isSeatMode,
+		resetActivityToMainMenu,
+		showGameBoard,
+		whitePlayer?.id
+	])
 
 	useEffect(() => {
 		if (!isEmbeddedContext) {
