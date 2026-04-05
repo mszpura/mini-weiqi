@@ -21,6 +21,10 @@ $board-darker-color: hsl(41, 36%, 40%);
 	box-sizing: border-box;
 }
 
+.game-board--with-move-tree {
+	--board-side-width: 220px;
+}
+
 .game-side-slot {
 	flex: 0 0 var(--board-side-width);
 	min-width: 160px;
@@ -33,6 +37,14 @@ $board-darker-color: hsl(41, 36%, 40%);
 
 .game-side-slot--with-move-tree {
 	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.game-side-slot--with-move-tree .player-clock,
+.game-side-slot--with-move-tree .player-card {
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
 }
 
 .game-move-tree-slot {
@@ -1230,6 +1242,10 @@ $board-darker-color: hsl(41, 36%, 40%);
 		--board-side-width: 160px;
 		--board-screen-padding-x: 24px;
 		--board-controls-space: 96px;
+	}
+
+	.game-board--with-move-tree {
+		--board-side-width: 210px;
 	}
 }
 

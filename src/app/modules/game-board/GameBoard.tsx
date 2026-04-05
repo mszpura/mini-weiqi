@@ -402,9 +402,11 @@ export const GameBoard = ({
 		return () => window.removeEventListener('keydown', handleKeydown)
 	}, [canMoveBackward, canMoveForward, onMoveBackward, onMoveForward, onMoveToEnd, onMoveToStart, showNavigation])
 
+	const isSharedMoveTreeVisible = featureFlags.moveTree && gameMode === 'shared' && gameStarted
+
 	return (
-		<div className="game-board">
-			<div className="game-side-slot">
+		<div className={`game-board ${isSharedMoveTreeVisible ? 'game-board--with-move-tree' : ''}`}>
+			<div className={`game-side-slot ${isSharedMoveTreeVisible ? 'game-side-slot--with-move-tree' : ''}`}>
 				{showClocks ? (
 					<div className="player-clock player-clock--black" aria-live="polite">
 						<div className="player-clock-label">Time</div>
@@ -530,9 +532,7 @@ export const GameBoard = ({
 					) : null}
 				</div>
 			) : null}
-			<div
-				className={`game-side-slot ${featureFlags.moveTree && gameMode === 'shared' && gameStarted ? 'game-side-slot--with-move-tree' : ''}`}
-			>
+			<div className={`game-side-slot ${isSharedMoveTreeVisible ? 'game-side-slot--with-move-tree' : ''}`}>
 				{showClocks ? (
 					<div className="player-clock player-clock--white" aria-live="polite">
 						<div className="player-clock-label">Time</div>
@@ -584,7 +584,7 @@ export const GameBoard = ({
 						</button>
 					) : null}
 				</div>
-				{featureFlags.moveTree && gameMode === 'shared' && gameStarted ? (
+				{isSharedMoveTreeVisible ? (
 					<div className="game-move-tree-slot">
 						<MoveTreePanel
 							moveTree={moveTree}
