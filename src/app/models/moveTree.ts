@@ -1,4 +1,4 @@
-import type { GameMove, MoveTreeNode } from './game'
+import { isPassMove, type GameMove, type MoveTreeNode } from './game'
 
 export const ROOT_MOVE_ID = 'root'
 
@@ -56,4 +56,28 @@ export const getMainLineLeafFromNode = (moveTree: Record<string, MoveTreeNode>, 
 		if (!nextId) return cursor
 		cursor = nextId
 	}
+}
+
+export const areMovesEquivalent = (left: GameMove, right: GameMove) => {
+	if (isPassMove(left) || isPassMove(right)) {
+		return isPassMove(left) && isPassMove(right)
+	}
+	return left.x === right.x && left.y === right.y
+}
+
+export const findChildNodeIdByMove = (
+	moveTree: Record<string, MoveTreeNode>,
+	parentId: string,
+	move: GameMove
+): string | null => {
+	const parentNode = moveTree[parentId]
+	if (!parentNode) return null
+	for (const childId of parentNode.childrenIds) {
+		const childNode = moveTree[childId]
+		if (!childNode?.move) continue
+		if (areMovesEquivalent(childNode.move, move)) {
+			return childId
+		}
+	}
+	return null
 }

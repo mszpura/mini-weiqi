@@ -1,4 +1,5 @@
 import { isPassMove, type GameMove, type MoveTreeNode } from './game'
+import { findChildNodeIdByMove } from './moveTree'
 
 type ParsedSgfGame = {
 	boardSize?: number
@@ -228,6 +229,8 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 	let parseError: string | null = null
 
 	const appendMove = (parentId: string, move: GameMove) => {
+		const existingChildId = findChildNodeIdByMove(moveTree, parentId, move)
+		if (existingChildId) return existingChildId
 		nodeCounter += 1
 		const nextId = `sgf-node-${nodeCounter}`
 		moveTree[nextId] = {

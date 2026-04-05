@@ -1,16 +1,6 @@
-import { MoveTreePanel } from './MoveTreePanel'
-import type { MoveTreeNode } from '../../models/game'
-
 type RightOptionsMenuProps = {
 	isOpen: boolean
 	onToggle: () => void
-	isMoveTreeOpen: boolean
-	onToggleMoveTree: () => void
-	showMoveTreePanel: boolean
-	moveTree: Record<string, MoveTreeNode>
-	currentMoveId: string
-	currentMoveCount: number
-	onSelectMoveCount: (moveCount: number, moveId?: string) => void
 	onIncreaseBoardScale: () => void
 	onDecreaseBoardScale: () => void
 	canIncreaseBoardScale: boolean
@@ -34,13 +24,6 @@ type RightOptionsMenuProps = {
 export const RightOptionsMenu = ({
 	isOpen,
 	onToggle,
-	isMoveTreeOpen,
-	onToggleMoveTree,
-	showMoveTreePanel,
-	moveTree,
-	currentMoveId,
-	currentMoveCount,
-	onSelectMoveCount,
 	onIncreaseBoardScale,
 	onDecreaseBoardScale,
 	canIncreaseBoardScale,
@@ -72,17 +55,6 @@ export const RightOptionsMenu = ({
 				>
 					Options
 				</button>
-				{showMoveTreePanel ? (
-					<button
-						className="game-options-toggle"
-						type="button"
-						onClick={onToggleMoveTree}
-						aria-expanded={isMoveTreeOpen}
-						aria-controls="game-move-tree-panel"
-					>
-						Move Tree
-					</button>
-				) : null}
 			</div>
 			{isOpen ? (
 				<aside className="game-options-panel" id="game-options-panel">
@@ -166,18 +138,6 @@ export const RightOptionsMenu = ({
 							</div>
 						</>
 					) : null}
-				</aside>
-			) : null}
-			{showMoveTreePanel && isMoveTreeOpen ? (
-				<aside className="game-options-panel" id="game-move-tree-panel">
-					<div className="game-options-panel-title">Move Tree</div>
-					<MoveTreePanel
-						moveTree={moveTree}
-						currentMoveId={currentMoveId}
-						currentMoveCount={currentMoveCount}
-						onSelectMoveCount={onSelectMoveCount}
-						isEmbedded
-					/>
 				</aside>
 			) : null}
 		</>

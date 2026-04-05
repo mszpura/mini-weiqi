@@ -31,6 +31,27 @@ $board-darker-color: hsl(41, 36%, 40%);
 	justify-content: center;
 }
 
+.game-side-slot--with-move-tree {
+	justify-content: flex-start;
+}
+
+.game-move-tree-slot {
+	align-items: stretch;
+	justify-content: flex-start;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-height: 280px;
+	max-height: min(56svh, 560px);
+	padding: 10px 12px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.35);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.9) 0%, rgba(20, 16, 12, 0.82) 100%);
+	box-shadow:
+		0 10px 20px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
 .player-clock {
 	min-width: 160px;
 	padding: 10px 12px;
@@ -554,7 +575,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	display: grid;
 	grid-template-rows: auto minmax(0, 1fr);
 	row-gap: 8px;
-	min-height: 0;
+	min-height: 260px;
 }
 
 .move-tree-panel--embedded {
@@ -571,34 +592,22 @@ $board-darker-color: hsl(41, 36%, 40%);
 }
 
 .move-tree-branches {
-	display: flex;
-	align-items: flex-start;
-	gap: 6px;
+	display: block;
 	overflow-y: auto;
 	overflow-x: auto;
-	column-gap: 6px;
 	min-height: 0;
 	max-height: 100%;
-	padding-right: 2px;
-}
-
-.move-tree-list {
-	position: relative;
-	display: grid;
-	row-gap: 0;
-	min-width: 28px;
-	flex: 0 0 auto;
+	padding: 2px 6px 2px 2px;
 }
 
 .move-tree-item {
-	position: relative;
-	display: grid;
-	grid-template-columns: 14px 16px;
+	position: absolute;
+	display: flex;
 	align-items: center;
-	justify-content: start;
-	column-gap: 6px;
-	width: 100%;
-	padding: 4px 0;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	padding: 0;
 	border: 0;
 	border-radius: 8px;
 	background: transparent;
@@ -613,21 +622,21 @@ $board-darker-color: hsl(41, 36%, 40%);
 	}
 }
 
-.move-tree-item-line {
+.move-tree-canvas {
+	position: relative;
+	min-width: max-content;
+	min-height: max-content;
+}
+
+.move-tree-edges {
 	position: absolute;
-	left: 7px;
-	top: -4px;
-	bottom: -4px;
-	width: 1px;
-	background: rgba(242, 230, 210, 0.3);
+	inset: 0;
+	pointer-events: none;
 }
 
-.move-tree-item-line--start {
-	top: 50% !important;
-}
-
-.move-tree-item-line--last {
-	bottom: 50% !important;
+.move-tree-edge-line {
+	stroke: rgba(242, 230, 210, 0.38);
+	stroke-width: 1;
 }
 
 .move-tree-node {
@@ -1238,6 +1247,10 @@ $board-darker-color: hsl(41, 36%, 40%);
 		flex: 0 1 auto;
 		min-width: 0;
 		width: min(420px, 100%);
+	}
+
+	.game-move-tree-slot {
+		max-height: min(44svh, 520px);
 	}
 
 	.game-board-center {

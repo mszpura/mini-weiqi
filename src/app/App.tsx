@@ -20,6 +20,7 @@ import { applyMoveWithTimeControl, settleActiveClock } from './models/clock'
 import {
 	createEmptyMoveTree,
 	createMoveNodeId,
+	findChildNodeIdByMove,
 	getMainLineLeafFromNode,
 	getMainLineNodeAtDepth,
 	getMovesFromNodeId,
@@ -312,6 +313,13 @@ function AppContent({ onNavigate }: AppContentProps) {
 		(nextMove: GameMove) => {
 			const parentNode = moveTree[currentMoveId]
 			if (!parentNode) return
+			const existingChildId = findChildNodeIdByMove(moveTree, currentMoveId, nextMove)
+			if (existingChildId) {
+				setCurrentMoveId(existingChildId)
+				setDisplayedMoveCount(getNodeDepth(moveTree, existingChildId))
+				setMoves(getMovesFromNodeId(moveTree, existingChildId))
+				return
+			}
 			const nextMoveId = createMoveNodeId()
 			const nextNode: MoveTreeNode = {
 				id: nextMoveId,
@@ -756,13 +764,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 		}
 		if (previousActivePlayersCount <= 0 || activePlayersCount > 0) return
 		resetActivityToMainMenu()
-	}, [
-		connectedParticipantIds,
-		gameStarted,
-		isEmbeddedContext,
-		resetActivityToMainMenu,
-		showGameBoard,
-	])
+	}, [connectedParticipantIds, gameStarted, isEmbeddedContext, resetActivityToMainMenu, showGameBoard])
 
 	useEffect(() => {
 		if (!isEmbeddedContext) {

@@ -16,6 +16,7 @@ import '../../svg-renderer.scss'
 import { downloadBoardImage } from './logic/downloadBoardImage'
 import { GameResultPopup } from './GameResultPopup'
 import { InfoMenu } from './InfoMenu'
+import { MoveTreePanel } from './MoveTreePanel'
 import { RightOptionsMenu } from './RightOptionsMenu'
 import { SetupMenu } from './SetupMenu'
 
@@ -162,7 +163,6 @@ export const GameBoard = ({
 	const allowDualSeatInDevRef = useRef(allowDualSeatInDev)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
-	const [isMoveTreePanelOpen, setIsMoveTreePanelOpen] = useState(false)
 	const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
 	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
 
@@ -352,22 +352,7 @@ export const GameBoard = ({
 		setBoardScale((previousScale) => Math.max(MIN_BOARD_SCALE, Number((previousScale - BOARD_SCALE_STEP).toFixed(2))))
 	}
 	const handleToggleOptionsPanel = () => {
-		setIsOptionsPanelOpen((previous) => {
-			const isNextOpen = !previous
-			if (isNextOpen) {
-				setIsMoveTreePanelOpen(false)
-			}
-			return isNextOpen
-		})
-	}
-	const handleToggleMoveTreePanel = () => {
-		setIsMoveTreePanelOpen((previous) => {
-			const isNextOpen = !previous
-			if (isNextOpen) {
-				setIsOptionsPanelOpen(false)
-			}
-			return isNextOpen
-		})
+		setIsOptionsPanelOpen((previous) => !previous)
 	}
 	const handleToggleInfoPanel = () => {
 		setIsInfoPanelOpen((previous) => !previous)
@@ -545,7 +530,9 @@ export const GameBoard = ({
 					) : null}
 				</div>
 			) : null}
-			<div className="game-side-slot">
+			<div
+				className={`game-side-slot ${featureFlags.moveTree && gameMode === 'shared' && gameStarted ? 'game-side-slot--with-move-tree' : ''}`}
+			>
 				{showClocks ? (
 					<div className="player-clock player-clock--white" aria-live="polite">
 						<div className="player-clock-label">Time</div>
@@ -597,17 +584,20 @@ export const GameBoard = ({
 						</button>
 					) : null}
 				</div>
+				{featureFlags.moveTree && gameMode === 'shared' && gameStarted ? (
+					<div className="game-move-tree-slot">
+						<MoveTreePanel
+							moveTree={moveTree}
+							currentMoveId={currentMoveId}
+							currentMoveCount={currentMoveCount}
+							onSelectMoveCount={onMoveToCount}
+						/>
+					</div>
+				) : null}
 			</div>
 			<RightOptionsMenu
 				isOpen={isOptionsPanelOpen}
 				onToggle={handleToggleOptionsPanel}
-				isMoveTreeOpen={isMoveTreePanelOpen}
-				onToggleMoveTree={handleToggleMoveTreePanel}
-				showMoveTreePanel={featureFlags.moveTree && gameMode === 'shared' && gameStarted}
-				moveTree={moveTree}
-				currentMoveId={currentMoveId}
-				currentMoveCount={currentMoveCount}
-				onSelectMoveCount={onMoveToCount}
 				onIncreaseBoardScale={handleIncreaseBoardScale}
 				onDecreaseBoardScale={handleDecreaseBoardScale}
 				canIncreaseBoardScale={canIncreaseBoardScale}
