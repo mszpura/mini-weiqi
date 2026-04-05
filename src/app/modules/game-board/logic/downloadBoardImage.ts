@@ -112,21 +112,122 @@ export const renderBoardImageBlob = async ({
 		context.drawImage(image, 0, 0, Math.floor(width), Math.floor(height))
 
 		if (hasCaption) {
-			context.fillStyle = '#1f1812'
-			if (captionPlacement === 'right') {
-				context.fillRect(Math.floor(width), 0, captionPanelWidth, canvas.height)
-			} else {
-				context.fillRect(0, Math.floor(height), canvas.width, captionHeight)
+			const drawWrappedText = ({
+				text,
+				x,
+				y,
+				maxWidth,
+				lineHeight,
+				font,
+				color
+			}: {
+				text: string
+				x: number
+				y: number
+				maxWidth: number
+				lineHeight: number
+				font: string
+				color: string
+			}) => {
+				context.font = font
+				context.fillStyle = color
+				const words = text.split(/\s+/).filter(Boolean)
+				if (words.length === 0) return y
+				let currentLine = words[0] ?? ''
+				let cursorY = y
+
+				for (let index = 1; index < words.length; index += 1) {
+					const candidate = `${currentLine} ${words[index]}`
+					if (context.measureText(candidate).width <= maxWidth) {
+						currentLine = candidate
+						continue
+					}
+					context.fillText(currentLine, x, cursorY)
+					currentLine = words[index] ?? ''
+					cursorY += lineHeight
+				}
+
+				context.fillText(currentLine, x, cursorY)
+				return cursorY + lineHeight
 			}
-			context.fillStyle = '#f8f1e5'
+
 			context.textAlign = 'left'
 			context.textBaseline = 'top'
-			context.font = '600 18px sans-serif'
-			const textStartX = captionPlacement === 'right' ? Math.floor(width) + 18 : 16
-			const textStartY = captionPlacement === 'right' ? 18 : Math.floor(height) + 10
-			safeCaptionLines.forEach((line, index) => {
-				context.fillText(line, textStartX, textStartY + index * 28)
-			})
+
+			if (captionPlacement === 'right') {
+				const panelX = Math.floor(width)
+				const gradient = context.createLinearGradient(panelX, 0, canvas.width, canvas.height)
+				gradient.addColorStop(0, '#171318')
+				gradient.addColorStop(0.65, '#241b14')
+				gradient.addColorStop(1, '#312116')
+				context.fillStyle = gradient
+				context.fillRect(panelX, 0, captionPanelWidth, canvas.height)
+
+				context.fillStyle = '#f2c48a'
+				context.fillRect(panelX, 0, 3, canvas.height)
+
+				const contentX = panelX + 20
+				const contentWidth = captionPanelWidth - 40
+				let cursorY = 20
+
+				context.fillStyle = '#f8f1e5'
+				context.font = '700 24px "Inter", "Segoe UI", sans-serif'
+				context.fillText('Mini Weiqi', contentX, cursorY)
+				cursorY += 34
+
+				context.fillStyle = '#cbb9a3'
+				context.font = '500 13px "Inter", "Segoe UI", sans-serif'
+				context.fillText('GAME SUMMARY', contentX, cursorY)
+				cursorY += 24
+
+				context.fillStyle = 'rgba(248, 241, 229, 0.2)'
+				context.fillRect(contentX, cursorY, contentWidth, 1)
+				cursorY += 16
+
+				safeCaptionLines.forEach((line) => {
+					const [labelRaw, ...restParts] = line.split(':')
+					const hasLabel = restParts.length > 0
+					if (hasLabel) {
+						const valueText = restParts.join(':').trim()
+						context.fillStyle = '#b9a68c'
+						context.font = '600 12px "Inter", "Segoe UI", sans-serif'
+						context.fillText(labelRaw.trim().toUpperCase(), contentX, cursorY)
+						cursorY += 18
+						cursorY = drawWrappedText({
+							text: valueText,
+							x: contentX,
+							y: cursorY,
+							maxWidth: contentWidth,
+							lineHeight: 22,
+							font: '600 18px "Inter", "Segoe UI", sans-serif',
+							color: '#f8f1e5'
+						})
+						cursorY += 8
+						return
+					}
+
+					cursorY = drawWrappedText({
+						text: line,
+						x: contentX,
+						y: cursorY,
+						maxWidth: contentWidth,
+						lineHeight: 22,
+						font: '600 18px "Inter", "Segoe UI", sans-serif',
+						color: '#f8f1e5'
+					})
+					cursorY += 8
+				})
+			} else {
+				context.fillStyle = '#1f1812'
+				context.fillRect(0, Math.floor(height), canvas.width, captionHeight)
+				context.fillStyle = '#f8f1e5'
+				context.font = '600 18px "Inter", "Segoe UI", sans-serif'
+				const textStartX = 16
+				const textStartY = Math.floor(height) + 10
+				safeCaptionLines.forEach((line, index) => {
+					context.fillText(line, textStartX, textStartY + index * 28)
+				})
+			}
 		}
 
 		const pngBlob = await new Promise<Blob>((resolve, reject) => {

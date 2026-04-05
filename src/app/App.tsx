@@ -1257,10 +1257,6 @@ function AppContent({ onNavigate }: AppContentProps) {
 
 	const handleShareResult = useCallback(async () => {
 		if (!effectiveGameResult) return
-		if (!discordSdk.instanceId) {
-			window.alert('Share result is only available inside Discord.')
-			return
-		}
 		const boardElement = document.querySelector('.tenuki-board.tenuki-svg-renderer')
 		if (!(boardElement instanceof HTMLDivElement)) {
 			window.alert('Board is not ready for sharing.')
@@ -1282,6 +1278,25 @@ function AppContent({ onNavigate }: AppContentProps) {
 				captionLines: [winnerLine, scoreLine, blackPlayerLine, whitePlayerLine],
 				captionPlacement: 'right'
 			})
+
+			if (import.meta.env.DEV) {
+				const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+				const downloadUrl = window.URL.createObjectURL(imageBlob)
+				const downloadLink = document.createElement('a')
+				downloadLink.href = downloadUrl
+				downloadLink.download = `mini-weiqi-result-${timestamp}.png`
+				document.body.append(downloadLink)
+				downloadLink.click()
+				downloadLink.remove()
+				window.URL.revokeObjectURL(downloadUrl)
+				return
+			}
+
+			if (!discordSdk.instanceId) {
+				window.alert('Share result is only available inside Discord.')
+				return
+			}
+
 			const imageFile = new File([imageBlob], 'mini-weiqi-result.png', { type: 'image/png' })
 			const body = new FormData()
 			body.append('file', imageFile)
