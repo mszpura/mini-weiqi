@@ -46,6 +46,28 @@ type ParseNodeResult =
 
 const ROOT_MOVE_ID = 'root'
 
+const unescapeSgfText = (value: string) => {
+	let output = ''
+	for (let index = 0; index < value.length; index += 1) {
+		const char = value[index]
+		if (char !== '\\') {
+			output += char
+			continue
+		}
+		const nextChar = value[index + 1]
+		if (typeof nextChar === 'undefined') continue
+		if (nextChar === '\n' || nextChar === '\r') {
+			index += 1
+			continue
+		}
+		output += nextChar
+		index += 1
+	}
+	return output
+}
+
+const escapeSgfText = (value: string) => value.replace(/\\/g, '\\\\').replace(/\]/g, '\\]')
+
 const decodeCoordinate = (value: string) => {
 	if (value.length !== 2) return null
 	const x = value.charCodeAt(0) - 97
@@ -161,7 +183,7 @@ const parseProperties = (nodeText: string) => {
 			const valueStart = index + 1
 			const nextIndex = skipPropertyValue(nodeText, index)
 			if (nextIndex < 0) return null
-			const rawValue = nodeText.slice(valueStart, nextIndex - 1).replace(/\\]/g, ']')
+			const rawValue = unescapeSgfText(nodeText.slice(valueStart, nextIndex - 1))
 			values.push(rawValue)
 			index = nextIndex
 		}
@@ -228,16 +250,26 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 	let nodeCounter = 0
 	let parseError: string | null = null
 
-	const appendMove = (parentId: string, move: GameMove) => {
+	const appendMove = (parentId: string, move: GameMove, comment?: string) => {
 		const existingChildId = findChildNodeIdByMove(moveTree, parentId, move)
-		if (existingChildId) return existingChildId
+		if (existingChildId) {
+			const existingNode = moveTree[existingChildId]
+			if (existingNode && comment && !(existingNode.comment?.trim().length ?? 0)) {
+				moveTree[existingChildId] = {
+					...existingNode,
+					comment
+				}
+			}
+			return existingChildId
+		}
 		nodeCounter += 1
 		const nextId = `sgf-node-${nodeCounter}`
 		moveTree[nextId] = {
 			id: nextId,
 			parentId,
 			move,
-			childrenIds: []
+			childrenIds: [],
+			comment
 		}
 		moveTree[parentId] = {
 			...moveTree[parentId],
@@ -249,17 +281,18 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 	const parseMoveFromNode = (
 		nodeText: string,
 		expectedColor: 'B' | 'W'
-	): { move: GameMove | null; nextColor: 'B' | 'W' } | null => {
+	): { move: GameMove | null; nextColor: 'B' | 'W'; comment?: string } | null => {
 		const props = parseProperties(nodeText)
 		if (!props) {
 			parseError = 'Invalid SGF: malformed node properties.'
 			return null
 		}
+		const comment = props.get('C')?.[0]
 
 		const blackMove = props.get('B')?.[0]
 		const whiteMove = props.get('W')?.[0]
 		if (typeof blackMove === 'undefined' && typeof whiteMove === 'undefined') {
-			return { move: null, nextColor: expectedColor }
+			return { move: null, nextColor: expectedColor, comment }
 		}
 		if (typeof blackMove !== 'undefined' && typeof whiteMove !== 'undefined') {
 			parseError = 'Unsupported SGF: node contains both B and W moves.'
@@ -270,7 +303,7 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 		const value = (blackMove ?? whiteMove ?? '').trim().toLowerCase()
 
 		if (!value || value === 'tt') {
-			return { move: { type: 'pass' }, nextColor: color === 'B' ? 'W' : 'B' }
+			return { move: { type: 'pass' }, nextColor: color === 'B' ? 'W' : 'B', comment }
 		}
 
 		const point = decodeCoordinate(value)
@@ -285,7 +318,8 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 
 		return {
 			move: { type: 'play', y: point.y, x: point.x },
-			nextColor: color === 'B' ? 'W' : 'B'
+			nextColor: color === 'B' ? 'W' : 'B',
+			comment
 		}
 	}
 
@@ -306,7 +340,7 @@ export const parseSgfContent = (content: string, fallbackBoardSize: number): Par
 			if (!parsedMove) return { endParentId: parentId, endColor: expectedColor }
 			expectedColor = parsedMove.nextColor
 			if (parsedMove.move) {
-				parentId = appendMove(parentId, parsedMove.move)
+				parentId = appendMove(parentId, parsedMove.move, parsedMove.comment)
 			}
 			for (const childTree of node.children) {
 				walkTree(childTree, parentId, expectedColor)
@@ -598,15 +632,16 @@ const getMoveColorForDepth = (depth: number, handicapStones: number): 'B' | 'W' 
 	return firstMoveColor === 'B' ? 'W' : 'B'
 }
 
-const serializeMoveNode = (move: GameMove, color: 'B' | 'W', boardSize: number) => {
+const serializeMoveNode = (move: GameMove, color: 'B' | 'W', boardSize: number, comment?: string) => {
+	const commentProperty = comment && comment.trim().length > 0 ? `C[${escapeSgfText(comment)}]` : ''
 	if (isPassMove(move)) {
-		return `;${color}[]`
+		return `;${color}[]${commentProperty}`
 	}
 	const coordinate = encodeCoordinate(move.x, move.y)
 	if (!coordinate || move.x >= boardSize || move.y >= boardSize) {
 		throw new Error('Cannot export SGF: move coordinate is outside board size.')
 	}
-	return `;${color}[${coordinate}]`
+	return `;${color}[${coordinate}]${commentProperty}`
 }
 
 const serializeMoveTreeLine = (
@@ -626,7 +661,7 @@ const serializeMoveTreeLine = (
 			throw new Error('Cannot export SGF: move tree is invalid.')
 		}
 
-		output += serializeMoveNode(node.move, getMoveColorForDepth(depth, handicapStones), boardSize)
+		output += serializeMoveNode(node.move, getMoveColorForDepth(depth, handicapStones), boardSize, node.comment)
 
 		const [mainChildId, ...variationChildIds] = node.childrenIds
 		if (variationChildIds.length > 0) {

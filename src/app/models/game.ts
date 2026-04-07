@@ -88,6 +88,7 @@ export type MoveTreeNode = {
 	parentId: string | null
 	move: GameMove | null
 	childrenIds: string[]
+	comment?: string
 }
 
 export type GameWinner = 'black' | 'white' | 'draw'

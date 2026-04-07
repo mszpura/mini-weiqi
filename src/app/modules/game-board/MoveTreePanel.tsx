@@ -98,11 +98,14 @@ export const MoveTreePanel = ({
 						const isActive = isStart ? currentMoveCount === 0 : currentMoveId === id && currentMoveCount === depth
 						const isBlackMove = depth % 2 === 1
 						const colorClass = isBlackMove ? 'black' : 'white'
+						const hasComment = Boolean(node.comment?.trim())
 
 						return (
 							<button
 								key={id}
-								className={`move-tree-item ${isStart ? 'move-tree-item--start' : ''} ${isActive ? 'is-active' : ''}`}
+								className={`move-tree-item ${isStart ? 'move-tree-item--start' : ''} ${isActive ? 'is-active' : ''} ${
+									hasComment ? 'move-tree-item--commented' : ''
+								}`}
 								type="button"
 								onClick={() => onSelectMoveCount(depth, id)}
 								role="listitem"

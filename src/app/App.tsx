@@ -210,6 +210,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const currentLineMoves = useMemo(() => getMovesFromNodeId(moveTree, currentMoveId), [currentMoveId, moveTree])
 	const currentLineLength = currentLineMoves.length
 	const selectedNode = moveTree[currentMoveId]
+	const currentMoveComment = selectedNode?.move ? selectedNode.comment ?? '' : ''
 	const currentVisibleMoves = useMemo(
 		() => currentLineMoves.slice(0, Math.max(0, Math.min(currentLineLength, displayedMoveCount))),
 		[currentLineLength, currentLineMoves, displayedMoveCount]
@@ -1375,6 +1376,23 @@ function AppContent({ onNavigate }: AppContentProps) {
 		[gameMode, moveTree, setCurrentMoveId, setMoves]
 	)
 
+	const handleCurrentMoveCommentChange = useCallback(
+		(nextComment: string) => {
+			if (gameMode !== 'shared') return
+			const currentNode = moveTree[currentMoveId]
+			if (!currentNode?.move) return
+			if ((currentNode.comment ?? '') === nextComment) return
+			setMoveTree({
+				...moveTree,
+				[currentMoveId]: {
+					...currentNode,
+					comment: nextComment
+				}
+			})
+		},
+		[currentMoveId, gameMode, moveTree, setMoveTree]
+	)
+
 	if (showGameBoard) {
 		return (
 			<div className="app-shell app-shell--board">
@@ -1406,6 +1424,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					moveTree={moveTree}
 					currentMoveId={currentMoveId}
 					currentMoveCount={displayedMoveCount}
+					currentMoveComment={currentMoveComment}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
 					isViewingLatestMove={!selectedNode || selectedNode.childrenIds.length === 0}
@@ -1416,6 +1435,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onMoveForward={handleMoveForward}
 					onMoveToEnd={handleMoveToEnd}
 					onMoveToCount={handleMoveToCount}
+					onCurrentMoveCommentChange={handleCurrentMoveCommentChange}
 					onPlayMove={handlePlayMove}
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}

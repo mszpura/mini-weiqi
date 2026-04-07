@@ -48,6 +48,7 @@ type GameBoardProps = {
 	moveTree: Record<string, MoveTreeNode>
 	currentMoveId: string
 	currentMoveCount: number
+	currentMoveComment: string
 	capturedByBlack: number
 	capturedByWhite: number
 	isViewingLatestMove: boolean
@@ -58,6 +59,7 @@ type GameBoardProps = {
 	onMoveForward: () => void
 	onMoveToEnd: () => void
 	onMoveToCount: (count: number, moveId?: string) => void
+	onCurrentMoveCommentChange: (comment: string) => void
 	onPlayMove: (y: number, x: number) => void
 	onPassTurn: () => void
 	onResign: () => void
@@ -111,6 +113,7 @@ export const GameBoard = ({
 	moveTree,
 	currentMoveId,
 	currentMoveCount,
+	currentMoveComment,
 	capturedByBlack,
 	capturedByWhite,
 	isViewingLatestMove,
@@ -121,6 +124,7 @@ export const GameBoard = ({
 	onMoveForward,
 	onMoveToEnd,
 	onMoveToCount,
+	onCurrentMoveCommentChange,
 	onPlayMove,
 	onPassTurn,
 	onResign,
@@ -304,6 +308,8 @@ export const GameBoard = ({
 	const showLeaveSeatForBlack = canLeaveSeat && playerColor === 'black'
 	const showLeaveSeatForWhite = canLeaveSeat && playerColor === 'white'
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
+	const showMoveCommentEditor = gameStarted && gameMode === 'shared'
+	const canEditCurrentMoveComment = Boolean(moveTree[currentMoveId]?.move)
 	const showDownloadBoardImageInOptions = featureFlags.boardImageExport && gameStarted
 	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
 	const showSgfAiSenseiButton = featureFlags.sgfExportMode === 'aiSensei'
@@ -507,6 +513,26 @@ export const GameBoard = ({
 					<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
 						Import SGF
 					</button>
+				) : null}
+				{showMoveCommentEditor ? (
+					<div className="game-move-comment-panel">
+						<label className="game-board-size-label" htmlFor="game-move-comment-textarea">
+							Move comment
+						</label>
+						<textarea
+							id="game-move-comment-textarea"
+							className="game-move-comment-textarea"
+							value={canEditCurrentMoveComment ? currentMoveComment : ''}
+							onChange={(event) => onCurrentMoveCommentChange(event.target.value)}
+							placeholder={
+								canEditCurrentMoveComment
+									? 'Add a comment for this move...'
+									: 'Select a move in history to add a comment.'
+							}
+							disabled={!canEditCurrentMoveComment}
+							rows={4}
+						/>
+					</div>
 				) : null}
 			</div>
 			<div className="game-board-center">

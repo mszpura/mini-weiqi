@@ -690,6 +690,15 @@ $board-darker-color: hsl(41, 36%, 40%);
 	box-shadow: 0 0 0 1px rgba(255, 223, 156, 0.7);
 }
 
+.move-tree-item--commented .move-tree-node {
+	border-color: rgba(249, 206, 112, 0.95);
+	box-shadow: 0 0 0 1px rgba(176, 125, 38, 0.7);
+}
+
+.move-tree-item--commented.move-tree-item.is-active .move-tree-node {
+	box-shadow: 0 0 0 1px rgba(255, 223, 156, 0.95), 0 0 0 3px rgba(190, 140, 44, 0.35);
+}
+
 .player-card-name {
 	max-width: 100%;
 	color: #f8f1e5;
@@ -806,6 +815,40 @@ $board-darker-color: hsl(41, 36%, 40%);
 		box-shadow:
 			0 6px 10px rgba(0, 0, 0, 0.2),
 			inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	}
+}
+
+.game-move-comment-panel {
+	width: 100%;
+	padding: 10px 12px;
+	border-radius: 14px;
+	border: 1px solid rgba(242, 230, 210, 0.35);
+	background: linear-gradient(180deg, rgba(31, 24, 18, 0.9) 0%, rgba(20, 16, 12, 0.82) 100%);
+	box-shadow:
+		0 10px 20px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 rgba(255, 255, 255, 0.08);
+	display: grid;
+	row-gap: 8px;
+	box-sizing: border-box;
+}
+
+.game-move-comment-textarea {
+	width: 100%;
+	min-height: 84px;
+	resize: vertical;
+	padding: 10px;
+	border-radius: 10px;
+	border: 1px solid rgba(242, 230, 210, 0.35);
+	background: rgba(20, 16, 12, 0.78);
+	color: #f8f1e5;
+	font-family: inherit;
+	font-size: 13px;
+	line-height: 1.35;
+	box-sizing: border-box;
+
+	&:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 }
 
