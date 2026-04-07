@@ -77,8 +77,8 @@ export const MoveTreePanel = ({
 
 							return (
 								<g key={`edge-${id}`}>
-									<line className="move-tree-edge-line" x1={parentX} y1={parentY} x2={childX} y2={parentY} />
-									<line className="move-tree-edge-line" x1={childX} y1={parentY} x2={childX} y2={childY} />
+									<line className="move-tree-edge-line" x1={parentX} y1={parentY} x2={parentX} y2={childY} />
+									<line className="move-tree-edge-line" x1={parentX} y1={childY} x2={childX} y2={childY} />
 								</g>
 							)
 						})}
