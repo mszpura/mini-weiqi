@@ -509,11 +509,6 @@ export const GameBoard = ({
 						</button>
 					) : null}
 				</div>
-				{showImportSgf ? (
-					<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
-						Import SGF
-					</button>
-				) : null}
 				{showMoveCommentEditor ? (
 					<div className="game-move-comment-panel">
 						<label className="game-board-size-label" htmlFor="game-move-comment-textarea">
@@ -533,6 +528,11 @@ export const GameBoard = ({
 							rows={4}
 						/>
 					</div>
+				) : null}
+				{showImportSgf ? (
+					<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
+						Import SGF
+					</button>
 				) : null}
 			</div>
 			<div className="game-board-center">
