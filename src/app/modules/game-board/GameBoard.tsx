@@ -503,6 +503,11 @@ export const GameBoard = ({
 						</button>
 					) : null}
 				</div>
+				{showImportSgf ? (
+					<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
+						Import SGF
+					</button>
+				) : null}
 			</div>
 			<div className="game-board-center">
 				<div
@@ -649,8 +654,6 @@ export const GameBoard = ({
 				canDecreaseBoardScale={canDecreaseBoardScale}
 				soundEnabled={soundEnabled}
 				onToggleSound={onToggleSound}
-				showImportSgf={showImportSgf}
-				onImportSgf={onImportSgf}
 				showDownloadBoardImageButton={showDownloadBoardImageInOptions}
 				onDownloadBoardImage={handleDownloadBoardImage}
 				showDownloadSgfButton={showDownloadSgfInOptions}

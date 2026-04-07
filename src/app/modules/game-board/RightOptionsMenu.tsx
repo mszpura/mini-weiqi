@@ -7,8 +7,6 @@ type RightOptionsMenuProps = {
 	canDecreaseBoardScale: boolean
 	soundEnabled: boolean
 	onToggleSound: () => void
-	showImportSgf: boolean
-	onImportSgf: () => void
 	showDownloadBoardImageButton: boolean
 	onDownloadBoardImage: () => void
 	showDownloadSgfButton: boolean
@@ -30,8 +28,6 @@ export const RightOptionsMenu = ({
 	canDecreaseBoardScale,
 	soundEnabled,
 	onToggleSound,
-	showImportSgf,
-	onImportSgf,
 	showDownloadBoardImageButton,
 	onDownloadBoardImage,
 	showDownloadSgfButton,
@@ -88,19 +84,10 @@ export const RightOptionsMenu = ({
 							{soundEnabled ? 'Disable sound' : 'Enable sound'}
 						</button>
 					</div>
-					{showImportSgf ||
-					showDownloadBoardImageButton ||
-					showDownloadSgfButton ||
-					showAiSenseiButton ||
-					canShowExitMode ? (
+					{showDownloadBoardImageButton || showDownloadSgfButton || showAiSenseiButton || canShowExitMode ? (
 						<>
 							<div className="game-options-divider" />
 							<div className="game-board-controls">
-								{showImportSgf ? (
-									<button className="game-side-button game-side-button--import" type="button" onClick={onImportSgf}>
-										Import SGF
-									</button>
-								) : null}
 								{showDownloadSgfButton && sgfLinkHref ? (
 									<a
 										className="game-side-button game-side-button--download"

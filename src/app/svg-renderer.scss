@@ -53,6 +53,7 @@ $board-darker-color: hsl(41, 36%, 40%);
 	display: flex;
 	flex-direction: column;
 	width: 100%;
+	box-sizing: border-box;
 	min-height: 280px;
 	max-height: min(56svh, 560px);
 	padding: 10px 12px;
