@@ -11,6 +11,7 @@ import {
 	type MoveTreeNode,
 	type OneColorStoneColor
 } from '../../models/game'
+import { buildMoveTreeRenderNodes } from '../../models/moveTree'
 import type { PlayerSlot } from '../../models/player'
 import '../../svg-renderer.scss'
 import { downloadBoardImage } from './logic/downloadBoardImage'
@@ -311,6 +312,9 @@ export const GameBoard = ({
 	const showDownloadSgfInOptions = showSgfDownloadButton && gameStarted && gameMode === 'shared'
 	const showAiSenseiSgfInOptions = showSgfAiSenseiButton && gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
+	const moveTreeRenderNodes = buildMoveTreeRenderNodes(moveTree)
+	const moveTreeRenderById = new Map(moveTreeRenderNodes.map((node) => [node.id, node]))
+	const maxTreeRow = moveTreeRenderNodes.reduce((maxRow, node) => Math.max(maxRow, node.row), 1)
 	const moveNumber = moves.length
 	const shouldShowSetupOptions = !gameStarted
 	const winnerLabel =
@@ -386,21 +390,62 @@ export const GameBoard = ({
 				return
 			}
 
-			if (event.key === 'ArrowDown' && canMoveBackward) {
+			if (event.key === 'ArrowDown') {
+				const currentNode = moveTreeRenderById.get(currentMoveId)
+				if (!currentNode) return
+				const targetRow = Math.min(maxTreeRow, currentNode.row + 1)
+				let targetNodeId = currentMoveId
+				let fallbackDepth = -1
+
+				for (const candidate of moveTreeRenderNodes) {
+					if (candidate.row !== targetRow) continue
+					if (candidate.depth > currentNode.depth) continue
+					if (candidate.depth > fallbackDepth) {
+						fallbackDepth = candidate.depth
+						targetNodeId = candidate.id
+					}
+				}
+				if (targetNodeId === currentMoveId) return
 				event.preventDefault()
-				onMoveToStart()
+				onMoveToCount(fallbackDepth, targetNodeId)
 				return
 			}
 
-			if (event.key === 'ArrowUp' && canMoveForward) {
+			if (event.key === 'ArrowUp') {
+				const currentNode = moveTreeRenderById.get(currentMoveId)
+				if (!currentNode || currentNode.row <= 1) return
+				const targetRow = currentNode.row - 1
+				let targetNodeId = currentMoveId
+				let fallbackDepth = -1
+
+				for (const candidate of moveTreeRenderNodes) {
+					if (candidate.row !== targetRow) continue
+					if (candidate.depth > currentNode.depth) continue
+					if (candidate.depth > fallbackDepth) {
+						fallbackDepth = candidate.depth
+						targetNodeId = candidate.id
+					}
+				}
+				if (targetNodeId === currentMoveId) return
 				event.preventDefault()
-				onMoveToEnd()
+				onMoveToCount(fallbackDepth, targetNodeId)
 			}
 		}
 
 		window.addEventListener('keydown', handleKeydown)
 		return () => window.removeEventListener('keydown', handleKeydown)
-	}, [canMoveBackward, canMoveForward, onMoveBackward, onMoveForward, onMoveToEnd, onMoveToStart, showNavigation])
+	}, [
+		canMoveBackward,
+		canMoveForward,
+		currentMoveId,
+		maxTreeRow,
+		moveTreeRenderById,
+		moveTreeRenderNodes,
+		onMoveBackward,
+		onMoveForward,
+		onMoveToCount,
+		showNavigation
+	])
 
 	const isSharedMoveTreeVisible = featureFlags.moveTree && gameMode === 'shared' && gameStarted
 

@@ -1,4 +1,5 @@
 import { isPassMove, type MoveTreeNode } from '../../models/game'
+import { buildMoveTreeRenderNodes } from '../../models/moveTree'
 import type { CSSProperties } from 'react'
 
 type MoveTreePanelProps = {
@@ -11,12 +12,6 @@ type MoveTreePanelProps = {
 
 const ROOT_MOVE_ID = 'root'
 
-type RenderNode = {
-	id: string
-	depth: number
-	row: number
-}
-
 const CELL_SIZE = 24
 const NODE_SIZE = 14
 const NODE_OFFSET = (CELL_SIZE - NODE_SIZE) / 2
@@ -28,30 +23,7 @@ export const MoveTreePanel = ({
 	onSelectMoveCount,
 	isEmbedded = false
 }: MoveTreePanelProps) => {
-	const renderNodes: RenderNode[] = []
-	const rootNode = moveTree[ROOT_MOVE_ID]
-	let nextVariationRow = 2
-
-	const visitNode = (nodeId: string, depth: number, row: number) => {
-		const node = moveTree[nodeId]
-		if (!node) return
-
-		renderNodes.push({ id: nodeId, depth, row })
-		const [mainChildId, ...variationChildIds] = node.childrenIds
-		if (mainChildId && moveTree[mainChildId]) {
-			visitNode(mainChildId, depth + 1, row)
-		}
-		for (const childId of variationChildIds) {
-			if (!moveTree[childId]) continue
-			const variationRow = nextVariationRow
-			nextVariationRow += 1
-			visitNode(childId, depth + 1, variationRow)
-		}
-	}
-
-	if (rootNode) {
-		visitNode(ROOT_MOVE_ID, 0, 1)
-	}
+	const renderNodes = buildMoveTreeRenderNodes(moveTree)
 
 	const renderNodeById = new Map<string, RenderNode>(renderNodes.map((node) => [node.id, node]))
 	const maxDepth = renderNodes.reduce((value, node) => Math.max(value, node.depth), 0)

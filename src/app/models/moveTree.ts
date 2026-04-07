@@ -2,6 +2,12 @@ import { isPassMove, type GameMove, type MoveTreeNode } from './game'
 
 export const ROOT_MOVE_ID = 'root'
 
+export type MoveTreeRenderNode = {
+	id: string
+	depth: number
+	row: number
+}
+
 export const createEmptyMoveTree = (): Record<string, MoveTreeNode> => ({
 	[ROOT_MOVE_ID]: {
 		id: ROOT_MOVE_ID,
@@ -10,6 +16,35 @@ export const createEmptyMoveTree = (): Record<string, MoveTreeNode> => ({
 		childrenIds: []
 	}
 })
+
+export const buildMoveTreeRenderNodes = (moveTree: Record<string, MoveTreeNode>): MoveTreeRenderNode[] => {
+	const renderNodes: MoveTreeRenderNode[] = []
+	const rootNode = moveTree[ROOT_MOVE_ID]
+	let nextVariationRow = 2
+
+	const visitNode = (nodeId: string, depth: number, row: number) => {
+		const node = moveTree[nodeId]
+		if (!node) return
+
+		renderNodes.push({ id: nodeId, depth, row })
+		const [mainChildId, ...variationChildIds] = node.childrenIds
+		if (mainChildId && moveTree[mainChildId]) {
+			visitNode(mainChildId, depth + 1, row)
+		}
+		for (const childId of variationChildIds) {
+			if (!moveTree[childId]) continue
+			const variationRow = nextVariationRow
+			nextVariationRow += 1
+			visitNode(childId, depth + 1, variationRow)
+		}
+	}
+
+	if (rootNode) {
+		visitNode(ROOT_MOVE_ID, 0, 1)
+	}
+
+	return renderNodes
+}
 
 export const createMoveNodeId = () =>
 	typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
