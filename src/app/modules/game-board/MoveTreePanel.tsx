@@ -1,6 +1,6 @@
 import { isPassMove, type MoveTreeNode } from '../../models/game'
 import { buildMoveTreeRenderNodes } from '../../models/moveTree'
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 
 type MoveTreePanelProps = {
 	moveTree: Record<string, MoveTreeNode>
@@ -23,6 +23,7 @@ export const MoveTreePanel = ({
 	onSelectMoveCount,
 	isEmbedded = false
 }: MoveTreePanelProps) => {
+	const branchesRef = useRef<HTMLDivElement>(null)
 	const renderNodes = buildMoveTreeRenderNodes(moveTree)
 
 	const renderNodeById = new Map<string, RenderNode>(renderNodes.map((node) => [node.id, node]))
@@ -31,10 +32,45 @@ export const MoveTreePanel = ({
 	const canvasWidth = Math.max(CELL_SIZE, (maxDepth + 1) * CELL_SIZE)
 	const canvasHeight = Math.max(CELL_SIZE, maxRow * CELL_SIZE)
 
+	useEffect(() => {
+		const branchesElement = branchesRef.current
+		if (!branchesElement) return
+		const activeMoveElement = branchesElement.querySelector<HTMLButtonElement>('.move-tree-item.is-active')
+		if (!activeMoveElement) return
+
+		const activeLeft = activeMoveElement.offsetLeft
+		const activeTop = activeMoveElement.offsetTop
+		const activeRight = activeLeft + activeMoveElement.offsetWidth
+		const activeBottom = activeTop + activeMoveElement.offsetHeight
+		const viewportLeft = branchesElement.scrollLeft
+		const viewportTop = branchesElement.scrollTop
+		const viewportRight = viewportLeft + branchesElement.clientWidth
+		const viewportBottom = viewportTop + branchesElement.clientHeight
+		const isVisibleHorizontally = activeLeft >= viewportLeft && activeRight <= viewportRight
+		const isVisibleVertically = activeTop >= viewportTop && activeBottom <= viewportBottom
+		if (isVisibleHorizontally && isVisibleVertically) return
+
+		const targetLeft = Math.max(
+			0,
+			Math.min(
+				branchesElement.scrollWidth - branchesElement.clientWidth,
+				activeLeft + activeMoveElement.offsetWidth / 2 - branchesElement.clientWidth / 2
+			)
+		)
+		const targetTop = Math.max(
+			0,
+			Math.min(
+				branchesElement.scrollHeight - branchesElement.clientHeight,
+				activeTop + activeMoveElement.offsetHeight / 2 - branchesElement.clientHeight / 2
+			)
+		)
+		branchesElement.scrollTo({ left: targetLeft, top: targetTop, behavior: 'smooth' })
+	}, [currentMoveId, currentMoveCount, renderNodes.length])
+
 	return (
 		<div className={`move-tree-panel ${isEmbedded ? 'move-tree-panel--embedded' : ''}`} aria-label="Moves Tree">
 			{isEmbedded ? null : <div className="move-tree-title">Moves Tree</div>}
-			<div className="move-tree-branches">
+			<div className="move-tree-branches" ref={branchesRef}>
 				<div className="move-tree-canvas" role="list" style={{ width: canvasWidth, height: canvasHeight }}>
 					<svg className="move-tree-edges" width={canvasWidth} height={canvasHeight} aria-hidden="true">
 						{renderNodes.map(({ id, depth, row }) => {
