@@ -99,12 +99,14 @@ export const MoveTreePanel = ({
 						const isBlackMove = depth % 2 === 1
 						const colorClass = isBlackMove ? 'black' : 'white'
 						const hasComment = Boolean(node.comment?.trim())
+						const hasMarkers = (node.markers?.length ?? 0) > 0
+						const hasAnnotation = hasComment || hasMarkers
 
 						return (
 							<button
 								key={id}
 								className={`move-tree-item ${isStart ? 'move-tree-item--start' : ''} ${isActive ? 'is-active' : ''} ${
-									hasComment ? 'move-tree-item--commented' : ''
+									hasAnnotation ? 'move-tree-item--commented' : ''
 								}`}
 								type="button"
 								onClick={() => onSelectMoveCount(depth, id)}

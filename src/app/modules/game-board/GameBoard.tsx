@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Game } from 'tenuki'
 import { featureFlags } from '../../config/featureFlags'
 import {
+	type BoardMarker,
+	type BoardMarkerSymbol,
 	type DisconnectTimeoutState,
 	isPassMove,
 	type GameMode,
@@ -49,6 +51,7 @@ type GameBoardProps = {
 	currentMoveId: string
 	currentMoveCount: number
 	currentMoveComment: string
+	currentMoveMarkers: BoardMarker[]
 	capturedByBlack: number
 	capturedByWhite: number
 	isViewingLatestMove: boolean
@@ -60,6 +63,7 @@ type GameBoardProps = {
 	onMoveToEnd: () => void
 	onMoveToCount: (count: number, moveId?: string) => void
 	onCurrentMoveCommentChange: (comment: string) => void
+	onToggleCurrentMoveMarker: (y: number, x: number, symbol: BoardMarkerSymbol) => void
 	onPlayMove: (y: number, x: number) => void
 	onPassTurn: () => void
 	onResign: () => void
@@ -114,6 +118,7 @@ export const GameBoard = ({
 	currentMoveId,
 	currentMoveCount,
 	currentMoveComment,
+	currentMoveMarkers,
 	capturedByBlack,
 	capturedByWhite,
 	isViewingLatestMove,
@@ -125,6 +130,7 @@ export const GameBoard = ({
 	onMoveToEnd,
 	onMoveToCount,
 	onCurrentMoveCommentChange,
+	onToggleCurrentMoveMarker,
 	onPlayMove,
 	onPassTurn,
 	onResign,
@@ -163,12 +169,15 @@ export const GameBoard = ({
 	const blackPlayerRef = useRef<PlayerSlot | null>(blackPlayer)
 	const whitePlayerRef = useRef<PlayerSlot | null>(whitePlayer)
 	const onPlayMoveRef = useRef(onPlayMove)
+	const onToggleCurrentMoveMarkerRef = useRef(onToggleCurrentMoveMarker)
 	const canControlBlackRef = useRef(canControlBlack)
 	const canControlWhiteRef = useRef(canControlWhite)
 	const allowDualSeatInDevRef = useRef(allowDualSeatInDev)
+	const markerToolRef = useRef<BoardMarkerSymbol | null>(null)
 	const [boardScale, setBoardScale] = useState(1)
 	const [isOptionsPanelOpen, setIsOptionsPanelOpen] = useState(false)
 	const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false)
+	const [markerTool, setMarkerTool] = useState<BoardMarkerSymbol | null>(null)
 	const isSeatMode = gameMode === 'normal' || gameMode === 'one-color'
 
 	const canCurrentUserPlay = (game: Game) => {
@@ -217,6 +226,10 @@ export const GameBoard = ({
 	}, [onPlayMove])
 
 	useEffect(() => {
+		onToggleCurrentMoveMarkerRef.current = onToggleCurrentMoveMarker
+	}, [onToggleCurrentMoveMarker])
+
+	useEffect(() => {
 		canControlBlackRef.current = canControlBlack
 	}, [canControlBlack])
 
@@ -229,6 +242,10 @@ export const GameBoard = ({
 	}, [allowDualSeatInDev])
 
 	useEffect(() => {
+		markerToolRef.current = markerTool
+	}, [markerTool])
+
+	useEffect(() => {
 		const boardElement = boardRef.current
 		if (!boardElement) return
 
@@ -239,6 +256,15 @@ export const GameBoard = ({
 			handicapStones,
 			_hooks: {
 				handleClick: (y, x) => {
+					if (
+						gameModeRef.current === 'shared' &&
+						gameStartedRef.current &&
+						!gameResultRef.current &&
+						markerToolRef.current
+					) {
+						onToggleCurrentMoveMarkerRef.current(y, x, markerToolRef.current)
+						return
+					}
 					const g = gameRef.current
 					if (!g) return
 					if (g.isOver()) return
@@ -247,6 +273,9 @@ export const GameBoard = ({
 					onPlayMoveRef.current(y, x)
 				},
 				hoverValue: (y, x) => {
+					if (gameModeRef.current === 'shared' && markerToolRef.current) {
+						return undefined
+					}
 					const g = gameRef.current
 					if (!g) return undefined
 					if (g.isOver() || g.isIllegalAt(y, x) || !canCurrentUserPlay(g)) {
@@ -282,6 +311,66 @@ export const GameBoard = ({
 		}
 	}, [boardScale, boardSize, handicapStones, moves])
 
+	useEffect(() => {
+		const boardElement = boardRef.current
+		if (!boardElement) return
+		const boardSvg = boardElement.querySelector('svg')
+		if (!(boardSvg instanceof SVGSVGElement)) return
+
+		boardSvg.querySelectorAll('.custom-annotation-marker').forEach((markerElement) => {
+			markerElement.remove()
+		})
+
+		const createMarkerElement = (symbol: BoardMarkerSymbol, cx: number, cy: number) => {
+			const svgNs = 'http://www.w3.org/2000/svg'
+			if (symbol === 'circle') {
+				const circle = document.createElementNS(svgNs, 'circle')
+				circle.setAttribute('cx', String(cx))
+				circle.setAttribute('cy', String(cy))
+				circle.setAttribute('r', '6')
+				return circle
+			}
+			if (symbol === 'square') {
+				const square = document.createElementNS(svgNs, 'rect')
+				square.setAttribute('x', String(cx - 6))
+				square.setAttribute('y', String(cy - 6))
+				square.setAttribute('width', '12')
+				square.setAttribute('height', '12')
+				return square
+			}
+			if (symbol === 'triangle') {
+				const triangle = document.createElementNS(svgNs, 'path')
+				triangle.setAttribute('d', `M ${cx} ${cy - 7} L ${cx - 7} ${cy + 6} L ${cx + 7} ${cy + 6} Z`)
+				return triangle
+			}
+			const xPath = document.createElementNS(svgNs, 'path')
+			xPath.setAttribute('d', `M ${cx - 6} ${cy - 6} L ${cx + 6} ${cy + 6} M ${cx + 6} ${cy - 6} L ${cx - 6} ${cy + 6}`)
+			return xPath
+		}
+
+		for (const marker of currentMoveMarkers) {
+			const intersection = boardSvg.querySelector<SVGGElement>(
+				`.intersection[data-intersection-y="${marker.y}"][data-intersection-x="${marker.x}"]`
+			)
+			if (!intersection) continue
+			const markerBase = intersection.querySelector<SVGCircleElement>('.marker')
+			const innerContainer = intersection.querySelector<SVGGElement>('.intersection-inner-container')
+			if (!markerBase || !innerContainer) continue
+			const cx = Number(markerBase.getAttribute('cx'))
+			const cy = Number(markerBase.getAttribute('cy'))
+			if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue
+			const markerElement = createMarkerElement(marker.symbol, cx, cy)
+			const isOnBlackStone = intersection.classList.contains('black') && intersection.classList.contains('occupied')
+			const isOnWhiteStone = intersection.classList.contains('white') && intersection.classList.contains('occupied')
+			const stoneClass = isOnBlackStone ? 'on-black' : isOnWhiteStone ? 'on-white' : 'on-board'
+			markerElement.setAttribute(
+				'class',
+				`custom-annotation-marker custom-annotation-marker--${marker.symbol} custom-annotation-marker--${stoneClass}`
+			)
+			innerContainer.append(markerElement)
+		}
+	}, [boardScale, boardSize, currentMoveId, currentMoveMarkers, moves])
+
 	const canShowExitMode = gameStarted && (gameMode === 'shared' || (moves.length === 0 && !gameResult))
 	const shouldHideJoinButtons = hideJoinButtons || gameMode === 'shared'
 	const canShowJoinBlack =
@@ -310,6 +399,12 @@ export const GameBoard = ({
 	const showImportSgf = gameStarted && gameMode === 'shared' && !gameResult
 	const showMoveCommentEditor = gameStarted && gameMode === 'shared'
 	const canEditCurrentMoveComment = Boolean(moveTree[currentMoveId]?.move)
+	const markerToolOptions: Array<{ value: BoardMarkerSymbol; label: string; symbol: string }> = [
+		{ value: 'triangle', label: 'Triangle', symbol: '△' },
+		{ value: 'square', label: 'Square', symbol: '□' },
+		{ value: 'circle', label: 'Circle', symbol: '○' },
+		{ value: 'x', label: 'X', symbol: '✕' }
+	]
 	const showDownloadBoardImageInOptions = featureFlags.boardImageExport && gameStarted
 	const showSgfDownloadButton = featureFlags.sgfExportMode === 'download'
 	const showSgfAiSenseiButton = featureFlags.sgfExportMode === 'aiSensei'
@@ -381,6 +476,13 @@ export const GameBoard = ({
 		downloadLink.click()
 		downloadLink.remove()
 	}
+
+	useEffect(() => {
+		if (gameMode !== 'shared' || canEditCurrentMoveComment) return
+		if (markerTool !== null) {
+			setMarkerTool(null)
+		}
+	}, [canEditCurrentMoveComment, gameMode, markerTool])
 
 	useEffect(() => {
 		if (!showNavigation) return
@@ -536,6 +638,28 @@ export const GameBoard = ({
 							disabled={!canEditCurrentMoveComment}
 							rows={4}
 						/>
+						<div className="game-marker-tools" role="group" aria-label="Board marker tools">
+							<button
+								className={`game-marker-tool ${markerTool === null ? 'is-active' : ''}`}
+								type="button"
+								onClick={() => setMarkerTool(null)}
+								aria-label="Use move tool"
+							>
+								<span className="game-marker-tool-stone" aria-hidden="true" />
+							</button>
+							{markerToolOptions.map((option) => (
+								<button
+									key={option.value}
+									className={`game-marker-tool ${markerTool === option.value ? 'is-active' : ''}`}
+									type="button"
+									onClick={() => setMarkerTool(option.value)}
+									disabled={!canEditCurrentMoveComment}
+									aria-label={`Use ${option.label} marker`}
+								>
+									{option.symbol}
+								</button>
+							))}
+						</div>
 					</div>
 				) : null}
 				{showImportSgf ? (

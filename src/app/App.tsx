@@ -11,6 +11,7 @@ import {
 	type GameClockState,
 	type GameMode,
 	type GameMove,
+	type BoardMarkerSymbol,
 	type GameResult,
 	type GameTimeLimit,
 	type MoveTreeNode,
@@ -211,6 +212,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 	const currentLineLength = currentLineMoves.length
 	const selectedNode = moveTree[currentMoveId]
 	const currentMoveComment = selectedNode?.move ? selectedNode.comment ?? '' : ''
+	const currentMoveMarkers = selectedNode?.move ? selectedNode.markers ?? [] : []
 	const currentVisibleMoves = useMemo(
 		() => currentLineMoves.slice(0, Math.max(0, Math.min(currentLineLength, displayedMoveCount))),
 		[currentLineLength, currentLineMoves, displayedMoveCount]
@@ -1393,6 +1395,37 @@ function AppContent({ onNavigate }: AppContentProps) {
 		[currentMoveId, gameMode, moveTree, setMoveTree]
 	)
 
+	const handleToggleCurrentMoveMarker = useCallback(
+		(y: number, x: number, symbol: BoardMarkerSymbol) => {
+			if (gameMode !== 'shared') return
+			const currentNode = moveTree[currentMoveId]
+			if (!currentNode?.move) return
+			const existingMarkers = currentNode.markers ?? []
+			const markerIndex = existingMarkers.findIndex((marker) => marker.x === x && marker.y === y)
+			const nextMarkers = [...existingMarkers]
+			if (markerIndex >= 0) {
+				const currentMarker = nextMarkers[markerIndex]
+				if (!currentMarker) return
+				if (currentMarker.symbol === symbol) {
+					nextMarkers.splice(markerIndex, 1)
+				} else {
+					nextMarkers[markerIndex] = { x, y, symbol }
+				}
+			} else {
+				nextMarkers.push({ x, y, symbol })
+			}
+
+			setMoveTree({
+				...moveTree,
+				[currentMoveId]: {
+					...currentNode,
+					markers: nextMarkers
+				}
+			})
+		},
+		[currentMoveId, gameMode, moveTree, setMoveTree]
+	)
+
 	if (showGameBoard) {
 		return (
 			<div className="app-shell app-shell--board">
@@ -1425,6 +1458,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					currentMoveId={currentMoveId}
 					currentMoveCount={displayedMoveCount}
 					currentMoveComment={currentMoveComment}
+					currentMoveMarkers={currentMoveMarkers}
 					capturedByBlack={gameSnapshot.black}
 					capturedByWhite={gameSnapshot.white}
 					isViewingLatestMove={!selectedNode || selectedNode.childrenIds.length === 0}
@@ -1436,6 +1470,7 @@ function AppContent({ onNavigate }: AppContentProps) {
 					onMoveToEnd={handleMoveToEnd}
 					onMoveToCount={handleMoveToCount}
 					onCurrentMoveCommentChange={handleCurrentMoveCommentChange}
+					onToggleCurrentMoveMarker={handleToggleCurrentMoveMarker}
 					onPlayMove={handlePlayMove}
 					onPassTurn={handlePassTurn}
 					onResign={handleResign}

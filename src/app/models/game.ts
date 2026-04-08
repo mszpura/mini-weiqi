@@ -83,12 +83,21 @@ export type GameMove = PlayMove | PassMove
 
 export const isPassMove = (move: GameMove): move is PassMove => 'type' in move && move.type === 'pass'
 
+export type BoardMarkerSymbol = 'triangle' | 'square' | 'circle' | 'x'
+
+export type BoardMarker = {
+	x: number
+	y: number
+	symbol: BoardMarkerSymbol
+}
+
 export type MoveTreeNode = {
 	id: string
 	parentId: string | null
 	move: GameMove | null
 	childrenIds: string[]
 	comment?: string
+	markers?: BoardMarker[]
 }
 
 export type GameWinner = 'black' | 'white' | 'draw'
