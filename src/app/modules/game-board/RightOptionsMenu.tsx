@@ -39,6 +39,16 @@ export const RightOptionsMenu = ({
 	canShowExitMode,
 	onExitMode
 }: RightOptionsMenuProps) => {
+	const handleDownloadSgf = () => {
+		if (!sgfLinkHref) return
+		const downloadLink = document.createElement('a')
+		downloadLink.href = sgfLinkHref
+		downloadLink.download = sgfDownloadFileName
+		document.body.append(downloadLink)
+		downloadLink.click()
+		downloadLink.remove()
+	}
+
 	return (
 		<>
 			<div className="game-right-toggles">
@@ -89,15 +99,13 @@ export const RightOptionsMenu = ({
 							<div className="game-options-divider" />
 							<div className="game-board-controls">
 								{showDownloadSgfButton && sgfLinkHref ? (
-									<a
+									<button
 										className="game-side-button game-side-button--download"
-										href={sgfLinkHref}
-										download={sgfDownloadFileName}
-										target="_blank"
-										rel="noopener noreferrer"
+										type="button"
+										onClick={handleDownloadSgf}
 									>
 										Download SGF
-									</a>
+									</button>
 								) : null}
 								{showDownloadBoardImageButton ? (
 									<button

@@ -459,53 +459,53 @@ export const GameBoard = ({
 		<div className={`game-board ${isSharedMoveTreeVisible ? 'game-board--with-move-tree' : ''}`}>
 			<div className={`game-side-slot ${isSharedMoveTreeVisible ? 'game-side-slot--with-move-tree' : ''}`}>
 				{showClocks ? (
-					<div className="player-clock player-clock--black" aria-live="polite">
+					<div className="player-clock player-clock--white" aria-live="polite">
 						<div className="player-clock-label">Time</div>
-						<div className={`player-clock-value ${isBlackInLastByoYomi ? 'player-clock-value--danger' : ''}`}>
-							{formatClock(blackTimeMs)}
+						<div className={`player-clock-value ${isWhiteInLastByoYomi ? 'player-clock-value--danger' : ''}`}>
+							{formatClock(whiteTimeMs)}
 						</div>
-						{blackByoYomiPeriodsLeft !== null ? (
-							<div className="player-clock-periods">BYO: {formatByoYomiPeriods(blackByoYomiPeriodsLeft)}</div>
+						{whiteByoYomiPeriodsLeft !== null ? (
+							<div className="player-clock-periods">BYO: {formatByoYomiPeriods(whiteByoYomiPeriodsLeft)}</div>
 						) : null}
 					</div>
 				) : null}
-				<div className="player-card player-card--black">
-					<div className="player-avatar-wrap player-avatar-wrap--black">
-						{blackPlayer?.avatar ? (
+				<div className="player-card player-card--white">
+					<div className="player-avatar-wrap player-avatar-wrap--white">
+						{whitePlayer?.avatar ? (
 							<img
 								className="player-avatar"
-								src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
-								alt={`${blackPlayer.username} avatar`}
+								src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
+								alt={`${whitePlayer.username} avatar`}
 							/>
 						) : (
-							<div className="player-avatar placeholder placeholder--black" aria-hidden="true" />
+							<div className="player-avatar placeholder placeholder--white" aria-hidden="true" />
 						)}
 					</div>
-					<div className="player-card-name">{blackPlayer?.username ?? 'Black'}</div>
-					<div className="player-card-captured">Captured: {capturedByBlack}</div>
-					{showPassForBlack ? (
+					<div className="player-card-name">{whitePlayer?.username ?? 'White'}</div>
+					<div className="player-card-captured">Captured: {capturedByWhite}</div>
+					{showPassForWhite ? (
 						<button
 							className="game-side-button game-side-button--pass"
 							type="button"
 							onClick={onPassTurn}
-							disabled={!canPassAs('black')}
+							disabled={!canPassAs('white')}
 						>
 							Pass
 						</button>
 					) : null}
-					{showResignForBlack ? (
+					{showResignForWhite ? (
 						<button className="game-side-button game-side-button--resign" type="button" onClick={onResign}>
 							Resign
 						</button>
 					) : null}
-					{showLeaveSeatForBlack ? (
+					{showLeaveSeatForWhite ? (
 						<button className="game-side-button game-side-button--leave" type="button" onClick={onLeaveSeat}>
 							Leave seat
 						</button>
 					) : null}
-					{canShowJoinBlack ? (
-						<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
-							Join as Black
+					{canShowJoinWhite ? (
+						<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
+							Join as White
 						</button>
 					) : null}
 				</div>
@@ -610,53 +610,53 @@ export const GameBoard = ({
 			) : null}
 			<div className={`game-side-slot ${isSharedMoveTreeVisible ? 'game-side-slot--with-move-tree' : ''}`}>
 				{showClocks ? (
-					<div className="player-clock player-clock--white" aria-live="polite">
+					<div className="player-clock player-clock--black" aria-live="polite">
 						<div className="player-clock-label">Time</div>
-						<div className={`player-clock-value ${isWhiteInLastByoYomi ? 'player-clock-value--danger' : ''}`}>
-							{formatClock(whiteTimeMs)}
+						<div className={`player-clock-value ${isBlackInLastByoYomi ? 'player-clock-value--danger' : ''}`}>
+							{formatClock(blackTimeMs)}
 						</div>
-						{whiteByoYomiPeriodsLeft !== null ? (
-							<div className="player-clock-periods">BYO: {formatByoYomiPeriods(whiteByoYomiPeriodsLeft)}</div>
+						{blackByoYomiPeriodsLeft !== null ? (
+							<div className="player-clock-periods">BYO: {formatByoYomiPeriods(blackByoYomiPeriodsLeft)}</div>
 						) : null}
 					</div>
 				) : null}
-				<div className="player-card player-card--white">
-					<div className="player-avatar-wrap player-avatar-wrap--white">
-						{whitePlayer?.avatar ? (
+				<div className="player-card player-card--black">
+					<div className="player-avatar-wrap player-avatar-wrap--black">
+						{blackPlayer?.avatar ? (
 							<img
 								className="player-avatar"
-								src={`https://cdn.discordapp.com/avatars/${whitePlayer.id}/${whitePlayer.avatar}.png?size=128`}
-								alt={`${whitePlayer.username} avatar`}
+								src={`https://cdn.discordapp.com/avatars/${blackPlayer.id}/${blackPlayer.avatar}.png?size=128`}
+								alt={`${blackPlayer.username} avatar`}
 							/>
 						) : (
-							<div className="player-avatar placeholder placeholder--white" aria-hidden="true" />
+							<div className="player-avatar placeholder placeholder--black" aria-hidden="true" />
 						)}
 					</div>
-					<div className="player-card-name">{whitePlayer?.username ?? 'White'}</div>
-					<div className="player-card-captured">Captured: {capturedByWhite}</div>
-					{showPassForWhite ? (
+					<div className="player-card-name">{blackPlayer?.username ?? 'Black'}</div>
+					<div className="player-card-captured">Captured: {capturedByBlack}</div>
+					{showPassForBlack ? (
 						<button
 							className="game-side-button game-side-button--pass"
 							type="button"
 							onClick={onPassTurn}
-							disabled={!canPassAs('white')}
+							disabled={!canPassAs('black')}
 						>
 							Pass
 						</button>
 					) : null}
-					{showResignForWhite ? (
+					{showResignForBlack ? (
 						<button className="game-side-button game-side-button--resign" type="button" onClick={onResign}>
 							Resign
 						</button>
 					) : null}
-					{showLeaveSeatForWhite ? (
+					{showLeaveSeatForBlack ? (
 						<button className="game-side-button game-side-button--leave" type="button" onClick={onLeaveSeat}>
 							Leave seat
 						</button>
 					) : null}
-					{canShowJoinWhite ? (
-						<button className="game-side-button game-side-button--white" type="button" onClick={onJoinWhite}>
-							Join as White
+					{canShowJoinBlack ? (
+						<button className="game-side-button game-side-button--black" type="button" onClick={onJoinBlack}>
+							Join as Black
 						</button>
 					) : null}
 				</div>

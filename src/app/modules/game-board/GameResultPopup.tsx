@@ -31,6 +31,16 @@ export const GameResultPopup = ({
 	showStartNewGame,
 	onStartNewGame
 }: GameResultPopupProps) => {
+	const handleDownloadSgf = () => {
+		if (!sgfLinkHref) return
+		const downloadLink = document.createElement('a')
+		downloadLink.href = sgfLinkHref
+		downloadLink.download = sgfDownloadFileName
+		document.body.append(downloadLink)
+		downloadLink.click()
+		downloadLink.remove()
+	}
+
 	return (
 		<div className="game-result-popup" role="status" aria-live="polite">
 			<div className="game-result-title">{winnerLabel}</div>
@@ -47,15 +57,13 @@ export const GameResultPopup = ({
 				</button>
 			) : null}
 			{showDownloadSgfButton && sgfLinkHref ? (
-				<a
+				<button
 					className="game-side-button game-side-button--download"
-					href={sgfLinkHref}
-					download={sgfDownloadFileName}
-					target="_blank"
-					rel="noopener noreferrer"
+					type="button"
+					onClick={handleDownloadSgf}
 				>
 					Download SGF
-				</a>
+				</button>
 			) : null}
 			{showAiSenseiButton && aiSenseiUploadHref ? (
 				<button className="game-side-button game-side-button--download" type="button" onClick={onOpenAiSensei}>

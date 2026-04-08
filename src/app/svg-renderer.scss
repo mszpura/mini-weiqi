@@ -886,17 +886,21 @@ $board-darker-color: hsl(41, 36%, 40%);
 	letter-spacing: 0.04em;
 }
 
-.game-result-popup .game-side-button--download {
+.game-result-popup .game-side-button {
 	min-width: 144px;
+	min-height: 38px;
 	padding: 9px 14px;
 	font-size: 12px;
+	line-height: 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	letter-spacing: 0.1em;
-	background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
+	margin-top: 0;
 }
 
-.game-result-popup .game-side-button {
-	min-height: 38px;
-	margin-top: 0;
+.game-result-popup .game-side-button--download {
+	background: linear-gradient(135deg, #2a4a66 0%, #3f6a8d 55%, #5f89ab 100%);
 }
 
 .game-options-panel .game-side-button--download {
