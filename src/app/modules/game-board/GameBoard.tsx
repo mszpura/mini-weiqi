@@ -315,7 +315,7 @@ export const GameBoard = ({
 	const showSgfAiSenseiButton = featureFlags.sgfExportMode === 'aiSensei'
 	const showDownloadSgf = showSgfDownloadButton && gameStarted && isSeatMode && Boolean(gameResult)
 	const showAiSenseiSgf = showSgfAiSenseiButton && gameStarted && isSeatMode && Boolean(gameResult)
-	const showDownloadSgfInOptions = showSgfDownloadButton && gameStarted && gameMode === 'shared'
+	const showDownloadSgfInSharedSidebar = showSgfDownloadButton && gameStarted && gameMode === 'shared'
 	const showAiSenseiSgfInOptions = showSgfAiSenseiButton && gameStarted && gameMode === 'shared'
 	const showNavigation = gameMode === 'shared'
 	const moveTreeRenderNodes = buildMoveTreeRenderNodes(moveTree)
@@ -371,6 +371,15 @@ export const GameBoard = ({
 		const boardElement = boardRef.current
 		if (!boardElement) return
 		downloadBoardImage({ boardElement, boardSize, moveNumber })
+	}
+	const handleDownloadSgf = () => {
+		if (!sgfLinkHref) return
+		const downloadLink = document.createElement('a')
+		downloadLink.href = sgfLinkHref
+		downloadLink.download = sgfDownloadFileName
+		document.body.append(downloadLink)
+		downloadLink.click()
+		downloadLink.remove()
 	}
 
 	useEffect(() => {
@@ -534,6 +543,11 @@ export const GameBoard = ({
 						Import SGF
 					</button>
 				) : null}
+				{showDownloadSgfInSharedSidebar && sgfLinkHref ? (
+					<button className="game-side-button game-side-button--download" type="button" onClick={handleDownloadSgf}>
+						Download SGF
+					</button>
+				) : null}
 			</div>
 			<div className="game-board-center">
 				<div
@@ -682,12 +696,9 @@ export const GameBoard = ({
 				onToggleSound={onToggleSound}
 				showDownloadBoardImageButton={showDownloadBoardImageInOptions}
 				onDownloadBoardImage={handleDownloadBoardImage}
-				showDownloadSgfButton={showDownloadSgfInOptions}
 				showAiSenseiButton={showAiSenseiSgfInOptions}
-				sgfLinkHref={sgfLinkHref}
 				aiSenseiUploadHref={aiSenseiUploadHref}
 				onOpenAiSensei={onOpenAiSensei}
-				sgfDownloadFileName={sgfDownloadFileName}
 				canShowExitMode={canShowExitMode}
 				onExitMode={onExitMode}
 			/>

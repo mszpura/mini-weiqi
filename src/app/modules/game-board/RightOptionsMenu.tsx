@@ -9,12 +9,9 @@ type RightOptionsMenuProps = {
 	onToggleSound: () => void
 	showDownloadBoardImageButton: boolean
 	onDownloadBoardImage: () => void
-	showDownloadSgfButton: boolean
 	showAiSenseiButton: boolean
-	sgfLinkHref: string | null
 	aiSenseiUploadHref: string | null
 	onOpenAiSensei: () => void
-	sgfDownloadFileName: string
 	canShowExitMode: boolean
 	onExitMode: () => void
 }
@@ -30,25 +27,12 @@ export const RightOptionsMenu = ({
 	onToggleSound,
 	showDownloadBoardImageButton,
 	onDownloadBoardImage,
-	showDownloadSgfButton,
 	showAiSenseiButton,
-	sgfLinkHref,
 	aiSenseiUploadHref,
 	onOpenAiSensei,
-	sgfDownloadFileName,
 	canShowExitMode,
 	onExitMode
 }: RightOptionsMenuProps) => {
-	const handleDownloadSgf = () => {
-		if (!sgfLinkHref) return
-		const downloadLink = document.createElement('a')
-		downloadLink.href = sgfLinkHref
-		downloadLink.download = sgfDownloadFileName
-		document.body.append(downloadLink)
-		downloadLink.click()
-		downloadLink.remove()
-	}
-
 	return (
 		<>
 			<div className="game-right-toggles">
@@ -94,19 +78,10 @@ export const RightOptionsMenu = ({
 							{soundEnabled ? 'Disable sound' : 'Enable sound'}
 						</button>
 					</div>
-					{showDownloadBoardImageButton || showDownloadSgfButton || showAiSenseiButton || canShowExitMode ? (
+					{showDownloadBoardImageButton || showAiSenseiButton || canShowExitMode ? (
 						<>
 							<div className="game-options-divider" />
 							<div className="game-board-controls">
-								{showDownloadSgfButton && sgfLinkHref ? (
-									<button
-										className="game-side-button game-side-button--download"
-										type="button"
-										onClick={handleDownloadSgf}
-									>
-										Download SGF
-									</button>
-								) : null}
 								{showDownloadBoardImageButton ? (
 									<button
 										className="game-side-button game-side-button--download"
