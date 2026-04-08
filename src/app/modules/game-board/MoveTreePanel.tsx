@@ -1,5 +1,5 @@
 import { isPassMove, type MoveTreeNode } from '../../models/game'
-import { buildMoveTreeRenderNodes } from '../../models/moveTree'
+import { buildMoveTreeRenderNodes, MoveTreeRenderNode } from '../../models/moveTree'
 import { useEffect, useRef, type CSSProperties } from 'react'
 
 type MoveTreePanelProps = {
@@ -26,7 +26,7 @@ export const MoveTreePanel = ({
 	const branchesRef = useRef<HTMLDivElement>(null)
 	const renderNodes = buildMoveTreeRenderNodes(moveTree)
 
-	const renderNodeById = new Map<string, RenderNode>(renderNodes.map((node) => [node.id, node]))
+	const renderNodeById = new Map<string, MoveTreeRenderNode>(renderNodes.map((node) => [node.id, node]))
 	const maxDepth = renderNodes.reduce((value, node) => Math.max(value, node.depth), 0)
 	const maxRow = renderNodes.reduce((value, node) => Math.max(value, node.row), 1)
 	const canvasWidth = Math.max(CELL_SIZE, (maxDepth + 1) * CELL_SIZE)
